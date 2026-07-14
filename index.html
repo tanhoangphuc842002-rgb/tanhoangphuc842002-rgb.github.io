@@ -659,6 +659,7 @@
             <button id="connectbutton" type="button" onclick="preConnect();">Scan Devices</button>
             <button type="button" onclick="reConnect();">Reconnect</button>
             <button type="button" onclick="document.getElementById('log').innerHTML = '';">Clear Logs</button>
+            <span id="device-protocol">Device: not connected</span>
         </div>
 
         
@@ -668,11 +669,11 @@
         </div>
 
         <div class="button-group">
-                        <button type="button" onclick="setri('e102')" title="Click to switch to clock mode">Switch to Clock Mode</button>
-            <button type="button" onclick="setri('e101')" title="Click to switch to calendar mode">Switch to Calendar Mode</button>
+            <button type="button" onclick="switchDisplayMode(2)" title="Click again to toggle clock faces on nRF52">Switch to Clock Mode</button>
+            <button type="button" onclick="switchDisplayMode(1)" title="Click to switch to calendar mode">Switch to Calendar Mode</button>
 
             <button type="button" onclick="setri('e4')" title="Click to toggle clock color">Toggle Clock Color</button>
-            <button type="button" onclick="triggerRxTxCmd('e100')" title="Click to display last uploaded image permanently on screen">Set Image Mode</button>
+            <button type="button" onclick="switchDisplayMode(0)" title="DA14585 restores image mode; nRF52 opens Image Transfer for a new upload">Set Image Mode</button>
         </div>
 
         <div class="button-group">
@@ -818,6 +819,10 @@
         <div class="button-group">
             Screen Size:
             <select id="screen-size" onchange="updateCanvasSize()">
+                <option value="nrf52_2.13_250x128">nRF52 2.13&quot; (250x128)</option>
+                <option value="nrf52_2.9_296x128">nRF52 2.9&quot; CE (296x128)</option>
+                <option value="nrf52_4.2_400x300">nRF52 4.2&quot; BWR UC8176 (400x300)</option>
+                <option value="nrf52_4.2_400x300_bw1619">nRF52 4.2&quot; BW SSD1619 (400x300)</option>
                 <option value="4.2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">4.2" Transfer</option>
                 <option value="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">4.2" Calendar Small</option>
                 <option value="7.5ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">7.5" Transfer</option>
@@ -2028,6 +2033,33 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let rxtxCharacteristic;
         let reconnectTrys = 0;
         const my_step = 480;
+        const PROTOCOL_DA14585 = 'da14585';
+        const PROTOCOL_NRF52 = 'nrf52';
+        const NRF52_SERVICE_UUID = '62750001-d828-918d-fb46-b6c11c675aec';
+        const NRF52_CHARACTERISTIC_UUID = '62750002-d828-918d-fb46-b6c11c675aec';
+        const NRF52_CMD_SET_TIME = 0x20;
+        const NRF52_CMD_WRITE_IMAGE = 0x30;
+        const NRF52_CMD_REFRESH = 0x05;
+        const NRF52_CMD_INIT = 0x01;
+        const NRF52_CMD_ACTIVATE = 0xa0;
+        const NRF52_IMAGE_CHUNK_SIZE = 128;
+        const DA14585_RXTX_SERVICE_UUID = '00001f10-0000-1000-8000-00805f9b34fb';
+        const DA14585_LEGACY_SERVICE_UUID = '13187b10-eba9-a3ba-044e-83d3217d9a38';
+        const DA14585_DFU_SERVICE_UUID = '0000221f-0000-1000-8000-00805f9b34fb';
+        const SUPPORTED_BLE_SERVICES = [
+            NRF52_SERVICE_UUID,
+            DA14585_RXTX_SERVICE_UUID,
+            DA14585_LEGACY_SERVICE_UUID,
+            DA14585_DFU_SERVICE_UUID
+        ];
+        let deviceProtocol = null;
+        let nrf52DisplayMode = 1;
+        let nrf52ModelId = 2;
+        let nrf52ModelDetected = false;
+        let nrf52ActivationWaiter = null;
+        let nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
+        let manualDisconnect = false;
+        let autoReconnectTimer = null;
         function delay(delayInMs) {
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -2036,11 +2068,25 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             });
         }
         function resetVariables() {
+            if (autoReconnectTimer) {
+                clearTimeout(autoReconnectTimer);
+                autoReconnectTimer = null;
+            }
             gattServer = null;
             epdService = null;
             epdCharacteristic = null;
             rxtxCharacteristic = null;
             rxtxService = null;
+            deviceProtocol = null;
+            nrf52ModelDetected = false;
+            nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
+            if (nrf52ActivationWaiter) {
+                clearTimeout(nrf52ActivationWaiter.timer);
+                nrf52ActivationWaiter.resolve(null);
+                nrf52ActivationWaiter = null;
+            }
+            const protocolLabel = document.getElementById('device-protocol');
+            if (protocolLabel) protocolLabel.textContent = 'Device: not connected';
             document.getElementById("log").value = '';
         }
         async function handleError(error) {
@@ -2062,6 +2108,99 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             } else {
                 addLog('Service unavailable. Is Bluetooth connected?')
             }
+        }
+        async function sendNrf52Mode(mode) {
+            const previousMode = nrf52DisplayMode;
+            const timestamp = Math.floor(Date.now() / 1000);
+            const timezoneHours = Math.round(-new Date().getTimezoneOffset() / 60);
+            const packet = new Uint8Array([
+                NRF52_CMD_SET_TIME,
+                (timestamp >>> 24) & 0xff,
+                (timestamp >>> 16) & 0xff,
+                (timestamp >>> 8) & 0xff,
+                timestamp & 0xff,
+                timezoneHours & 0xff,
+                mode
+            ]);
+            await sendCommand(packet);
+            nrf52DisplayMode = (mode === 2 && previousMode === 2) ? 3 : mode;
+            addLog(`nRF52 mode ${nrf52DisplayMode} command sent`);
+        }
+        async function switchDisplayMode(mode) {
+            if (deviceProtocol === PROTOCOL_DA14585) {
+                if (mode === 0) await triggerRxTxCmd('e100');
+                else await setri(mode === 2 ? 'e102' : 'e101');
+                return;
+            }
+            if (deviceProtocol === PROTOCOL_NRF52) {
+                if (mode === 0) {
+                    const imageTab = document.querySelector('.tab-button[data-tab="tab-image"]');
+                    if (imageTab) imageTab.click();
+                    selectNrf52CanvasForModel();
+                    addLog('nRF52 Picture Mode is activated automatically after uploading a new image.');
+                } else {
+                    await sendNrf52Mode(mode);
+                }
+                return;
+            }
+            addLog('Connect a device first.');
+        }
+        async function sendNrf52ImagePlane(data, blackPlane) {
+            const planeName = blackPlane ? 'black' : 'red';
+            const chunkSize = nrf52ImageChunkSize;
+            const total = Math.ceil(data.length / chunkSize);
+            for (let offset = 0, part = 0; offset < data.length; offset += chunkSize, part++) {
+                const chunk = data.slice(offset, offset + chunkSize);
+                const begin = offset === 0 ? 0x00 : 0xf0;
+                const plane = blackPlane ? 0x0f : 0x00;
+                const packet = new Uint8Array([NRF52_CMD_WRITE_IMAGE, begin | plane, ...chunk]);
+                await sendCommand(packet);
+                addLog(`nRF52 ${planeName} block ${part + 1}/${total}`);
+                await delay(8);
+            }
+        }
+        async function uploadNrf52Image(canvas) {
+            const screenValue = document.getElementById('screen-size').value;
+            const is290 = screenValue === 'nrf52_2.9_296x128' && canvas.width === 296 && canvas.height === 128;
+            const is213 = screenValue === 'nrf52_2.13_250x128' && canvas.width === 250 && canvas.height === 128;
+            const is420Bwr = screenValue === 'nrf52_4.2_400x300' && canvas.width === 400 && canvas.height === 300;
+            const is420Bw1619 = screenValue === 'nrf52_4.2_400x300_bw1619' && canvas.width === 400 && canvas.height === 300;
+            const is420 = is420Bwr || is420Bw1619;
+            if (!is290 && !is213 && !is420) {
+                addLog('Select nRF52 2.9" CE (296x128), nRF52 2.13" (250x128), UC8176 BWR 4.2", or SSD1619 BW 4.2" before uploading.');
+                return false;
+            }
+            if (nrf52ModelDetected && is420Bwr && nrf52ModelId !== 3) {
+                addLog(`Connected nRF52 model ${nrf52ModelId} is not UC8176 BWR 4.2" (model 3).`);
+                return false;
+            }
+            if (nrf52ModelDetected && is420Bw1619 && nrf52ModelId !== 4) {
+                addLog(`Connected nRF52 model ${nrf52ModelId} is not SSD1619 BW 4.2" (model 4).`);
+                return false;
+            }
+            if (nrf52ModelDetected && (is290 || is213) && (nrf52ModelId === 3 || nrf52ModelId === 4)) {
+                addLog('Connected device is 4.2". Select the matching nRF52 4.2" screen size.');
+                return false;
+            }
+
+            await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
+            await delay(100);
+
+            // The 2.9"/2.13" firmware stores bytes column-first; 4.2"
+            // follows EPD-nRF5 and stores bytes row-first.
+            const converter = is420 ? canvas2bytes : canvas2bytes_bw;
+            const black = converter(canvas);
+            await sendNrf52ImagePlane(black, true);
+            if (is420Bwr || is290 || (!is420Bw1619 && nrf52ModelId === 2)) {
+                // The BWR converter uses 1 for red pixels, while the
+                // nRF52 red plane expects 0 for red and 1 for non-red pixels.
+                const red = converter(canvas, 'bwr').map(byte => byte ^ 0xff);
+                await sendNrf52ImagePlane(red, false);
+            }
+            await sendCommand(new Uint8Array([NRF52_CMD_REFRESH]));
+            nrf52DisplayMode = 0;
+            addLog('nRF52 image uploaded; Picture Mode is now active.');
+            return true;
         }
         async function clearScreen(cmd) {
             addLog('Refresh screen')
@@ -2112,6 +2251,42 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext("2d");
             let width, height;
+            if (sizeSelect.value === "nrf52_2.9_296x128") {
+                canvas.width = 296;
+                canvas.height = 128;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                update_image();
+                addLog('Canvas size updated to: 296x128 (nRF52 2.9 CE)');
+                return;
+            }
+            if (sizeSelect.value === "nrf52_2.13_250x128") {
+                canvas.width = 250;
+                canvas.height = 128;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                update_image();
+                addLog('Canvas size updated to: 250x128');
+                return;
+            }
+            if (sizeSelect.value === "nrf52_4.2_400x300") {
+                canvas.width = 400;
+                canvas.height = 300;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                update_image();
+                addLog('Canvas size updated to: 400x300 (nRF52 UC8176 BWR)');
+                return;
+            }
+            if (sizeSelect.value === "nrf52_4.2_400x300_bw1619") {
+                canvas.width = 400;
+                canvas.height = 300;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                update_image();
+                addLog('Canvas size updated to: 400x300 (nRF52 SSD1619 BW)');
+                return;
+            }
             if (sizeSelect.value == "4.2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾") {
                 width = 400;
                 height = 300;
@@ -2144,6 +2319,12 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         async function upload_image() {
             const canvas = document.getElementById('canvas');
             const startTime = new Date().getTime();
+            if (deviceProtocol === PROTOCOL_NRF52) {
+                if (await uploadNrf52Image(canvas)) {
+                    addLog(`Upload complete, time:${(new Date().getTime() - startTime) / 1000}s`);
+                }
+                return;
+            }
             if(canvas.width==296){
                 
                  await sendBufferData(bytesToHex(canvas2bytes_bw(canvas)), 'bw')
@@ -2161,6 +2342,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             addLog(`Upload complete, time:${(new Date().getTime() - startTime) / 1000}s`);
         }
         async function setTime() {
+            if (deviceProtocol === PROTOCOL_NRF52) {
+                await sendNrf52Mode(nrf52DisplayMode);
+                return;
+            }
             const { unixNow, localeTimeString, year, month, day, week } = getUnixTime();
             addLog("Time set to: " + localeTimeString + " : dd" + intToHex(unixNow, 4));
             await rxTxSendCommand(hexToBytes('dd' +
@@ -2192,6 +2377,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             await rxTxSendCommand(hexToBytes(cmd));
         }
         async function triggerEpdJH(cmd) {
+            if (deviceProtocol === PROTOCOL_NRF52) {
+                addLog('nRF52 uses the signed activation tool; this activation box is for DA14585 only.');
+                return;
+            }
             addLog(`Activation command: ${cmd}`)
             cmd = 'EF' + cmd;
             await rxTxSendCommand(hexToBytes(cmd));
@@ -2235,18 +2424,34 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             resetVariables();
             addLog('Disconnected.');
             document.getElementById("connectbutton").innerHTML = 'Scan Devices';
+            if (manualDisconnect || bleDevice == null) {
+                manualDisconnect = false;
+                return;
+            }
+            document.getElementById("connectbutton").innerHTML = 'Reconnecting...';
+            addLog('BLE disconnected; reconnecting automatically...');
+            autoReconnectTimer = setTimeout(async () => {
+                autoReconnectTimer = null;
+                try {
+                    await reConnect();
+                } catch (e) {
+                    await handleError(e);
+                }
+            }, 1000);
         }
         async function preConnect() {
             if (gattServer != null && gattServer.connected) {
-                if (bleDevice != null && bleDevice.gatt.connected)
+                if (bleDevice != null && bleDevice.gatt.connected) {
+                    manualDisconnect = true;
                     bleDevice.gatt.disconnect();
+                }
             } else {
                 reconnectTrys = 0;
                 try {
                     document.getElementById("connectbutton").innerHTML = 'Scanning...';
                     bleDevice = await navigator.bluetooth.requestDevice({
-                        acceptAllDevices: true,
-                        optionalServices: ['0000221f-0000-1000-8000-00805f9b34fb', '00001f10-0000-1000-8000-00805f9b34fb', '13187b10-eba9-a3ba-044e-83d3217d9a38']
+                        filters: SUPPORTED_BLE_SERVICES.map(service => ({ services: [service] })),
+                        optionalServices: SUPPORTED_BLE_SERVICES
                     });
                     bleDevice.addEventListener('gattserverdisconnected', disconnect);
                 } catch (e) {
@@ -2262,15 +2467,150 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
         }
         async function connectRXTX() {
-            rxtxService = await gattServer.getPrimaryService('00001f10-0000-1000-8000-00805f9b34fb');
+            rxtxService = await gattServer.getPrimaryService(DA14585_RXTX_SERVICE_UUID);
             addLog('> rxtxService Serial service found');
             rxtxCharacteristic = await rxtxService.getCharacteristic('00001f1f-0000-1000-8000-00805f9b34fb');
             addLog('> rxtxCharacteristic Serial service connected');
         }
+        function setDetectedProtocol(protocol) {
+            deviceProtocol = protocol;
+            const name = protocol === PROTOCOL_NRF52 ? 'nRF52' : 'DA14585';
+            const protocolLabel = document.getElementById('device-protocol');
+            if (protocolLabel) protocolLabel.textContent = `Device: ${name}`;
+            addLog(`> Detected protocol: ${name}`);
+        }
+        function selectNrf52CanvasForModel() {
+            const sizeSelect = document.getElementById('screen-size');
+            const target = nrf52ModelId === 3
+                ? 'nrf52_4.2_400x300'
+                : (nrf52ModelId === 4 ? 'nrf52_4.2_400x300_bw1619' : sizeSelect.value);
+            if (sizeSelect.value !== target) {
+                sizeSelect.value = target;
+                updateCanvasSize();
+            }
+        }
+        function waitForNrf52Activation(timeoutMs) {
+            if (nrf52ActivationWaiter) {
+                clearTimeout(nrf52ActivationWaiter.timer);
+                nrf52ActivationWaiter.resolve(null);
+            }
+            return new Promise(resolve => {
+                const timer = setTimeout(() => {
+                    nrf52ActivationWaiter = null;
+                    resolve(null);
+                }, timeoutMs);
+                nrf52ActivationWaiter = { resolve, timer };
+            });
+        }
+        function resolveNrf52Activation(result) {
+            if (!nrf52ActivationWaiter) return;
+            clearTimeout(nrf52ActivationWaiter.timer);
+            nrf52ActivationWaiter.resolve(result);
+            nrf52ActivationWaiter = null;
+        }
+        function getNrf52LegacyActivationCode() {
+            const name = bleDevice && bleDevice.name ? bleDevice.name : '';
+            const match = name.match(/([0-9a-fA-F]{4})$/);
+            if (!match) return null;
+            const deviceId = parseInt(match[1], 16) & 0xffff;
+            const code = (deviceId ^ 0x7611) & 0xffff;
+            return code === 0xffff ? 0 : code;
+        }
+        async function initializeNrf52Device() {
+            // Query first so the existing signed-activation 2.13" firmware
+            // remains compatible. The UC8176 firmware replies with text when
+            // already active, or waits for its two-byte legacy activation key.
+            let waitResult = waitForNrf52Activation(1200);
+            await sendCommand(new Uint8Array([NRF52_CMD_ACTIVATE]));
+            let activation = await waitResult;
+
+            if (activation && activation.kind === 'signed') {
+                if (!activation.active) {
+                    addLog('nRF52 is locked and requires the signed activation tool.');
+                    return false;
+                }
+            } else if (!activation) {
+                addLog('No activation response; continuing with open nRF52 firmware.');
+            } else if (!activation.active) {
+                const code = getNrf52LegacyActivationCode();
+                if (code === null) {
+                    addLog('Cannot activate UC8176: Bluetooth name must end with 4 hexadecimal characters.');
+                    return false;
+                }
+                waitResult = waitForNrf52Activation(8000);
+                await sendCommand(new Uint8Array([
+                    NRF52_CMD_ACTIVATE,
+                    (code >>> 8) & 0xff,
+                    code & 0xff
+                ]));
+                activation = await waitResult;
+                if (!activation || !activation.active) {
+                    addLog('UC8176 activation failed or timed out.');
+                    return false;
+                }
+            }
+
+            addLog('> nRF52 connected; display init skipped to avoid full refresh.');
+            return true;
+        }
+        function handleNrf52Notification(event) {
+            const value = event.target.value;
+            const data = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+            if (data.length === 15 && data[0] === 0xa0) {
+                const code = String.fromCharCode(...data.slice(11, 15));
+                const active = data[2] !== 0;
+                addLog(`> nRF52 activation: ${active ? 'active' : 'locked'}, device ${code}`);
+                resolveNrf52Activation({ kind: 'signed', active });
+                return;
+            }
+
+            const message = new TextDecoder().decode(data);
+            if (message.startsWith('activation=ok')) {
+                addLog('> UC8176 activation: active');
+                resolveNrf52Activation({ kind: 'legacy', active: true });
+                return;
+            }
+            if (message.startsWith('activation=locked')) {
+                addLog('> UC8176 activation: locked');
+                resolveNrf52Activation({ kind: 'legacy', active: false });
+                return;
+            }
+            if (message.startsWith('mtu=')) {
+                const mtu = parseInt(message.substring(4), 10);
+                if (Number.isFinite(mtu) && mtu > 2) {
+                    nrf52ImageChunkSize = Math.max(18, Math.min(244, mtu - 2));
+                }
+                addLog(`> nRF52 ${message}, image chunk: ${nrf52ImageChunkSize} bytes`);
+                return;
+            }
+
+            const isConfig = data.length >= 8 && data.length <= 16 &&
+                [1, 2, 3, 4, 5].includes(data[7]);
+            if (isConfig) {
+                nrf52ModelId = data[7];
+                nrf52ModelDetected = true;
+                if (data.length > 11) nrf52DisplayMode = data[11];
+                addLog(`> nRF52 model ${nrf52ModelId}, current mode: ${nrf52DisplayMode}`);
+                selectNrf52CanvasForModel();
+            } else {
+                addLog(`> nRF52 response: ${message.trim() || bytesToHex(data)}`);
+            }
+        }
+        async function connectNrf52() {
+            epdService = await gattServer.getPrimaryService(NRF52_SERVICE_UUID);
+            epdCharacteristic = await epdService.getCharacteristic(NRF52_CHARACTERISTIC_UUID);
+            await epdCharacteristic.startNotifications();
+            epdCharacteristic.addEventListener('characteristicvaluechanged', handleNrf52Notification);
+            setDetectedProtocol(PROTOCOL_NRF52);
+            await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
+            addLog('> nRF52 connected; display initialized.');
+        }
         async function reConnect() {
             reconnectTrys = 0;
-            if (bleDevice != null && bleDevice.gatt.connected)
+            if (bleDevice != null && bleDevice.gatt.connected) {
+                manualDisconnect = true;
                 bleDevice.gatt.disconnect();
+            }
             resetVariables();
             addLog("Reconnect");
             await delay(300);
@@ -2286,21 +2626,28 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 addLog("Connecting: " + bleDevice.name);
                 gattServer = await bleDevice.gatt.connect();
                 addLog('> GATT server found');
-                await connectRXTX();
                 try {
-                    epdService = await gattServer.getPrimaryService('13187b10-eba9-a3ba-044e-83d3217d9a38');
-                    addLog('> epdService Available service found');
-                    epdCharacteristic = await epdService.getCharacteristic('4b646063-6264-f3a7-8941-e65356ea82fe');
-                    addLog('> epdCharacteristic Service connected');
-                    await epdCharacteristic.startNotifications();
-                    epdCharacteristic.addEventListener('characteristicvaluechanged', (event) => {
-                        console.log('epd ret', bytesToHex(event.target.value.buffer));
-                        const count = parseInt('0x' + bytesToHex(event.target.value.buffer));
-                        addLog(`> [From screen]: Received${count} bytedata`);
-                    });
-                } catch (e) {
-                    addLog('> epdService not found, falling back to rxtxService');
-                    epdCharacteristic = rxtxCharacteristic;
+                    await connectNrf52();
+                } catch (nrfError) {
+                    epdCharacteristic = null;
+                    epdService = null;
+                    await connectRXTX();
+                    setDetectedProtocol(PROTOCOL_DA14585);
+                    try {
+                        epdService = await gattServer.getPrimaryService(DA14585_LEGACY_SERVICE_UUID);
+                        addLog('> epdService Available service found');
+                        epdCharacteristic = await epdService.getCharacteristic('4b646063-6264-f3a7-8941-e65356ea82fe');
+                        addLog('> epdCharacteristic Service connected');
+                        await epdCharacteristic.startNotifications();
+                        epdCharacteristic.addEventListener('characteristicvaluechanged', (event) => {
+                            console.log('epd ret', bytesToHex(event.target.value.buffer));
+                            const count = parseInt('0x' + bytesToHex(event.target.value.buffer));
+                            addLog(`> [From screen]: Received${count} bytedata`);
+                        });
+                    } catch (legacyEpdError) {
+                        addLog('> epdService not found, falling back to rxtxService');
+                        epdCharacteristic = rxtxCharacteristic;
+                    }
                 }
                 document.getElementById("connectbutton").innerHTML = 'Disconnect';
             }
@@ -2497,6 +2844,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const editor = document.getElementById('edit-font');
             const font = document.getElementById('font');
             document.getElementById('dithering').value = 'bwr_floydsteinberg';
+            if (!image_mode || !paint_size || !paint_color || !editor || !font) return;
             image_mode.value = 'paint';
             paint_color.value = 'black';
             font.value = 'SimHei';
