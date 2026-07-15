@@ -2450,7 +2450,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 try {
                     document.getElementById("connectbutton").innerHTML = 'Scanning...';
                     bleDevice = await navigator.bluetooth.requestDevice({
-                        filters: SUPPORTED_BLE_SERVICES.map(service => ({ services: [service] })),
+                        acceptAllDevices: true,
                         optionalServices: SUPPORTED_BLE_SERVICES
                     });
                     bleDevice.addEventListener('gattserverdisconnected', disconnect);
