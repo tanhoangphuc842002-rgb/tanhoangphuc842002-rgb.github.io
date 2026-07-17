@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <title>E-Paper Tag - v42</title>
+    <title>Thẻ mực điện tử - v42</title>
     <style>
         /* Base style reset */
         * {
@@ -633,6 +633,30 @@
         .local-image-btn:hover {
             background-color: #7b1fa2;
         }
+
+        .language-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .language-toolbar label {
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .language-toolbar select {
+            width: auto;
+            min-width: 150px;
+            margin: 0;
+        }
     </style>
 
     <!-- dithering.js not in repo -->
@@ -640,6 +664,285 @@
 </head>
 
 <body>
+    <div class="language-toolbar">
+        <label for="language-selector">Language:</label>
+        <select id="language-selector" aria-label="Language selector">
+            <option value="vi">Tiếng Việt</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <script>
+        const APP_TRANSLATIONS = {
+            vi: {
+                "E-Paper Tag - v42": "Thẻ mực điện tử - v42",
+                "Language selector": "Bộ chọn ngôn ngữ",
+                "Language:": "Ngôn ngữ:",
+                "E-Paper Settings": "Cài đặt màn hình E-Paper",
+                "Countdown Module": "Bộ đếm ngược",
+                "Image Transfer": "Truyền ảnh",
+                "Template Designer": "Thiết kế mẫu",
+                "E-Paper Bluetooth Controller - Connect device first before setting clock": "Bộ điều khiển E-Paper qua Bluetooth - Hãy kết nối thiết bị trước khi đặt giờ",
+                "Scan Devices": "Quét thiết bị",
+                "Reconnect": "Kết nối lại",
+                "Clear Logs": "Xóa nhật ký",
+                "Device: not connected": "Thiết bị: chưa kết nối",
+                "Set Time:": "Cài giờ:",
+                "Switch to Clock Mode": "Chuyển sang chế độ đồng hồ",
+                "Switch to Calendar Mode": "Chuyển sang chế độ lịch",
+                "Toggle Clock Color": "Đổi màu đồng hồ",
+                "Set Image Mode": "Chuyển sang chế độ ảnh",
+                "Toggle B&W Color Inversion": "Đảo màu đen/trắng",
+                "Rotate Screen 180 deg": "Xoay màn hình 180 độ",
+                "Set Partial Refresh Calibration (also command input)": "Cài hiệu chỉnh làm mới cục bộ (kiêm ô nhập lệnh)",
+                "(No response? Click) Refresh": "(Không phản hồi? Bấm) Làm mới",
+                "Send AA": "Gửi AA",
+                "Send AB": "Gửi AB",
+                "Start Hour:": "Giờ bắt đầu:",
+                "End Hour:": "Giờ kết thúc:",
+                "Enable Sleep (no refresh during white screen interval)": "Bật ngủ (không làm mới trong khoảng màn hình trắng)",
+                "Disable Sleep (screen refreshes during white screen hours)Power Save + Repair)": "Tắt ngủ (màn hình vẫn làm mới trong giờ màn hình trắng - tiết kiệm pin + sửa lỗi)",
+                "2.13\" low-res clock parking sign - Enter number:": "Biển số/đồng hồ 2.13\" độ phân giải thấp - Nhập số:",
+                "Set Number Display": "Cài hiển thị số",
+                "Activate (not needed if display is working):": "Kích hoạt (không cần nếu màn hình đang hoạt động):",
+                "Activate": "Kích hoạt",
+                "Countdown Date Picker - Select to apply": "Chọn ngày đếm ngược - Chọn để áp dụng",
+                "Select a date:": "Chọn ngày:",
+                "Settings": "Cài đặt",
+                "Input Settings": "Cài đặt nội dung",
+                "Enter text (max 8 chars)": "Nhập chữ (tối đa 8 ký tự)",
+                "Countdown Interface": "Giao diện đếm ngược",
+                "Clock Countdown": "Đếm ngược dạng đồng hồ",
+                "Clock Countdown Interface": "Giao diện đếm ngược dạng đồng hồ",
+                "Font Selection (desktop only)": "Chọn phông chữ (chỉ máy tính)",
+                "Font Size (50%-150%)": "Cỡ chữ (50%-150%)",
+                "Adjust font display ratio. Too large may truncate characters": "Điều chỉnh tỷ lệ hiển thị chữ. Quá lớn có thể bị cắt ký tự",
+                "Invert Colors": "Đảo màu",
+                "Show Grid": "Hiện lưới",
+                "Start Countdown": "Bắt đầu đếm ngược",
+                "Stop Countdown": "Dừng đếm ngược",
+                "Upload Image to Screen": "Tải ảnh lên màn hình",
+                "Screen Size:": "Kích thước màn hình:",
+                "4.2\" Transfer": "Truyền ảnh 4.2\"",
+                "4.2\" Calendar Small": "Lịch nhỏ 4.2\"",
+                "7.5\" Transfer": "Truyền ảnh 7.5\"",
+                "7.5\" Calendar Small": "Lịch nhỏ 7.5\"",
+                "2.9\" Transfer": "Truyền ảnh 2.9\"",
+                "Dithering Algorithm:": "Thuật toán phối điểm:",
+                "BWR No Dithering": "BWR không phối điểm",
+                "BWR Floyd-Steinberg": "BWR Floyd-Steinberg",
+                "BWR Atkinson": "BWR Atkinson",
+                "BWR Bayer": "BWR Bayer",
+                "BWR Stucki": "BWR Stucki",
+                "BWR Jarvis-Judice-Ninke": "BWR Jarvis-Judice-Ninke",
+                "No Dithering": "Không phối điểm",
+                "Floyd-Steinberg": "Floyd-Steinberg",
+                "Atkinson": "Atkinson",
+                "Bayer": "Bayer",
+                "Stucki": "Stucki",
+                "Jarvis-Judice-Ninke": "Jarvis-Judice-Ninke",
+                "Threshold (B&W mode):": "Ngưỡng (chế độ đen/trắng):",
+                "Rotation:": "Xoay:",
+                "0 deg": "0 độ",
+                "Scale:": "Tỷ lệ:",
+                "Reload": "Tải lại",
+                "Stretch to Screen": "Kéo giãn vừa màn hình",
+                "Fit to Screen": "Vừa màn hình",
+                "Reset to 100%": "Đặt lại 100%",
+                "Rotate CW 90 deg": "Xoay phải 90 độ",
+                "Rotate CCW 90 deg": "Xoay trái 90 độ",
+                "Reset Rotation": "Đặt lại xoay",
+                "Image Adjustment": "Chỉnh ảnh",
+                "Brightness:": "Độ sáng:",
+                "Contrast:": "Độ tương phản:",
+                "Saturation:": "Độ bão hòa:",
+                "Diffusion Strength:": "Độ mạnh khuếch tán:",
+                "ApplyImage Adjustment": "Áp dụng chỉnh ảnh",
+                "Upload to Screen Now": "Tải lên màn hình ngay",
+                "Set element width & height": "Cài chiều rộng & chiều cao phần tử",
+                "ApplySize": "Áp dụng kích thước",
+                "Rotate Element": "Xoay phần tử",
+                "Apply": "Áp dụng",
+                "Delete Element": "Xóa phần tử",
+                "Copy Element": "Sao chép phần tử",
+                "To Front": "Đưa lên trước",
+                "To Back": "Đưa ra sau",
+                "Add Element": "Thêm phần tử",
+                "Image/Icon": "Ảnh/Biểu tượng",
+                "Text": "Chữ",
+                "Rectangle": "Hình chữ nhật",
+                "Circle": "Hình tròn",
+                "Triangle": "Tam giác",
+                "Line": "Đường thẳng",
+                "Star": "Ngôi sao",
+                "Custom Text": "Chữ tùy chỉnh",
+                "Select Color": "Chọn màu",
+                "Bold": "Đậm",
+                "Italic": "Nghiêng",
+                "Underline": "Gạch chân",
+                "Update Text": "Cập nhật chữ",
+                "Move Up": "Di chuyển lên",
+                "Move Left": "Di chuyển trái",
+                "Move Down": "Di chuyển xuống",
+                "Move Right": "Di chuyển phải",
+                "GenerateQR Code": "Tạo mã QR",
+                "Solid": "Màu đơn",
+                "NoteMemo": "Ghi chú",
+                "Namecard": "Danh thiếp",
+                "Gradient1": "Chuyển màu 1",
+                "Gradient2": "Chuyển màu 2",
+                "Gradient3": "Chuyển màu 3",
+                "Random": "Ngẫu nhiên",
+                "ClassSchedule": "Thời khóa biểu",
+                "Items": "Vật dụng",
+                "Upload Background Image": "Tải ảnh nền lên",
+                "Apply Background": "Áp dụng nền",
+                "Upload Custom Icon": "Tải biểu tượng riêng",
+                "Save Canvas as Image (can restore via background upload)": "Lưu khung vẽ thành ảnh (có thể khôi phục bằng tải ảnh nền)",
+                "Clear All Canvas Elements": "Xóa toàn bộ phần tử trên khung vẽ",
+                "Apply Template & Go to Transfer": "Áp dụng mẫu & sang phần truyền ảnh",
+                "Log:": "Nhật ký:",
+                "Click again to toggle clock faces on nRF52": "Bấm lại để đổi mặt đồng hồ trên nRF52",
+                "Click to switch to calendar mode": "Bấm để chuyển sang chế độ lịch",
+                "Click to toggle clock color": "Bấm để đổi màu đồng hồ",
+                "DA14585 restores image mode; nRF52 opens Image Transfer for a new upload": "DA14585 khôi phục chế độ ảnh; nRF52 mở phần truyền ảnh để tải ảnh mới",
+                "Click to set inverse color mode": "Bấm để bật/tắt chế độ đảo màu",
+                "Click to flip screen mode": "Bấm để lật màn hình",
+                "Calibrate red partial refresh (hex 01-0f). Disable red and calibrate black (10-f0). Higher = darker": "Hiệu chỉnh làm mới cục bộ màu đỏ (hex 01-0f). Tắt đỏ và chỉnh đen (10-f0). Số càng cao càng đậm",
+                "Send command AA via RxTx": "Gửi lệnh AA qua RxTx",
+                "Send command AB via RxTx": "Gửi lệnh AB qua RxTx",
+                "Click to enable no-refresh during time interval": "Bấm để bật không làm mới trong khoảng thời gian",
+                "Click to disable no-refresh during time interval": "Bấm để tắt không làm mới trong khoảng thời gian",
+                "Number:": "Số:",
+                "Enter activation code:": "Nhập mã kích hoạt:",
+                "Days until": "Days until",
+                "Enter 1-8 characters": "Nhập 1-8 ký tự",
+                "Dithering algorithm": "Thuật toán phối điểm",
+                "Width": "Rộng",
+                "Height": "Cao",
+                "Params1": "Tham số 1",
+                "Params2": "Tham số 2",
+                "Please enter textContent": "Vui lòng nhập nội dung chữ",
+                "Please enter content to generateQR Code text/URL/contact info, etc.": "Nhập nội dung để tạo mã QR: văn bản/URL/liên hệ..."
+                ,"Scanning...": "Đang quét...",
+                "Connecting...": "Đang kết nối...",
+                "Disconnect": "Ngắt kết nối",
+                "Reconnecting...": "Đang kết nối lại...",
+                "Disconnected.": "Đã ngắt kết nối.",
+                "BLE disconnected; reconnecting automatically...": "Bluetooth đã ngắt; đang tự động kết nối lại...",
+                "Scan cancelled or failed: ": "Đã hủy quét hoặc quét thất bại: ",
+                "Connecting: ": "Đang kết nối: ",
+                "Device:": "Thiết bị:",
+                "Detected protocol:": "Đã nhận dạng giao thức:",
+                "Service unavailable. Is Bluetooth connected?": "Không có dịch vụ. Bluetooth đã kết nối chưa?",
+                "Connect a device first.": "Hãy kết nối thiết bị trước.",
+                "nRF52 Picture Mode is activated automatically after uploading a new image.": "Chế độ ảnh nRF52 sẽ tự bật sau khi tải ảnh mới lên.",
+                "nRF52 image uploaded; Picture Mode is now active.": "Đã tải ảnh nRF52; chế độ ảnh đang hoạt động.",
+                "Refresh screen": "Làm mới màn hình",
+                "Starting image send mode:": "Bắt đầu gửi ảnh chế độ:",
+                "size": "kích thước",
+                "bytes": "byte",
+                "Upload complete, time:": "Tải lên hoàn tất, thời gian:",
+                "s": "giây",
+                "Time set to: ": "Đã cài giờ: ",
+                "Set no-refresh time period: ": "Đã cài khoảng không làm mới: ",
+                "Week": "Thứ ",
+                "Please select a countdown date": "Vui lòng chọn ngày đếm ngược",
+                "Invalid countdown date": "Ngày đếm ngược không hợp lệ",
+                "Countdown date must be between 2000 and 2099": "Ngày đếm ngược phải nằm trong khoảng 2000 đến 2099",
+                "Please select an icon or generate QR code first!": "Vui lòng chọn biểu tượng hoặc tạo mã QR trước!",
+                "Please select a text element first!": "Vui lòng chọn phần tử chữ trước!",
+                "Please select a text element to edit!": "Vui lòng chọn phần tử chữ để sửa!",
+                "Please select an element first!": "Vui lòng chọn một phần tử trước!"
+            }
+        };
+
+        const i18nTextNodes = new WeakMap();
+        const i18nAttrs = ['placeholder', 'title', 'aria-label'];
+        const i18nSkipTags = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'CODE', 'PRE']);
+
+        function getCurrentLanguage() {
+            return localStorage.getItem('app-language') || 'vi';
+        }
+
+        function translateText(text, lang = getCurrentLanguage()) {
+            if (lang === 'en') return text;
+            return (APP_TRANSLATIONS[lang] && APP_TRANSLATIONS[lang][text]) || text;
+        }
+
+        function t(text) {
+            return translateText(text);
+        }
+
+        function translateTextNode(node, lang) {
+            const raw = node.nodeValue;
+            if (!raw || !raw.trim()) return;
+            const original = i18nTextNodes.get(node) || raw.replace(/\s+/g, ' ').trim();
+            i18nTextNodes.set(node, original);
+            const translated = translateText(original, lang);
+            const leading = raw.match(/^\s*/)[0];
+            const trailing = raw.match(/\s*$/)[0];
+            const nextValue = leading + translated + trailing;
+            if (node.nodeValue !== nextValue) node.nodeValue = nextValue;
+        }
+
+        function translateAttributes(element, lang) {
+            i18nAttrs.forEach(attr => {
+                if (!element.hasAttribute(attr)) return;
+                const key = `i18nOriginal${attr.replace(/(^|-)([a-z])/g, (_, dash, ch) => ch.toUpperCase())}`;
+                const original = element.dataset[key] || element.getAttribute(attr);
+                element.dataset[key] = original;
+                element.setAttribute(attr, translateText(original, lang));
+            });
+        }
+
+        function applyLanguage(lang = getCurrentLanguage()) {
+            localStorage.setItem('app-language', lang);
+            document.documentElement.lang = lang;
+            document.title = translateText('E-Paper Tag - v42', lang);
+
+            const selector = document.getElementById('language-selector');
+            if (selector) selector.value = lang;
+
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+                acceptNode(node) {
+                    const parent = node.parentElement;
+                    if (!parent || i18nSkipTags.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
+                    return node.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+                }
+            });
+
+            const nodes = [];
+            while (walker.nextNode()) nodes.push(walker.currentNode);
+            nodes.forEach(node => translateTextNode(node, lang));
+            document.querySelectorAll('[placeholder], [title], [aria-label]').forEach(element => translateAttributes(element, lang));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const selector = document.getElementById('language-selector');
+            const initialLanguage = getCurrentLanguage();
+            if (selector) {
+                selector.value = initialLanguage;
+                selector.addEventListener('change', event => applyLanguage(event.target.value));
+            }
+            applyLanguage(initialLanguage);
+
+            const observer = new MutationObserver(mutations => {
+                if (getCurrentLanguage() === 'en') return;
+                mutations.forEach(mutation => {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE) translateTextNode(node, getCurrentLanguage());
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            translateAttributes(node, getCurrentLanguage());
+                            node.querySelectorAll && node.querySelectorAll('[placeholder], [title], [aria-label]').forEach(element => translateAttributes(element, getCurrentLanguage()));
+                        }
+                    });
+                    if (mutation.type === 'characterData') translateTextNode(mutation.target, getCurrentLanguage());
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+        });
+    </script>
    
     <div class="tabs-container">
         <div class="tab-buttons">
@@ -2086,7 +2389,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 nrf52ActivationWaiter = null;
             }
             const protocolLabel = document.getElementById('device-protocol');
-            if (protocolLabel) protocolLabel.textContent = 'Device: not connected';
+            if (protocolLabel) protocolLabel.textContent = t('Device: not connected');
             document.getElementById("log").value = '';
         }
         async function handleError(error) {
@@ -2106,7 +2409,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             if (epdCharacteristic) {
                 await epdCharacteristic.writeValueWithResponse(cmd)
             } else {
-                addLog('Service unavailable. Is Bluetooth connected?')
+                addLog(t('Service unavailable. Is Bluetooth connected?'))
             }
         }
         async function sendNrf52Mode(mode) {
@@ -2137,13 +2440,13 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     const imageTab = document.querySelector('.tab-button[data-tab="tab-image"]');
                     if (imageTab) imageTab.click();
                     selectNrf52CanvasForModel();
-                    addLog('nRF52 Picture Mode is activated automatically after uploading a new image.');
+                    addLog(t('nRF52 Picture Mode is activated automatically after uploading a new image.'));
                 } else {
                     await sendNrf52Mode(mode);
                 }
                 return;
             }
-            addLog('Connect a device first.');
+            addLog(t('Connect a device first.'));
         }
         async function sendNrf52ImagePlane(data, blackPlane) {
             const planeName = blackPlane ? 'black' : 'red';
@@ -2199,11 +2502,11 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
             await sendCommand(new Uint8Array([NRF52_CMD_REFRESH]));
             nrf52DisplayMode = 0;
-            addLog('nRF52 image uploaded; Picture Mode is now active.');
+            addLog(t('nRF52 image uploaded; Picture Mode is now active.'));
             return true;
         }
         async function clearScreen(cmd) {
-            addLog('Refresh screen')
+            addLog(t('Refresh screen'))
             await triggerEpdCmd(`00${cmd}`);
             await triggerEpdCmd('01')
         }
@@ -2211,7 +2514,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             if (rxtxCharacteristic) {
                 await rxtxCharacteristic.writeValueWithResponse(cmd);
             } else {
-                addLog('Service unavailable. Is Bluetooth connected?')
+                addLog(t('Service unavailable. Is Bluetooth connected?'))
             }
         }
         async function SendCommand(cmd) {
@@ -2226,12 +2529,12 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             if (rxtxCharacteristic) {
                 await rxtxCharacteristic.writeValueWith(cmd);
             } else {
-                addLog('Service unavailable. Is Bluetooth connected?')
+                addLog(t('Service unavailable. Is Bluetooth connected?'))
             }
         }
        
         async function sendBufferData(value, type) {
-            addLog(`Starting image send mode:${type}, size ${value.length}byte`);
+            addLog(`${t('Starting image send mode:')}${type}, ${t('size')} ${value.length}${t('bytes')}`);
             let code = 'ff';
             if (type === 'bwr') {
                 code = '00';
@@ -2321,7 +2624,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const startTime = new Date().getTime();
             if (deviceProtocol === PROTOCOL_NRF52) {
                 if (await uploadNrf52Image(canvas)) {
-                    addLog(`Upload complete, time:${(new Date().getTime() - startTime) / 1000}s`);
+                    addLog(`${t('Upload complete, time:')}${(new Date().getTime() - startTime) / 1000}${t('s')}`);
                 }
                 return;
             }
@@ -2339,7 +2642,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             await delay(300);
             if (canvas.width == 280 || canvas.height == 180) { await sendCommand(hexToBytes("AA")) }
             else { await sendCommand(hexToBytes("01")) }
-            addLog(`Upload complete, time:${(new Date().getTime() - startTime) / 1000}s`);
+            addLog(`${t('Upload complete, time:')}${(new Date().getTime() - startTime) / 1000}${t('s')}`);
         }
         async function setTime() {
             if (deviceProtocol === PROTOCOL_NRF52) {
@@ -2347,7 +2650,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 return;
             }
             const { unixNow, localeTimeString, year, month, day, week } = getUnixTime();
-            addLog("Time set to: " + localeTimeString + " : dd" + intToHex(unixNow, 4));
+            addLog(t("Time set to: ") + localeTimeString + " : dd" + intToHex(unixNow, 4));
             await rxTxSendCommand(hexToBytes('dd' +
                 [intToHex(unixNow, 4), intToHex(year, 2), intToHex(month, 1), intToHex(day, 1), intToHex(week, 1)].join('')));
             await rxTxSendCommand(hexToBytes('e2'))
@@ -2417,19 +2720,19 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             D_S_min = D_S_min > 9 ? D_S_min : '0' + D_S_min;
            
             cmd = cmd  + D_S_hour + D_S_min;
-            addLog(`Set no-refresh time period: ${cmd}`)
+            addLog(t('Set no-refresh time period: ') + cmd)
             await rxTxSendCommand(hexToBytes(cmd));
         }
         function disconnect() {
             resetVariables();
-            addLog('Disconnected.');
-            document.getElementById("connectbutton").innerHTML = 'Scan Devices';
+            addLog(t('Disconnected.'));
+            document.getElementById("connectbutton").textContent = t('Scan Devices');
             if (manualDisconnect || bleDevice == null) {
                 manualDisconnect = false;
                 return;
             }
-            document.getElementById("connectbutton").innerHTML = 'Reconnecting...';
-            addLog('BLE disconnected; reconnecting automatically...');
+            document.getElementById("connectbutton").textContent = t('Reconnecting...');
+            addLog(t('BLE disconnected; reconnecting automatically...'));
             autoReconnectTimer = setTimeout(async () => {
                 autoReconnectTimer = null;
                 try {
@@ -2448,15 +2751,15 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             } else {
                 reconnectTrys = 0;
                 try {
-                    document.getElementById("connectbutton").innerHTML = 'Scanning...';
+                    document.getElementById("connectbutton").textContent = t('Scanning...');
                     bleDevice = await navigator.bluetooth.requestDevice({
                         acceptAllDevices: true,
                         optionalServices: SUPPORTED_BLE_SERVICES
                     });
                     bleDevice.addEventListener('gattserverdisconnected', disconnect);
                 } catch (e) {
-                    document.getElementById("connectbutton").innerHTML = 'Scan Devices';
-                    addLog('Scan cancelled or failed: ' + e.message);
+                    document.getElementById("connectbutton").textContent = t('Scan Devices');
+                    addLog(t('Scan cancelled or failed: ') + e.message);
                     return;
                 }
                 try {
@@ -2476,8 +2779,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             deviceProtocol = protocol;
             const name = protocol === PROTOCOL_NRF52 ? 'nRF52' : 'DA14585';
             const protocolLabel = document.getElementById('device-protocol');
-            if (protocolLabel) protocolLabel.textContent = `Device: ${name}`;
-            addLog(`> Detected protocol: ${name}`);
+            if (protocolLabel) protocolLabel.textContent = `${t('Device:')} ${name}`;
+            addLog(`> ${t('Detected protocol:')} ${name}`);
         }
         function selectNrf52CanvasForModel() {
             const sizeSelect = document.getElementById('screen-size');
@@ -2622,8 +2925,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         }
         async function connect() {
             if (epdCharacteristic == null) {
-                document.getElementById("connectbutton").innerHTML = 'Connecting...';
-                addLog("Connecting: " + bleDevice.name);
+                document.getElementById("connectbutton").textContent = t('Connecting...');
+                addLog(t("Connecting: ") + bleDevice.name);
                 gattServer = await bleDevice.gatt.connect();
                 addLog('> GATT server found');
                 try {
@@ -2649,7 +2952,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                         epdCharacteristic = rxtxCharacteristic;
                     }
                 }
-                document.getElementById("connectbutton").innerHTML = 'Disconnect';
+                document.getElementById("connectbutton").textContent = t('Disconnect');
             }
         }
         function setStatus(statusText) {
@@ -2829,7 +3132,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         document.body.onload = () => {
             setInterval(() => {
                 const { localeTimeString, year, month, day, week } = getUnixTime();
-                document.getElementById('time-setter').innerText = `Set Time:${year}-${month}-${day} ${localeTimeString} Week${week}`;
+                document.getElementById('time-setter').innerText = `${t('Set Time:')}${year}-${month}-${day} ${localeTimeString} ${t('Week')}${week}`;
             }, 1000);
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext("2d");
@@ -3138,19 +3441,19 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
 
             function generateCode() {
                 if (!datePicker.value) {
-                    addLog('Please select a countdown date');
+                    addLog(t('Please select a countdown date'));
                     return;
                 }
 
                 const selectedDate = new Date(`${datePicker.value}T00:00:00`);
                 if (Number.isNaN(selectedDate.getTime())) {
-                    addLog('Invalid countdown date');
+                    addLog(t('Invalid countdown date'));
                     return;
                 }
 
                 const year = selectedDate.getFullYear();
                 if (year < 2000 || year > 2099) {
-                    addLog('Countdown date must be between 2000 and 2099');
+                    addLog(t('Countdown date must be between 2000 and 2099'));
                     return;
                 }
 
@@ -3709,7 +4012,7 @@ function loadBuiltInBackground(templateId, url) {
                 case 'image':
                     const selectedItem = imageTemplates.querySelector('.template-item.selected');
                     if (!selectedItem) {
-                        alert('Please select an icon or generate QR code first!');
+                        alert(t('Please select an icon or generate QR code first!'));
                         return;
                     }
                     const iconId = selectedItem.dataset.type;
@@ -3842,12 +4145,12 @@ function loadBuiltInBackground(templateId, url) {
         }
         function updateSelectedText() {
             if (state.selectedElementIndex === -1 || state.elements.length === 0) {
-                alert('Please select a text element first!');
+                alert(t('Please select a text element first!'));
                 return;
             }
             const element = state.elements[state.selectedElementIndex];
             if (element.type !== 'text') {
-                alert('Please select a text element to edit!');
+                alert(t('Please select a text element to edit!'));
                 return;
             }
             element.content = textContent.value;
@@ -3923,7 +4226,7 @@ function loadBuiltInBackground(templateId, url) {
         }
         function deleteSelectedElement() {
             if (state.selectedElementIndex === -1 || state.elements.length === 0) {
-                alert('Please select an element first!');
+                alert(t('Please select an element first!'));
                 return;
             }
             if (confirm('Delete the selected element?')) {
@@ -3936,7 +4239,7 @@ function loadBuiltInBackground(templateId, url) {
         }
         function duplicateSelectedElement() {
             if (state.selectedElementIndex === -1 || state.elements.length === 0) {
-                alert('Please select an element first!');
+                alert(t('Please select an element first!'));
                 return;
             }
             const original = state.elements[state.selectedElementIndex];
@@ -3955,7 +4258,7 @@ function loadBuiltInBackground(templateId, url) {
         }
         function bringToFront() {
             if (state.selectedElementIndex === -1 || state.elements.length === 0) {
-                alert('Please select an element first!');
+                alert(t('Please select an element first!'));
                 return;
             }
             const element = state.elements[state.selectedElementIndex];
@@ -3966,7 +4269,7 @@ function loadBuiltInBackground(templateId, url) {
         }
         function sendToBack() {
             if (state.selectedElementIndex === -1 || state.elements.length === 0) {
-                alert('Please select an element first!');
+                alert(t('Please select an element first!'));
                 return;
             }
             const element = state.elements[state.selectedElementIndex];
