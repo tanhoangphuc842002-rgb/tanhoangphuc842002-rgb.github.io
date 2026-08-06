@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <title>Thẻ mực điện tử - v42</title>
+    <title>Thẻ mực điện tử - v47</title>
     <style>
         /* Base style reset */
         * {
@@ -657,6 +657,84 @@
             min-width: 150px;
             margin: 0;
         }
+
+        .quick-editor-tools {
+            margin: 12px 0;
+            padding: 10px;
+            border: 1px solid #d8dde5;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .quick-tool-buttons,
+        .quick-tool-options {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .quick-tool-button {
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #cfd6df;
+            border-radius: 5px;
+            background: #fff;
+            color: #111827;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .quick-tool-button:hover {
+            background: #eef2f7;
+        }
+
+        .quick-tool-button.active {
+            color: #fff;
+            background: #2563eb;
+            border-color: #1d4ed8;
+        }
+
+        .quick-tool-button:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .quick-tool-options {
+            margin-top: 9px;
+            padding-top: 9px;
+            border-top: 1px solid #d8dde5;
+        }
+
+        .quick-tool-options[hidden] {
+            display: none;
+        }
+
+        .quick-tool-options input,
+        .quick-tool-options select,
+        .quick-tool-options textarea {
+            width: auto;
+            margin: 0;
+        }
+
+        .quick-tool-options textarea {
+            min-width: 220px;
+        }
+
+        #quick-editor-status {
+            margin-top: 8px;
+            color: #475569;
+            font-size: 13px;
+        }
+
+        #canvas.quick-editor-active {
+            cursor: crosshair;
+            touch-action: none;
+        }
     </style>
 
     <!-- dithering.js not in repo -->
@@ -675,7 +753,7 @@
     <script>
         const APP_TRANSLATIONS = {
             vi: {
-                "E-Paper Tag - v42": "Thẻ mực điện tử - v42",
+                "E-Paper Tag - v47": "Thẻ mực điện tử - v47",
                 "Language selector": "Bộ chọn ngôn ngữ",
                 "Language:": "Ngôn ngữ:",
                 "E-Paper Settings": "Cài đặt màn hình E-Paper",
@@ -752,6 +830,45 @@
                 "Rotate CW 90 deg": "Xoay phải 90 độ",
                 "Rotate CCW 90 deg": "Xoay trái 90 độ",
                 "Reset Rotation": "Đặt lại xoay",
+                "Quick image editing tools": "Công cụ chỉnh sửa nhanh trên ảnh",
+                "Brush": "Bút vẽ",
+                "Eraser": "Tẩy",
+                "Add text": "Thêm chữ",
+                "To-do item": "Việc cần làm",
+                "Schedule / timetable": "Bảng lịch / thời khóa biểu",
+                "Undo": "Hoàn tác",
+                "Redo": "Làm lại",
+                "Clear drawing": "Xóa nội dung đã vẽ",
+                "Color:": "Màu:",
+                "Black": "Đen",
+                "Red": "Đỏ",
+                "White": "Trắng",
+                "Stroke width:": "Độ dày:",
+                "Enter text": "Nhập chữ cần thêm",
+                "Font:": "Font:",
+                "Size:": "Cỡ:",
+                "Add text, then click a position on the image": "Thêm chữ rồi bấm vị trí trên ảnh",
+                "Enter a to-do item": "Nhập việc cần làm",
+                "Add item, then click a position on the image": "Thêm ô việc rồi bấm vị trí trên ảnh",
+                "Days:": "Số ngày:",
+                "Rows:": "Số dòng:",
+                "Font size:": "Cỡ chữ:",
+                "Enter one cell per line": "Nhập nội dung từng ô, cách nhau bằng xuống dòng",
+                "Create schedule": "Tạo bảng lịch",
+                "Choose a tool to begin editing the image.": "Chọn một công cụ để bắt đầu chỉnh sửa ảnh.",
+                "Drag on the image to draw.": "Giữ chuột hoặc chạm và kéo trên ảnh để vẽ.",
+                "Drag to erase to white.": "Giữ chuột hoặc chạm và kéo để tẩy thành màu trắng.",
+                "Enter text, click Add text, then click a position on the image.": "Nhập chữ, bấm nút Thêm chữ, sau đó bấm vị trí trên ảnh.",
+                "Enter an item, click Add item, then click a position on the image.": "Nhập việc cần làm, bấm nút Thêm ô việc, sau đó bấm vị trí trên ảnh.",
+                "Configure the table, then click Create schedule.": "Thiết lập bảng rồi bấm Tạo bảng lịch.",
+                "Drawing cleared.": "Đã xóa nội dung vẽ nhanh.",
+                "Enter text before choosing a position.": "Hãy nhập chữ trước khi chọn vị trí.",
+                "Click the image where the text should be placed.": "Bấm vào vị trí muốn đặt chữ trên ảnh.",
+                "Enter a to-do item first.": "Hãy nhập nội dung việc cần làm trước.",
+                "Click the image where the item should be placed.": "Bấm vào vị trí muốn đặt ô việc trên ảnh.",
+                "Content added. Continue editing or use Undo.": "Đã thêm nội dung. Bạn có thể tiếp tục hoặc dùng hoàn tác.",
+                "Schedule created. Each input line fills cells from left to right.": "Đã tạo bảng lịch. Mỗi dòng nội dung được điền lần lượt từ trái sang phải.",
+                "Period": "Tiết",
                 "Image Adjustment": "Chỉnh ảnh",
                 "Brightness:": "Độ sáng:",
                 "Contrast:": "Độ tương phản:",
@@ -827,9 +944,8 @@
                 ,"Scanning...": "Đang quét...",
                 "Connecting...": "Đang kết nối...",
                 "Disconnect": "Ngắt kết nối",
-                "Reconnecting...": "Đang kết nối lại...",
                 "Disconnected.": "Đã ngắt kết nối.",
-                "BLE disconnected; reconnecting automatically...": "Bluetooth đã ngắt; đang tự động kết nối lại...",
+                "Connection failed: ": "Kết nối thất bại: ",
                 "Scan cancelled or failed: ": "Đã hủy quét hoặc quét thất bại: ",
                 "Connecting: ": "Đang kết nối: ",
                 "Device:": "Thiết bị:",
@@ -899,7 +1015,7 @@
         function applyLanguage(lang = getCurrentLanguage()) {
             localStorage.setItem('app-language', lang);
             document.documentElement.lang = lang;
-            document.title = translateText('E-Paper Tag - v42', lang);
+            document.title = translateText('E-Paper Tag - v47', lang);
 
             const selector = document.getElementById('language-selector');
             if (selector) selector.value = lang;
@@ -1122,10 +1238,11 @@
         <div class="button-group">
             Screen Size:
             <select id="screen-size" onchange="updateCanvasSize()">
-                <option value="nrf52_2.13_250x128">nRF52 2.13&quot; (250x128)</option>
-                <option value="nrf52_2.9_296x128">nRF52 2.9&quot; CE (296x128)</option>
+                <option value="nrf52_2.13_250x128">nRF52 2.13&quot; BWR/BW (250x128, tự nhận dạng)</option>
+                <option value="nrf52_2.9_296x128">nRF52 2.9&quot; BWR/CE (296x128)</option>
                 <option value="nrf52_4.2_400x300">nRF52 4.2&quot; BWR UC8176 (400x300)</option>
                 <option value="nrf52_4.2_400x300_bw1619">nRF52 4.2&quot; BW SSD1619 (400x300)</option>
+                <option value="nrf52_7.5_800x480">nRF52 7.5&quot; BWR UC8179 (800x480)</option>
                 <option value="4.2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">4.2" Transfer</option>
                 <option value="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">4.2" Calendar Small</option>
                 <option value="7.5ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">7.5" Transfer</option>
@@ -1170,10 +1287,22 @@
             <button onclick="update_image()">Reload</button>
             <button onclick="stretchToCanvas()">Stretch to Screen</button>
             <button onclick="fitToCanvas()">Fit to Screen</button>
+            <button onclick="fillToCanvas()">Fill &amp; Crop</button>
             <button onclick="updateScale('100')">Reset to 100%</button>
             <button onclick="rotateImage(90)">Rotate CW 90 deg</button>
             <button onclick="rotateImage(-90)">Rotate CCW 90 deg</button>
             <button onclick="rotateImage(0)">Reset Rotation</button>
+        </div>
+
+        <div class="button-group" aria-label="Crop and position image">
+            <strong>Cắt và căn ảnh:</strong>
+            <button type="button" onclick="zoomImage(1.1)" title="Phóng to ảnh">+</button>
+            <button type="button" onclick="zoomImage(1 / 1.1)" title="Thu nhỏ ảnh">−</button>
+            <button type="button" onclick="moveImage(-10, 0)" title="Di chuyển sang trái">←</button>
+            <button type="button" onclick="moveImage(0, -10)" title="Di chuyển lên">↑</button>
+            <button type="button" onclick="moveImage(0, 10)" title="Di chuyển xuống">↓</button>
+            <button type="button" onclick="moveImage(10, 0)" title="Di chuyển sang phải">→</button>
+            <button type="button" onclick="resetImageTransform()">Đặt lại ảnh</button>
         </div>
 
       
@@ -1181,12 +1310,89 @@
             <canvas id="canvas" style="border: black solid 1px;"></canvas>
         </div>
 
+        <div class="quick-editor-tools" aria-label="Quick image editing tools">
+            <div class="quick-tool-buttons">
+                <button type="button" id="quick-brush-mode" class="quick-tool-button" title="Brush" aria-label="Brush">✏️</button>
+                <button type="button" id="quick-eraser-mode" class="quick-tool-button" title="Eraser" aria-label="Eraser">🧽</button>
+                <button type="button" id="quick-text-mode" class="quick-tool-button" title="Add text" aria-label="Add text">T</button>
+                <button type="button" id="quick-todo-mode" class="quick-tool-button" title="To-do item" aria-label="To-do item">☐</button>
+                <button type="button" id="quick-schedule-mode" class="quick-tool-button" title="Schedule / timetable" aria-label="Schedule / timetable">📅</button>
+                <button type="button" id="quick-undo" class="quick-tool-button" title="Undo" aria-label="Undo">↶</button>
+                <button type="button" id="quick-redo" class="quick-tool-button" title="Redo" aria-label="Redo">↷</button>
+                <button type="button" id="quick-clear" class="quick-tool-button" title="Clear drawing" aria-label="Clear drawing">×</button>
+            </div>
+
+            <div id="quick-brush-options" class="quick-tool-options" hidden>
+                <label for="quick-brush-color">Color:</label>
+                <select id="quick-brush-color">
+                    <option value="#000000">Black</option>
+                    <option value="#ff0000">Red</option>
+                    <option value="#ffffff">White</option>
+                </select>
+                <label for="quick-brush-size">Stroke width:</label>
+                <input type="number" id="quick-brush-size" value="4" min="1" max="100">
+            </div>
+
+            <div id="quick-text-options" class="quick-tool-options" hidden>
+                <input type="text" id="quick-text-input" placeholder="Enter text" maxlength="100">
+                <label for="quick-font-family">Font:</label>
+                <select id="quick-font-family">
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="sans-serif">Sans-serif</option>
+                    <option value="serif">Serif</option>
+                    <option value="monospace">Monospace</option>
+                </select>
+                <label for="quick-font-size">Size:</label>
+                <input type="number" id="quick-font-size" value="24" min="6" max="160">
+                <label for="quick-text-color">Color:</label>
+                <select id="quick-text-color">
+                    <option value="#000000">Black</option>
+                    <option value="#ff0000">Red</option>
+                    <option value="#ffffff">White</option>
+                </select>
+                <label><input type="checkbox" id="quick-text-bold"> Bold</label>
+                <label><input type="checkbox" id="quick-text-italic"> Italic</label>
+                <button type="button" id="quick-add-text">Add text, then click a position on the image</button>
+            </div>
+
+            <div id="quick-todo-options" class="quick-tool-options" hidden>
+                <input type="text" id="quick-todo-input" placeholder="Enter a to-do item" maxlength="100">
+                <label for="quick-todo-size">Size:</label>
+                <input type="number" id="quick-todo-size" value="22" min="8" max="120">
+                <label for="quick-todo-color">Color:</label>
+                <select id="quick-todo-color">
+                    <option value="#000000">Black</option>
+                    <option value="#ff0000">Red</option>
+                </select>
+                <button type="button" id="quick-add-todo">Add item, then click a position on the image</button>
+            </div>
+
+            <div id="quick-schedule-options" class="quick-tool-options" hidden>
+                <label for="quick-schedule-days">Days:</label>
+                <input type="number" id="quick-schedule-days" value="7" min="1" max="7">
+                <label for="quick-schedule-rows">Rows:</label>
+                <input type="number" id="quick-schedule-rows" value="6" min="1" max="12">
+                <label for="quick-schedule-size">Font size:</label>
+                <input type="number" id="quick-schedule-size" value="16" min="8" max="48">
+                <label for="quick-schedule-color">Color:</label>
+                <select id="quick-schedule-color">
+                    <option value="#000000">Black</option>
+                    <option value="#ff0000">Red</option>
+                </select>
+                <textarea id="quick-schedule-input" rows="2" placeholder="Enter one cell per line"></textarea>
+                <button type="button" id="quick-create-schedule">Create schedule</button>
+            </div>
+
+            <div id="quick-editor-status" role="status">Choose a tool to begin editing the image.</div>
+        </div>
+
        
         <div class="image-adjustments">
             <h3>Image Adjustment</h3>
             <div class="adjustment-row">
                 <label for="brightness">Brightness:</label>  
-                <span class="adjustment-value" id="brightnessValue">100</span>
+                <span class="adjustment-value" id="brightnessValue">0</span>
                 <input type="range" id="brightness" min="-100" max="100" value="0">
               
             </div>
@@ -1211,6 +1417,10 @@
             <div class="button-group">
                 <button onclick="update_image()">ApplyImage Adjustment</button>
                 <button onclick="upload_image()" style="font-weight: bold">Upload to Screen Now</button>
+            </div>
+            <div class="button-group" id="nrf52-upload-progress-wrap">
+                <progress id="nrf52-upload-progress" max="100" value="0" style="width:min(100%, 800px);"></progress>
+                <div id="nrf52-upload-status" role="status">Sẵn sàng truyền ảnh.</div>
             </div>
         </div>
         
@@ -1614,8 +1824,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     data[i + 2] = clamp(data[i + 2] + 255 * brightnessFactor, 0, 255);
                 }
             }
-            if (contrast !== 0) {
-                const contrastFactor = (contrast + 100) / 100;
+            if (contrast !== 100) {
+                const contrastFactor = contrast / 100;
                 const contrastAdjust = (1 - contrastFactor) * 128;
                 for (let i = 0; i < data.length; i += 4) {
                     data[i] = clamp(data[i] * contrastFactor + contrastAdjust, 0, 255);
@@ -2334,7 +2544,6 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let rxtxService;
         let epdCharacteristic;
         let rxtxCharacteristic;
-        let reconnectTrys = 0;
         const my_step = 480;
         const PROTOCOL_DA14585 = 'da14585';
         const PROTOCOL_NRF52 = 'nrf52';
@@ -2361,8 +2570,6 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let nrf52ModelDetected = false;
         let nrf52ActivationWaiter = null;
         let nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
-        let manualDisconnect = false;
-        let autoReconnectTimer = null;
         function delay(delayInMs) {
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -2371,10 +2578,6 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             });
         }
         function resetVariables() {
-            if (autoReconnectTimer) {
-                clearTimeout(autoReconnectTimer);
-                autoReconnectTimer = null;
-            }
             gattServer = null;
             epdService = null;
             epdCharacteristic = null;
@@ -2395,15 +2598,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         async function handleError(error) {
             console.log(error);
             resetVariables();
-            if (bleDevice == null)
-                return;
-            if (reconnectTrys <= 5) {
-                reconnectTrys++;
-                await connect();
-            } else {
-                addLog("Was not able to connect, aborting");
-                reconnectTrys = 0;
-            }
+            document.getElementById("connectbutton").textContent = t('Scan Devices');
+            addLog(t('Connection failed: ') + (error && error.message ? error.message : String(error)));
         }
         async function sendCommand(cmd) {
             if (epdCharacteristic) {
@@ -2448,17 +2644,29 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
             addLog(t('Connect a device first.'));
         }
-        async function sendNrf52ImagePlane(data, blackPlane) {
+        function setNrf52ImageProgress(percent, status) {
+            const progress = document.getElementById('nrf52-upload-progress');
+            const label = document.getElementById('nrf52-upload-status');
+            if (progress) progress.value = Math.max(0, Math.min(100, percent));
+            if (label && status) label.textContent = status;
+        }
+        async function sendNrf52ImagePlane(data, blackPlane, progressStart = 0, progressEnd = 100) {
             const planeName = blackPlane ? 'black' : 'red';
             const chunkSize = nrf52ImageChunkSize;
             const total = Math.ceil(data.length / chunkSize);
+            const logEvery = Math.max(1, Math.ceil(total / 20));
             for (let offset = 0, part = 0; offset < data.length; offset += chunkSize, part++) {
                 const chunk = data.slice(offset, offset + chunkSize);
                 const begin = offset === 0 ? 0x00 : 0xf0;
                 const plane = blackPlane ? 0x0f : 0x00;
                 const packet = new Uint8Array([NRF52_CMD_WRITE_IMAGE, begin | plane, ...chunk]);
                 await sendCommand(packet);
-                addLog(`nRF52 ${planeName} block ${part + 1}/${total}`);
+                const completed = part + 1;
+                const percent = progressStart + (completed / total) * (progressEnd - progressStart);
+                setNrf52ImageProgress(percent, `Đang gửi lớp ${blackPlane ? 'đen' : 'đỏ'}: ${completed}/${total}`);
+                if (completed === 1 || completed === total || completed % logEvery === 0) {
+                    addLog(`nRF52 ${planeName} block ${completed}/${total}`);
+                }
                 await delay(8);
             }
         }
@@ -2468,9 +2676,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const is213 = screenValue === 'nrf52_2.13_250x128' && canvas.width === 250 && canvas.height === 128;
             const is420Bwr = screenValue === 'nrf52_4.2_400x300' && canvas.width === 400 && canvas.height === 300;
             const is420Bw1619 = screenValue === 'nrf52_4.2_400x300_bw1619' && canvas.width === 400 && canvas.height === 300;
+            const is750Bwr = screenValue === 'nrf52_7.5_800x480' && canvas.width === 800 && canvas.height === 480;
             const is420 = is420Bwr || is420Bw1619;
-            if (!is290 && !is213 && !is420) {
-                addLog('Select nRF52 2.9" CE (296x128), nRF52 2.13" (250x128), UC8176 BWR 4.2", or SSD1619 BW 4.2" before uploading.');
+            if (!is290 && !is213 && !is420 && !is750Bwr) {
+                addLog('Hãy chọn đúng kích thước màn nRF52 trước khi tải ảnh. Màn 7.5" UC8179 phải là 800x480.');
                 return false;
             }
             if (nrf52ModelDetected && is420Bwr && nrf52ModelId !== 3) {
@@ -2481,27 +2690,40 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 addLog(`Connected nRF52 model ${nrf52ModelId} is not SSD1619 BW 4.2" (model 4).`);
                 return false;
             }
-            if (nrf52ModelDetected && (is290 || is213) && (nrf52ModelId === 3 || nrf52ModelId === 4)) {
-                addLog('Connected device is 4.2". Select the matching nRF52 4.2" screen size.');
+            if (nrf52ModelDetected && is750Bwr && nrf52ModelId !== 7) {
+                addLog(`Thiết bị đang kết nối là model ${nrf52ModelId}, không phải UC8179 7.5" (model 7).`);
+                return false;
+            }
+            if (nrf52ModelDetected && nrf52ModelId === 7 && !is750Bwr) {
+                addLog('Thiết bị đang kết nối là màn 7.5". Hãy chọn nRF52 7.5" BWR UC8179 (800x480).');
+                return false;
+            }
+            if (nrf52ModelDetected && (is290 || is213) && (nrf52ModelId === 3 || nrf52ModelId === 4 || nrf52ModelId === 7)) {
+                addLog('Kích thước ảnh không khớp với màn hình đang kết nối.');
                 return false;
             }
 
+            setNrf52ImageProgress(0, 'Đang khởi tạo màn hình...');
             await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
             await delay(100);
 
-            // The 2.9"/2.13" firmware stores bytes column-first; 4.2"
-            // follows EPD-nRF5 and stores bytes row-first.
-            const converter = is420 ? canvas2bytes : canvas2bytes_bw;
+            // The 2.9"/2.13" firmware stores bytes column-first. The 4.2"
+            // and UC8179 7.5" drivers stream one byte per eight horizontal
+            // pixels, row by row.
+            const converter = (is420 || is750Bwr) ? canvas2bytes : canvas2bytes_bw;
+            const hasRedPlane = is420Bwr || is750Bwr || is290 || (!is420Bw1619 && nrf52ModelId === 2);
             const black = converter(canvas);
-            await sendNrf52ImagePlane(black, true);
-            if (is420Bwr || is290 || (!is420Bw1619 && nrf52ModelId === 2)) {
+            await sendNrf52ImagePlane(black, true, 0, hasRedPlane ? 48 : 95);
+            if (hasRedPlane) {
                 // The BWR converter uses 1 for red pixels, while the
                 // nRF52 red plane expects 0 for red and 1 for non-red pixels.
                 const red = converter(canvas, 'bwr').map(byte => byte ^ 0xff);
-                await sendNrf52ImagePlane(red, false);
+                await sendNrf52ImagePlane(red, false, 48, 95);
             }
+            setNrf52ImageProgress(97, 'Đã gửi dữ liệu, đang refresh màn hình...');
             await sendCommand(new Uint8Array([NRF52_CMD_REFRESH]));
             nrf52DisplayMode = 0;
+            setNrf52ImageProgress(100, 'Đã tải ảnh lên màn hình thành công.');
             addLog(t('nRF52 image uploaded; Picture Mode is now active.'));
             return true;
         }
@@ -2559,6 +2781,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 canvas.height = 128;
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                resetQuickEditorOverlay(true);
                 update_image();
                 addLog('Canvas size updated to: 296x128 (nRF52 2.9 CE)');
                 return;
@@ -2568,8 +2791,19 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 canvas.height = 128;
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                resetQuickEditorOverlay(true);
                 update_image();
                 addLog('Canvas size updated to: 250x128');
+                return;
+            }
+            if (sizeSelect.value === "nrf52_7.5_800x480") {
+                canvas.width = 800;
+                canvas.height = 480;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                resetQuickEditorOverlay(true);
+                update_image();
+                addLog('Canvas size updated to: 800x480 (nRF52 UC8179 BWR 7.5")');
                 return;
             }
             if (sizeSelect.value === "nrf52_4.2_400x300") {
@@ -2577,6 +2811,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 canvas.height = 300;
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                resetQuickEditorOverlay(true);
                 update_image();
                 addLog('Canvas size updated to: 400x300 (nRF52 UC8176 BWR)');
                 return;
@@ -2586,6 +2821,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 canvas.height = 300;
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                resetQuickEditorOverlay(true);
                 update_image();
                 addLog('Canvas size updated to: 400x300 (nRF52 SSD1619 BW)');
                 return;
@@ -2616,6 +2852,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             canvas.height = height;
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, width, height);
+            resetQuickEditorOverlay(true);
             update_image();
             addLog(`Canvas size updated to: ${width}x${height}`);
         }
@@ -2727,29 +2964,13 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             resetVariables();
             addLog(t('Disconnected.'));
             document.getElementById("connectbutton").textContent = t('Scan Devices');
-            if (manualDisconnect || bleDevice == null) {
-                manualDisconnect = false;
-                return;
-            }
-            document.getElementById("connectbutton").textContent = t('Reconnecting...');
-            addLog(t('BLE disconnected; reconnecting automatically...'));
-            autoReconnectTimer = setTimeout(async () => {
-                autoReconnectTimer = null;
-                try {
-                    await reConnect();
-                } catch (e) {
-                    await handleError(e);
-                }
-            }, 1000);
         }
         async function preConnect() {
             if (gattServer != null && gattServer.connected) {
                 if (bleDevice != null && bleDevice.gatt.connected) {
-                    manualDisconnect = true;
                     bleDevice.gatt.disconnect();
                 }
             } else {
-                reconnectTrys = 0;
                 try {
                     document.getElementById("connectbutton").textContent = t('Scanning...');
                     bleDevice = await navigator.bluetooth.requestDevice({
@@ -2784,9 +3005,11 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         }
         function selectNrf52CanvasForModel() {
             const sizeSelect = document.getElementById('screen-size');
-            const target = nrf52ModelId === 3
-                ? 'nrf52_4.2_400x300'
-                : (nrf52ModelId === 4 ? 'nrf52_4.2_400x300_bw1619' : sizeSelect.value);
+            const target = nrf52ModelId === 7
+                ? 'nrf52_7.5_800x480'
+                : (nrf52ModelId === 3
+                    ? 'nrf52_4.2_400x300'
+                    : (nrf52ModelId === 4 ? 'nrf52_4.2_400x300_bw1619' : sizeSelect.value));
             if (sizeSelect.value !== target) {
                 sizeSelect.value = target;
                 updateCanvasSize();
@@ -2888,7 +3111,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
 
             const isConfig = data.length >= 8 && data.length <= 16 &&
-                [1, 2, 3, 4, 5].includes(data[7]);
+                [1, 2, 3, 4, 5, 7].includes(data[7]);
             if (isConfig) {
                 nrf52ModelId = data[7];
                 nrf52ModelDetected = true;
@@ -2909,9 +3132,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             addLog('> nRF52 connected; display initialized.');
         }
         async function reConnect() {
-            reconnectTrys = 0;
             if (bleDevice != null && bleDevice.gatt.connected) {
-                manualDisconnect = true;
                 bleDevice.gatt.disconnect();
             }
             resetVariables();
@@ -3001,7 +3222,9 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 currentScaleX =  canvas.height/ currentImage.width;
                 currentScaleY = canvas.width / currentImage.height;
             }
-          
+            imageOffsetX = 0;
+            imageOffsetY = 0;
+            currentScale = 1.0;
             updateScaleDisplay();
             drawImageWithRotation(currentImage);
             update_image();
@@ -3025,9 +3248,53 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             currentScaleX = ratio;
             currentScaleY = ratio;
             currentScale = 1.0;
+            imageOffsetX = 0;
+            imageOffsetY = 0;
             updateScaleDisplay();
             drawImageWithRotation(currentImage);
             update_image();
+        }
+        function fillToCanvas() {
+            if (!currentImage) return;
+            const canvas = document.getElementById("canvas");
+            const rotated = Math.abs(currentRotation % 180) === 90;
+            const imageWidth = rotated ? currentImage.height : currentImage.width;
+            const imageHeight = rotated ? currentImage.width : currentImage.height;
+            const ratio = Math.max(canvas.width / imageWidth, canvas.height / imageHeight);
+            currentScaleX = ratio;
+            currentScaleY = ratio;
+            currentScale = 1.0;
+            imageOffsetX = 0;
+            imageOffsetY = 0;
+            updateScaleDisplay();
+            update_image();
+        }
+        function zoomImage(factor) {
+            if (!currentImage) return;
+            currentScale = Math.max(0.1, Math.min(5, currentScale * factor));
+            updateScaleDisplay();
+            update_image();
+        }
+        function moveImage(dx, dy) {
+            if (!currentImage) return;
+            imageOffsetX += dx;
+            imageOffsetY += dy;
+            update_image();
+        }
+        function resetImageTransform(redraw = true) {
+            currentRotation = 0;
+            degrees1 = 0;
+            currentScale = 1.0;
+            currentScaleX = 1.0;
+            currentScaleY = 1.0;
+            imageOffsetX = 0;
+            imageOffsetY = 0;
+            const rotationSlider = document.getElementById('rotationSlider');
+            const rotationValue = document.getElementById('rotationValue');
+            if (rotationSlider) rotationSlider.value = 0;
+            if (rotationValue) rotationValue.textContent = '0 deg';
+            updateScaleDisplay();
+            if (redraw && currentImage) update_image();
         }
         function updateScale(value) {
             currentScale = value / 100;
@@ -3037,7 +3304,9 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 update_image();
             }
         }
-        let currentScale = 1.0;  
+        let currentScale = 1.0;
+        let imageOffsetX = 0;
+        let imageOffsetY = 0;
         function updateScaleDisplay() {
             document.getElementById('scaleValue').textContent = `${Math.round(currentScale * 100)}%`;
             document.getElementById('scaleSlider').value = currentScale * 100;
@@ -3046,6 +3315,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let imageSource1 = null;
         async function update_image1() {
             imageSource1=null;
+            resetImageTransform(false);
+            resetQuickEditorOverlay(true);
             update_image();   
         }
         async function update_image(imageSource) {
@@ -3094,7 +3365,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.translate(canvas.width / 2 + imageOffsetX, canvas.height / 2 + imageOffsetY);
             ctx.rotate(currentRotation * Math.PI / 180);
             ctx.scale(currentScale, currentScale);
             ctx.scale(currentScaleX, currentScaleY);
@@ -3120,14 +3391,430 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 const ctx = canvas.getContext("2d");
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                resetQuickEditorOverlay(true);
             }
         }
+
+        let quickEditorOverlay = null;
+        let quickEditorHistory = [];
+        let quickEditorRedo = [];
+        let quickEditorTool = null;
+        let quickEditorDrawing = false;
+        let quickEditorLastPoint = null;
+        let quickEditorPendingPlacement = null;
+        let quickEditorInitialized = false;
+        const QUICK_EDITOR_HISTORY_LIMIT = 10;
+
+        function ensureQuickEditorOverlay() {
+            const canvas = document.getElementById('canvas');
+            if (!canvas) return null;
+            if (!quickEditorOverlay) quickEditorOverlay = document.createElement('canvas');
+            if (quickEditorOverlay.width !== canvas.width || quickEditorOverlay.height !== canvas.height) {
+                quickEditorOverlay.width = canvas.width;
+                quickEditorOverlay.height = canvas.height;
+                quickEditorHistory = [];
+                quickEditorRedo = [];
+                updateQuickEditorHistoryButtons();
+            }
+            return quickEditorOverlay;
+        }
+
+        function resetQuickEditorOverlay(clearHistory = true) {
+            const overlay = ensureQuickEditorOverlay();
+            if (!overlay) return;
+            overlay.getContext('2d').clearRect(0, 0, overlay.width, overlay.height);
+            quickEditorPendingPlacement = null;
+            if (clearHistory) {
+                quickEditorHistory = [];
+                quickEditorRedo = [];
+            }
+            updateQuickEditorHistoryButtons();
+        }
+
+        function updateQuickEditorHistoryButtons() {
+            const undo = document.getElementById('quick-undo');
+            const redo = document.getElementById('quick-redo');
+            if (undo) undo.disabled = quickEditorHistory.length === 0;
+            if (redo) redo.disabled = quickEditorRedo.length === 0;
+        }
+
+        function getQuickEditorSnapshot() {
+            const overlay = ensureQuickEditorOverlay();
+            return overlay.getContext('2d').getImageData(0, 0, overlay.width, overlay.height);
+        }
+
+        function saveQuickEditorHistory() {
+            quickEditorHistory.push(getQuickEditorSnapshot());
+            if (quickEditorHistory.length > QUICK_EDITOR_HISTORY_LIMIT) quickEditorHistory.shift();
+            quickEditorRedo = [];
+            updateQuickEditorHistoryButtons();
+        }
+
+        function compositeQuickEditorOverlay() {
+            const canvas = document.getElementById('canvas');
+            const overlay = ensureQuickEditorOverlay();
+            if (!canvas || !overlay) return;
+            canvas.getContext('2d').drawImage(overlay, 0, 0);
+        }
+
+        function redrawQuickEditorCanvas() {
+            const canvas = document.getElementById('canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (currentImage) {
+                drawImageWithRotation(currentImage);
+                applyImageAdjustments(canvas);
+                const mode = document.getElementById('dithering').value;
+                const threshold = parseInt(document.getElementById('threshold').value);
+                dithering(ctx, canvas.width, canvas.height, threshold, mode);
+            } else {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            compositeQuickEditorOverlay();
+        }
+
+        function quickEditorUndo() {
+            if (!quickEditorHistory.length) return;
+            const overlay = ensureQuickEditorOverlay();
+            quickEditorRedo.push(getQuickEditorSnapshot());
+            overlay.getContext('2d').putImageData(quickEditorHistory.pop(), 0, 0);
+            updateQuickEditorHistoryButtons();
+            redrawQuickEditorCanvas();
+        }
+
+        function quickEditorRedoAction() {
+            if (!quickEditorRedo.length) return;
+            const overlay = ensureQuickEditorOverlay();
+            quickEditorHistory.push(getQuickEditorSnapshot());
+            overlay.getContext('2d').putImageData(quickEditorRedo.pop(), 0, 0);
+            updateQuickEditorHistoryButtons();
+            redrawQuickEditorCanvas();
+        }
+
+        function setQuickEditorStatus(message) {
+            const status = document.getElementById('quick-editor-status');
+            if (status) status.textContent = message;
+        }
+
+        function setQuickEditorTool(tool) {
+            quickEditorTool = quickEditorTool === tool ? null : tool;
+            quickEditorPendingPlacement = null;
+            const buttonMap = {
+                brush: 'quick-brush-mode',
+                eraser: 'quick-eraser-mode',
+                text: 'quick-text-mode',
+                todo: 'quick-todo-mode',
+                schedule: 'quick-schedule-mode'
+            };
+            Object.entries(buttonMap).forEach(([name, id]) => {
+                const button = document.getElementById(id);
+                if (button) button.classList.toggle('active', quickEditorTool === name);
+            });
+            const brushOptions = document.getElementById('quick-brush-options');
+            const textOptions = document.getElementById('quick-text-options');
+            const todoOptions = document.getElementById('quick-todo-options');
+            const scheduleOptions = document.getElementById('quick-schedule-options');
+            if (brushOptions) brushOptions.hidden = quickEditorTool !== 'brush' && quickEditorTool !== 'eraser';
+            if (textOptions) textOptions.hidden = quickEditorTool !== 'text';
+            if (todoOptions) todoOptions.hidden = quickEditorTool !== 'todo';
+            if (scheduleOptions) scheduleOptions.hidden = quickEditorTool !== 'schedule';
+            const brushColor = document.getElementById('quick-brush-color');
+            if (brushColor) brushColor.disabled = quickEditorTool === 'eraser';
+            const canvas = document.getElementById('canvas');
+            if (canvas) canvas.classList.toggle('quick-editor-active', !!quickEditorTool);
+            const messages = {
+                brush: 'Drag on the image to draw.',
+                eraser: 'Drag to erase to white.',
+                text: 'Enter text, click Add text, then click a position on the image.',
+                todo: 'Enter an item, click Add item, then click a position on the image.',
+                schedule: 'Configure the table, then click Create schedule.'
+            };
+            setQuickEditorStatus(t(quickEditorTool ? messages[quickEditorTool] : 'Choose a tool to begin editing the image.'));
+        }
+
+        function getQuickEditorPoint(event) {
+            const canvas = document.getElementById('canvas');
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: Math.max(0, Math.min(canvas.width, (event.clientX - rect.left) * canvas.width / rect.width)),
+                y: Math.max(0, Math.min(canvas.height, (event.clientY - rect.top) * canvas.height / rect.height))
+            };
+        }
+
+        function drawQuickEditorDot(ctx, point, color, size) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawQuickEditorSegment(ctx, from, to, color, size) {
+            ctx.save();
+            ctx.lineWidth = size;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(from.x, from.y);
+            ctx.lineTo(to.x, to.y);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawQuickEditorPlacement(ctx, placement, point) {
+            ctx.save();
+            ctx.textBaseline = 'top';
+            if (placement.type === 'text') {
+                const style = `${placement.italic ? 'italic ' : ''}${placement.bold ? 'bold ' : ''}${placement.size}px "${placement.font}"`;
+                ctx.font = style;
+                ctx.fillStyle = placement.color;
+                ctx.fillText(placement.text, point.x, point.y);
+            } else {
+                const boxSize = Math.max(8, placement.size * 0.72);
+                ctx.lineWidth = Math.max(1, placement.size / 10);
+                ctx.strokeStyle = placement.color;
+                ctx.strokeRect(point.x, point.y, boxSize, boxSize);
+                ctx.font = `${placement.size}px Arial`;
+                ctx.fillStyle = placement.color;
+                ctx.fillText(placement.text, point.x + boxSize + placement.size * 0.3, point.y - placement.size * 0.08);
+            }
+            ctx.restore();
+        }
+
+        function addQuickEditorPlacement(event) {
+            if (!quickEditorPendingPlacement) return false;
+            const point = getQuickEditorPoint(event);
+            const overlay = ensureQuickEditorOverlay();
+            const canvas = document.getElementById('canvas');
+            saveQuickEditorHistory();
+            drawQuickEditorPlacement(overlay.getContext('2d'), quickEditorPendingPlacement, point);
+            drawQuickEditorPlacement(canvas.getContext('2d'), quickEditorPendingPlacement, point);
+            quickEditorPendingPlacement = null;
+            setQuickEditorStatus(t('Content added. Continue editing or use Undo.'));
+            return true;
+        }
+
+        function drawQuickScheduleText(ctx, text, centerX, centerY, maxWidth, requestedSize, bold) {
+            if (!text) return;
+            const weight = bold ? '700' : '600';
+            let fontSize = requestedSize;
+            ctx.font = `${weight} ${fontSize}px Arial, sans-serif`;
+
+            // Never use Canvas fillText(..., maxWidth): the browser scales the
+            // glyph horizontally and the thin resampled strokes become faint
+            // after conversion to the EPD black/red bit planes. Reduce the
+            // integer font size instead so the glyph keeps its natural shape.
+            const measuredWidth = ctx.measureText(text).width;
+            if (measuredWidth > maxWidth && measuredWidth > 0) {
+                fontSize = Math.max(7, Math.floor(fontSize * maxWidth / measuredWidth));
+                ctx.font = `${weight} ${fontSize}px Arial, sans-serif`;
+            }
+            ctx.fillText(text, Math.round(centerX), Math.round(centerY));
+        }
+
+        function quantizeQuickSchedule(ctx, width, height, color) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const pixels = imageData.data;
+            const useRed = String(color).toLowerCase() === '#ff0000';
+            const edgeCoverageThreshold = 40;
+
+            // Canvas text is anti-aliased. The EPD packer intentionally keeps
+            // only exact black or exact red pixels, so gray/pink edge pixels
+            // would otherwise disappear. Convert this schedule layer to the
+            // panel's exact palette while it is still isolated from the image.
+            for (let index = 0; index < pixels.length; index += 4) {
+                const r = pixels[index];
+                const g = pixels[index + 1];
+                const b = pixels[index + 2];
+                const inkCoverage = useRed
+                    ? 255 - ((g + b) / 2)
+                    : 255 - ((r + g + b) / 3);
+                if (inkCoverage >= edgeCoverageThreshold) {
+                    pixels[index] = useRed ? 255 : 0;
+                    pixels[index + 1] = 0;
+                    pixels[index + 2] = 0;
+                } else {
+                    pixels[index] = 255;
+                    pixels[index + 1] = 255;
+                    pixels[index + 2] = 255;
+                }
+                pixels[index + 3] = 255;
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function createQuickEditorSchedule() {
+            const days = Math.max(1, Math.min(7, parseInt(document.getElementById('quick-schedule-days').value) || 7));
+            const rows = Math.max(1, Math.min(12, parseInt(document.getElementById('quick-schedule-rows').value) || 6));
+            const requestedSize = Math.max(8, Math.min(48, parseInt(document.getElementById('quick-schedule-size').value) || 16));
+            const color = document.getElementById('quick-schedule-color').value;
+            const values = document.getElementById('quick-schedule-input').value.split(/\r?\n/).map(value => value.trim());
+            const overlay = ensureQuickEditorOverlay();
+            const ctx = overlay.getContext('2d');
+            saveQuickEditorHistory();
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, overlay.width, overlay.height);
+            const margin = Math.max(3, Math.round(Math.min(overlay.width, overlay.height) * 0.015));
+            const totalRows = rows + 1;
+            const totalCols = days + 1;
+            const tableWidth = overlay.width - margin * 2;
+            const tableHeight = overlay.height - margin * 2;
+            const cellWidth = tableWidth / totalCols;
+            const cellHeight = tableHeight / totalRows;
+            const fontSize = Math.max(7, Math.min(requestedSize, Math.floor(cellHeight * 0.46), Math.floor(cellWidth * 0.3)));
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            const lineWidth = Math.max(1, Math.round(Math.min(overlay.width, overlay.height) / 240));
+            ctx.lineWidth = lineWidth;
+            const alignLine = value => lineWidth % 2 === 1 ? Math.round(value) + 0.5 : Math.round(value);
+            const columnEdges = Array.from({ length: totalCols + 1 }, (_, index) =>
+                Math.round(margin + tableWidth * index / totalCols));
+            const rowEdges = Array.from({ length: totalRows + 1 }, (_, index) =>
+                Math.round(margin + tableHeight * index / totalRows));
+            for (let row = 0; row <= totalRows; row++) {
+                const y = alignLine(rowEdges[row]);
+                ctx.beginPath();
+                ctx.moveTo(alignLine(columnEdges[0]), y);
+                ctx.lineTo(alignLine(columnEdges[totalCols]), y);
+                ctx.stroke();
+            }
+            for (let col = 0; col <= totalCols; col++) {
+                const x = alignLine(columnEdges[col]);
+                ctx.beginPath();
+                ctx.moveTo(x, alignLine(rowEdges[0]));
+                ctx.lineTo(x, alignLine(rowEdges[totalRows]));
+                ctx.stroke();
+            }
+            const dayNames = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const firstRowCenter = (rowEdges[0] + rowEdges[1]) / 2;
+            drawQuickScheduleText(ctx, t('Period'),
+                (columnEdges[0] + columnEdges[1]) / 2, firstRowCenter,
+                columnEdges[1] - columnEdges[0] - 6, fontSize, true);
+            for (let day = 0; day < days; day++) {
+                drawQuickScheduleText(ctx, dayNames[day],
+                    (columnEdges[day + 1] + columnEdges[day + 2]) / 2, firstRowCenter,
+                    columnEdges[day + 2] - columnEdges[day + 1] - 6, fontSize, true);
+            }
+            let valueIndex = 0;
+            for (let row = 0; row < rows; row++) {
+                const y = (rowEdges[row + 1] + rowEdges[row + 2]) / 2;
+                drawQuickScheduleText(ctx, String(row + 1),
+                    (columnEdges[0] + columnEdges[1]) / 2, y,
+                    columnEdges[1] - columnEdges[0] - 6, fontSize, false);
+                for (let day = 0; day < days; day++) {
+                    const value = values[valueIndex++] || '';
+                    if (value) {
+                        drawQuickScheduleText(ctx, value,
+                            (columnEdges[day + 1] + columnEdges[day + 2]) / 2, y,
+                            columnEdges[day + 2] - columnEdges[day + 1] - 6,
+                            fontSize, false);
+                    }
+                }
+            }
+            quantizeQuickSchedule(ctx, overlay.width, overlay.height, color);
+            redrawQuickEditorCanvas();
+            setQuickEditorStatus(t('Schedule created. Each input line fills cells from left to right.'));
+        }
+
+        function initQuickEditorTools() {
+            if (quickEditorInitialized) return;
+            quickEditorInitialized = true;
+            ensureQuickEditorOverlay();
+            const canvas = document.getElementById('canvas');
+            document.getElementById('quick-brush-mode').addEventListener('click', () => setQuickEditorTool('brush'));
+            document.getElementById('quick-eraser-mode').addEventListener('click', () => setQuickEditorTool('eraser'));
+            document.getElementById('quick-text-mode').addEventListener('click', () => setQuickEditorTool('text'));
+            document.getElementById('quick-todo-mode').addEventListener('click', () => setQuickEditorTool('todo'));
+            document.getElementById('quick-schedule-mode').addEventListener('click', () => setQuickEditorTool('schedule'));
+            document.getElementById('quick-undo').addEventListener('click', quickEditorUndo);
+            document.getElementById('quick-redo').addEventListener('click', quickEditorRedoAction);
+            document.getElementById('quick-clear').addEventListener('click', () => {
+                saveQuickEditorHistory();
+                resetQuickEditorOverlay(false);
+                redrawQuickEditorCanvas();
+                setQuickEditorStatus(t('Drawing cleared.'));
+            });
+            document.getElementById('quick-add-text').addEventListener('click', () => {
+                const text = document.getElementById('quick-text-input').value.trim();
+                if (!text) {
+                    setQuickEditorStatus(t('Enter text before choosing a position.'));
+                    return;
+                }
+                quickEditorPendingPlacement = {
+                    type: 'text',
+                    text,
+                    font: document.getElementById('quick-font-family').value,
+                    size: Math.max(6, Math.min(160, parseInt(document.getElementById('quick-font-size').value) || 24)),
+                    color: document.getElementById('quick-text-color').value,
+                    bold: document.getElementById('quick-text-bold').checked,
+                    italic: document.getElementById('quick-text-italic').checked
+                };
+                setQuickEditorStatus(t('Click the image where the text should be placed.'));
+            });
+            document.getElementById('quick-add-todo').addEventListener('click', () => {
+                const text = document.getElementById('quick-todo-input').value.trim();
+                if (!text) {
+                    setQuickEditorStatus(t('Enter a to-do item first.'));
+                    return;
+                }
+                quickEditorPendingPlacement = {
+                    type: 'todo',
+                    text,
+                    size: Math.max(8, Math.min(120, parseInt(document.getElementById('quick-todo-size').value) || 22)),
+                    color: document.getElementById('quick-todo-color').value
+                };
+                setQuickEditorStatus(t('Click the image where the item should be placed.'));
+            });
+            document.getElementById('quick-create-schedule').addEventListener('click', createQuickEditorSchedule);
+            canvas.addEventListener('pointerdown', event => {
+                if (addQuickEditorPlacement(event)) {
+                    event.preventDefault();
+                    return;
+                }
+                if (quickEditorTool !== 'brush' && quickEditorTool !== 'eraser') return;
+                event.preventDefault();
+                saveQuickEditorHistory();
+                quickEditorDrawing = true;
+                quickEditorLastPoint = getQuickEditorPoint(event);
+                if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+                const color = quickEditorTool === 'eraser' ? '#ffffff' : document.getElementById('quick-brush-color').value;
+                const size = Math.max(1, Math.min(100, parseInt(document.getElementById('quick-brush-size').value) || 4));
+                drawQuickEditorDot(ensureQuickEditorOverlay().getContext('2d'), quickEditorLastPoint, color, size);
+                drawQuickEditorDot(canvas.getContext('2d'), quickEditorLastPoint, color, size);
+            });
+            canvas.addEventListener('pointermove', event => {
+                if (!quickEditorDrawing || !quickEditorLastPoint) return;
+                event.preventDefault();
+                const point = getQuickEditorPoint(event);
+                const color = quickEditorTool === 'eraser' ? '#ffffff' : document.getElementById('quick-brush-color').value;
+                const size = Math.max(1, Math.min(100, parseInt(document.getElementById('quick-brush-size').value) || 4));
+                drawQuickEditorSegment(ensureQuickEditorOverlay().getContext('2d'), quickEditorLastPoint, point, color, size);
+                drawQuickEditorSegment(canvas.getContext('2d'), quickEditorLastPoint, point, color, size);
+                quickEditorLastPoint = point;
+            });
+            const finishDrawing = () => {
+                quickEditorDrawing = false;
+                quickEditorLastPoint = null;
+                updateQuickEditorHistoryButtons();
+            };
+            canvas.addEventListener('pointerup', finishDrawing);
+            canvas.addEventListener('pointercancel', finishDrawing);
+            updateQuickEditorHistoryButtons();
+        }
+
         function convert_dithering() {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext("2d");
             const mode = document.getElementById('dithering').value;
             const threshold = parseInt(document.getElementById('threshold').value);
             dithering(ctx, canvas.width, canvas.height, threshold, mode);
+            compositeQuickEditorOverlay();
         }
         document.body.onload = () => {
             setInterval(() => {
@@ -3139,6 +3826,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             updateCanvasSize();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            initQuickEditorTools();
             let is_allow_drawing = false;
             let is_allow_move_editor = false;
             const image_mode = document.getElementById('canvas-mode');
