@@ -118,6 +118,22 @@
             min-width: 120px;
         }
 
+        .week-start-control {
+            align-items: center;
+        }
+
+        .week-start-control label {
+            flex: 0 0 auto;
+            font-weight: 500;
+        }
+
+        .week-start-control select {
+            flex: 1 1 220px;
+            width: auto;
+            max-width: 280px;
+            margin: 5px;
+        }
+
         /* Form element optimization */
         input, select {
             width: 100%;
@@ -275,6 +291,13 @@
             
             .button-group button {
                 flex: 1 1 100%;
+            }
+
+            .week-start-control select {
+                flex-basis: 100%;
+                width: 100%;
+                max-width: none;
+                margin: 0;
             }
             
             .tab-button {
@@ -766,6 +789,10 @@
                 "Clear Logs": "Xóa nhật ký",
                 "Device: not connected": "Thiết bị: chưa kết nối",
                 "Set Time:": "Cài giờ:",
+                "First day of week:": "Ngày đầu tuần:",
+                "Monday": "Thứ 2",
+                "Sunday": "Chủ nhật",
+                "Applied when switching to calendar mode on nRF52": "Áp dụng khi chuyển sang chế độ lịch trên nRF52",
                 "Switch to Clock Mode": "Chuyển sang chế độ đồng hồ",
                 "Switch to Calendar Mode": "Chuyển sang chế độ lịch",
                 "Toggle Clock Color": "Đổi màu đồng hồ",
@@ -1085,6 +1112,14 @@
         <div class="button-group">
             <button id="time-setter" onclick="setTime()">Set Time: </button> <br>
             <input type="number" max="24" min="0" id="hour-offset" value="0" style="width: 40px;">
+        </div>
+
+        <div class="button-group week-start-control">
+            <label for="week-start">First day of week:</label>
+            <select id="week-start" title="Applied when switching to calendar mode on nRF52">
+                <option value="1" selected>Monday</option>
+                <option value="0">Sunday</option>
+            </select>
         </div>
 
         <div class="button-group">
@@ -2550,6 +2585,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         const NRF52_SERVICE_UUID = '62750001-d828-918d-fb46-b6c11c675aec';
         const NRF52_CHARACTERISTIC_UUID = '62750002-d828-918d-fb46-b6c11c675aec';
         const NRF52_CMD_SET_TIME = 0x20;
+        const NRF52_CMD_SET_WEEK_START = 0x21;
         const NRF52_CMD_WRITE_IMAGE = 0x30;
         const NRF52_CMD_REFRESH = 0x05;
         const NRF52_CMD_INIT = 0x01;
@@ -2570,6 +2606,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let nrf52ModelDetected = false;
         let nrf52ActivationWaiter = null;
         let nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
+        let lastNrf52WeekStart = null;
         function delay(delayInMs) {
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -2586,6 +2623,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             deviceProtocol = null;
             nrf52ModelDetected = false;
             nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
+            lastNrf52WeekStart = null;
             if (nrf52ActivationWaiter) {
                 clearTimeout(nrf52ActivationWaiter.timer);
                 nrf52ActivationWaiter.resolve(null);
@@ -2608,10 +2646,22 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 addLog(t('Service unavailable. Is Bluetooth connected?'))
             }
         }
+        function getNrf52WeekStart() {
+            const select = document.getElementById('week-start');
+            return select && select.value === '0' ? 0 : 1;
+        }
+        async function sendNrf52WeekStart() {
+            const weekStart = getNrf52WeekStart();
+            if (lastNrf52WeekStart === weekStart) return;
+            await sendCommand(new Uint8Array([NRF52_CMD_SET_WEEK_START, weekStart]));
+            lastNrf52WeekStart = weekStart;
+            addLog(`${t('First day of week:')} ${t(weekStart === 0 ? 'Sunday' : 'Monday')}`);
+        }
         async function sendNrf52Mode(mode) {
             const previousMode = nrf52DisplayMode;
             const timestamp = Math.floor(Date.now() / 1000);
             const timezoneHours = Math.round(-new Date().getTimezoneOffset() / 60);
+            await sendNrf52WeekStart();
             const packet = new Uint8Array([
                 NRF52_CMD_SET_TIME,
                 (timestamp >>> 24) & 0xff,
