@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <title>Thẻ mực điện tử - v47</title>
+    <title>Thẻ mực điện tử - Web v58 (2.13 / 2.9 / 7.5)</title>
     <style>
         /* Base style reset */
         * {
@@ -116,22 +116,6 @@
         .button-group button {
             flex: 1 1 calc(50% - 10px);
             min-width: 120px;
-        }
-
-        .week-start-control {
-            align-items: center;
-        }
-
-        .week-start-control label {
-            flex: 0 0 auto;
-            font-weight: 500;
-        }
-
-        .week-start-control select {
-            flex: 1 1 220px;
-            width: auto;
-            max-width: 280px;
-            margin: 5px;
         }
 
         /* Form element optimization */
@@ -291,13 +275,6 @@
             
             .button-group button {
                 flex: 1 1 100%;
-            }
-
-            .week-start-control select {
-                flex-basis: 100%;
-                width: 100%;
-                max-width: none;
-                margin: 0;
             }
             
             .tab-button {
@@ -748,13 +725,15 @@
             min-width: 220px;
         }
 
-        #quick-editor-status {
+        #quick-editor-status,
+        #clock-quick-editor-status {
             margin-top: 8px;
             color: #475569;
             font-size: 13px;
         }
 
-        #canvas.quick-editor-active {
+        #canvas.quick-editor-active,
+        #clock-image-canvas.quick-editor-active {
             cursor: crosshair;
             touch-action: none;
         }
@@ -789,10 +768,6 @@
                 "Clear Logs": "Xóa nhật ký",
                 "Device: not connected": "Thiết bị: chưa kết nối",
                 "Set Time:": "Cài giờ:",
-                "First day of week:": "Ngày đầu tuần:",
-                "Monday": "Thứ 2",
-                "Sunday": "Chủ nhật",
-                "Applied when switching to calendar mode on nRF52": "Áp dụng khi chuyển sang chế độ lịch trên nRF52",
                 "Switch to Clock Mode": "Chuyển sang chế độ đồng hồ",
                 "Switch to Calendar Mode": "Chuyển sang chế độ lịch",
                 "Toggle Clock Color": "Đổi màu đồng hồ",
@@ -1092,6 +1067,7 @@
             <button class="tab-button active" data-tab="tab-settings">E-Paper Settings</button>
             <button class="tab-button" data-tab="tab-countdown">Countdown Module</button>
             <button class="tab-button" data-tab="tab-image">Image Transfer</button>
+            <button id="clock-image-tab-button" class="tab-button" data-tab="tab-clock-image">Đồng hồ và ảnh</button>
             <button class="tab-button" data-tab="tab-editor">Template Designer</button>
         </div>
     </div>
@@ -1112,14 +1088,12 @@
         <div class="button-group">
             <button id="time-setter" onclick="setTime()">Set Time: </button> <br>
             <input type="number" max="24" min="0" id="hour-offset" value="0" style="width: 40px;">
-        </div>
-
-        <div class="button-group week-start-control">
-            <label for="week-start">First day of week:</label>
-            <select id="week-start" title="Applied when switching to calendar mode on nRF52">
-                <option value="1" selected>Monday</option>
-                <option value="0">Sunday</option>
+            <label for="week-start-selector">Ngày đầu tuần:</label>
+            <select id="week-start-selector" onchange="setWeekStartFromUi()" style="width:auto; margin:0;">
+                <option value="1" selected>Thứ 2</option>
+                <option value="0">Chủ Nhật</option>
             </select>
+            <span id="week-start-status">Áp dụng khi cài giờ hoặc chuyển mode.</span>
         </div>
 
         <div class="button-group">
@@ -1265,6 +1239,117 @@
     </div>
 
    
+    <div id="tab-clock-image" class="tab-content">
+        <h3 id="clock-image-title">Đồng hồ và ảnh</h3>
+        <p id="clock-image-description">Kết nối màn tương thích để trang web tự chọn kích thước và vị trí ảnh.</p>
+        <div class="button-group">
+            <input type="file" id="clock-image-file" accept=".png,.jpg,.bmp,.webp,.jpeg" onchange="loadClockImageFile()">
+            <button type="button" onclick="clockImageFit(false)">Vừa khung</button>
+            <button type="button" onclick="clockImageFit(true)">Phủ kín</button>
+            <button type="button" onclick="rotateClockImage(-90)">Xoay trái 90°</button>
+            <button type="button" onclick="rotateClockImage(90)">Xoay 90°</button>
+            <button type="button" onclick="zoomClockImage(1.1)" title="Phóng to ảnh">+</button>
+            <button type="button" onclick="zoomClockImage(1 / 1.1)" title="Thu nhỏ ảnh">−</button>
+            <button type="button" onclick="moveClockImage(-10, 0)" title="Di chuyển sang trái">←</button>
+            <button type="button" onclick="moveClockImage(0, -10)" title="Di chuyển lên">↑</button>
+            <button type="button" onclick="moveClockImage(0, 10)" title="Di chuyển xuống">↓</button>
+            <button type="button" onclick="moveClockImage(10, 0)" title="Di chuyển sang phải">→</button>
+            <button type="button" onclick="resetClockImageEditor()">Đặt lại ảnh</button>
+        </div>
+        <div class="button-group">
+            <label>Độ sáng <input id="clock-image-brightness" type="range" min="-100" max="100" value="0" oninput="renderClockImage()"></label>
+            <label>Tương phản <input id="clock-image-contrast" type="range" min="-100" max="100" value="15" oninput="renderClockImage()"></label>
+            <label>Ngưỡng đỏ <input id="clock-image-red-threshold" type="range" min="80" max="240" value="150" oninput="renderClockImage()"></label>
+            <label>Ngưỡng đen/trắng <input id="clock-image-bw-threshold" type="range" min="50" max="220" value="145" oninput="renderClockImage()"></label>
+        </div>
+        <div id="clock-image-canvas-box" style="max-width:100%; overflow:auto;">
+            <canvas id="clock-image-canvas" width="400" height="480" style="border:1px solid #222; max-width:100%; height:auto;"></canvas>
+        </div>
+
+        <div class="quick-editor-tools" aria-label="Công cụ chỉnh sửa ảnh đồng hồ">
+            <div class="quick-tool-buttons">
+                <button type="button" id="clock-quick-brush-mode" class="quick-tool-button" title="Bút vẽ" aria-label="Bút vẽ">✏️</button>
+                <button type="button" id="clock-quick-eraser-mode" class="quick-tool-button" title="Tẩy" aria-label="Tẩy">🧽</button>
+                <button type="button" id="clock-quick-text-mode" class="quick-tool-button" title="Thêm chữ" aria-label="Thêm chữ">T</button>
+                <button type="button" id="clock-quick-todo-mode" class="quick-tool-button" title="Thêm ô công việc" aria-label="Thêm ô công việc">☐</button>
+                <button type="button" id="clock-quick-schedule-mode" class="quick-tool-button" title="Tạo thời khóa biểu" aria-label="Tạo thời khóa biểu">📅</button>
+                <button type="button" id="clock-quick-undo" class="quick-tool-button" title="Hoàn tác" aria-label="Hoàn tác">↶</button>
+                <button type="button" id="clock-quick-redo" class="quick-tool-button" title="Làm lại" aria-label="Làm lại">↷</button>
+                <button type="button" id="clock-quick-clear" class="quick-tool-button" title="Xóa phần chỉnh sửa" aria-label="Xóa phần chỉnh sửa">×</button>
+            </div>
+
+            <div id="clock-quick-brush-options" class="quick-tool-options" hidden>
+                <label for="clock-quick-brush-color">Màu:</label>
+                <select id="clock-quick-brush-color">
+                    <option value="#000000">Đen</option>
+                    <option value="#ff0000">Đỏ</option>
+                    <option value="#ffffff">Trắng</option>
+                </select>
+                <label for="clock-quick-brush-size">Độ dày:</label>
+                <input type="number" id="clock-quick-brush-size" value="4" min="1" max="100">
+            </div>
+
+            <div id="clock-quick-text-options" class="quick-tool-options" hidden>
+                <input type="text" id="clock-quick-text-input" placeholder="Nhập chữ" maxlength="100">
+                <label for="clock-quick-font-family">Font:</label>
+                <select id="clock-quick-font-family">
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="sans-serif">Sans-serif</option>
+                    <option value="serif">Serif</option>
+                    <option value="monospace">Monospace</option>
+                </select>
+                <label for="clock-quick-font-size">Cỡ:</label>
+                <input type="number" id="clock-quick-font-size" value="24" min="6" max="160">
+                <label for="clock-quick-text-color">Màu:</label>
+                <select id="clock-quick-text-color">
+                    <option value="#000000">Đen</option>
+                    <option value="#ff0000">Đỏ</option>
+                    <option value="#ffffff">Trắng</option>
+                </select>
+                <label><input type="checkbox" id="clock-quick-text-bold"> Đậm</label>
+                <label><input type="checkbox" id="clock-quick-text-italic"> Nghiêng</label>
+                <button type="button" id="clock-quick-add-text">Thêm chữ rồi bấm vị trí trên ảnh</button>
+            </div>
+
+            <div id="clock-quick-todo-options" class="quick-tool-options" hidden>
+                <input type="text" id="clock-quick-todo-input" placeholder="Nhập công việc" maxlength="100">
+                <label for="clock-quick-todo-size">Cỡ:</label>
+                <input type="number" id="clock-quick-todo-size" value="22" min="8" max="120">
+                <label for="clock-quick-todo-color">Màu:</label>
+                <select id="clock-quick-todo-color">
+                    <option value="#000000">Đen</option>
+                    <option value="#ff0000">Đỏ</option>
+                </select>
+                <button type="button" id="clock-quick-add-todo">Thêm công việc rồi bấm vị trí trên ảnh</button>
+            </div>
+
+            <div id="clock-quick-schedule-options" class="quick-tool-options" hidden>
+                <label for="clock-quick-schedule-days">Số ngày:</label>
+                <input type="number" id="clock-quick-schedule-days" value="7" min="1" max="7">
+                <label for="clock-quick-schedule-rows">Số dòng:</label>
+                <input type="number" id="clock-quick-schedule-rows" value="6" min="1" max="12">
+                <label for="clock-quick-schedule-size">Cỡ chữ:</label>
+                <input type="number" id="clock-quick-schedule-size" value="16" min="8" max="48">
+                <label for="clock-quick-schedule-color">Màu:</label>
+                <select id="clock-quick-schedule-color">
+                    <option value="#000000">Đen</option>
+                    <option value="#ff0000">Đỏ</option>
+                </select>
+                <textarea id="clock-quick-schedule-input" rows="3" placeholder="Mỗi dòng là nội dung của một ô, đi từ trái sang phải"></textarea>
+                <button type="button" id="clock-quick-create-schedule">Tạo thời khóa biểu</button>
+            </div>
+
+            <div id="clock-quick-editor-status" role="status">Chọn công cụ để chỉnh sửa phần ảnh bên phải.</div>
+        </div>
+        <div class="button-group">
+            <button id="clock-image-upload-button" type="button" onclick="uploadClockImage()">Chuyển sang Đồng hồ và ảnh + tải ảnh</button>
+            <progress id="clock-image-progress" max="100" value="0" style="width:min(500px,100%);"></progress>
+            <span id="clock-image-status">Hỗ trợ chung màn 2.13, 2.9 và 7.5 có firmware Đồng hồ và ảnh tương thích.</span>
+        </div>
+        <p><strong>Lưu ý:</strong> chuyển sang mode khác hoặc xóa/nạp lại toàn màn sẽ làm mất ảnh. Tháo pin rồi lắp lại vẫn giữ ảnh trên mặt kính.</p>
+    </div>
+
     <div id="tab-image" class="tab-content">
         <h3>Upload Image to Screen</h3>
         <div class="button-group">
@@ -2584,11 +2669,16 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         const PROTOCOL_NRF52 = 'nrf52';
         const NRF52_SERVICE_UUID = '62750001-d828-918d-fb46-b6c11c675aec';
         const NRF52_CHARACTERISTIC_UUID = '62750002-d828-918d-fb46-b6c11c675aec';
+        const NRF52_APP_VERSION_UUID = '62750003-d828-918d-fb46-b6c11c675aec';
         const NRF52_CMD_SET_TIME = 0x20;
         const NRF52_CMD_SET_WEEK_START = 0x21;
         const NRF52_CMD_WRITE_IMAGE = 0x30;
         const NRF52_CMD_REFRESH = 0x05;
         const NRF52_CMD_INIT = 0x01;
+        const NRF52_CMD_SEND_COMMAND = 0x03;
+        const NRF52_CMD_SEND_DATA = 0x04;
+        const NRF52_CMD_WRITE_CLOCK_IMAGE = 0x34;
+        const NRF52_CMD_COMMIT_CLOCK_IMAGE = 0x35;
         const NRF52_CMD_ACTIVATE = 0xa0;
         const NRF52_IMAGE_CHUNK_SIZE = 128;
         const DA14585_RXTX_SERVICE_UUID = '00001f10-0000-1000-8000-00805f9b34fb';
@@ -2604,9 +2694,12 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let nrf52DisplayMode = 1;
         let nrf52ModelId = 2;
         let nrf52ModelDetected = false;
+        let nrf52FirmwareVersion = 0;
+        let nrf52PanelProfile = null;
         let nrf52ActivationWaiter = null;
+        let clockImageResultWaiter = null;
+        let clockImageReadyWaiter = null;
         let nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
-        let lastNrf52WeekStart = null;
         function delay(delayInMs) {
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -2622,15 +2715,19 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             rxtxService = null;
             deviceProtocol = null;
             nrf52ModelDetected = false;
+            nrf52FirmwareVersion = 0;
+            nrf52PanelProfile = null;
             nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
-            lastNrf52WeekStart = null;
             if (nrf52ActivationWaiter) {
                 clearTimeout(nrf52ActivationWaiter.timer);
                 nrf52ActivationWaiter.resolve(null);
                 nrf52ActivationWaiter = null;
             }
+            resolveClockImageReady(false);
+            resolveClockImageResult(false);
             const protocolLabel = document.getElementById('device-protocol');
             if (protocolLabel) protocolLabel.textContent = t('Device: not connected');
+            updateClockImageAvailability();
             document.getElementById("log").value = '';
         }
         async function handleError(error) {
@@ -2646,22 +2743,49 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 addLog(t('Service unavailable. Is Bluetooth connected?'))
             }
         }
-        function getNrf52WeekStart() {
-            const select = document.getElementById('week-start');
-            return select && select.value === '0' ? 0 : 1;
+        function getSelectedWeekStart() {
+            const selector = document.getElementById('week-start-selector');
+            return selector && selector.value === '0' ? 0 : 1;
         }
-        async function sendNrf52WeekStart() {
-            const weekStart = getNrf52WeekStart();
-            if (lastNrf52WeekStart === weekStart) return;
+        function updateWeekStartStatus(message) {
+            const status = document.getElementById('week-start-status');
+            if (status) status.textContent = message;
+        }
+        async function sendNrf52WeekStart(silent = false) {
+            const supported = deviceProtocol === PROTOCOL_NRF52 &&
+                nrf52ModelDetected && nrf52ModelId === 7 && nrf52FirmwareVersion >= 48;
+            if (!supported) {
+                if (!silent) updateWeekStartStatus('Chỉ gửi cho màn nRF52 7.5 tương thích.');
+                return false;
+            }
+            const weekStart = getSelectedWeekStart();
             await sendCommand(new Uint8Array([NRF52_CMD_SET_WEEK_START, weekStart]));
-            lastNrf52WeekStart = weekStart;
-            addLog(`${t('First day of week:')} ${t(weekStart === 0 ? 'Sunday' : 'Monday')}`);
+            const label = weekStart === 0 ? 'Chủ Nhật' : 'Thứ 2';
+            updateWeekStartStatus(`Đã lưu ${label}; hiển thị ở lần full refresh hoặc chuyển mode tiếp theo.`);
+            if (!silent) addLog(`Ngày đầu tuần đã đặt là ${label}.`);
+            return true;
+        }
+        async function setWeekStartFromUi() {
+            const value = String(getSelectedWeekStart());
+            try {
+                localStorage.setItem('epd-week-start', value);
+            } catch (storageError) {
+                // Private browsing can disable storage; BLE setting still works.
+            }
+            if (deviceProtocol === PROTOCOL_NRF52) {
+                await sendNrf52WeekStart(false);
+            } else {
+                updateWeekStartStatus('Đã chọn; sẽ gửi sau khi kết nối màn 7.5.');
+            }
         }
         async function sendNrf52Mode(mode) {
             const previousMode = nrf52DisplayMode;
+            const actualMode = mode & 0x7f;
+            // Save the calendar layout before SET_TIME triggers a redraw. The
+            // firmware writes flash only when the value actually changes.
+            await sendNrf52WeekStart(true);
             const timestamp = Math.floor(Date.now() / 1000);
             const timezoneHours = Math.round(-new Date().getTimezoneOffset() / 60);
-            await sendNrf52WeekStart();
             const packet = new Uint8Array([
                 NRF52_CMD_SET_TIME,
                 (timestamp >>> 24) & 0xff,
@@ -2672,7 +2796,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 mode
             ]);
             await sendCommand(packet);
-            nrf52DisplayMode = (mode === 2 && previousMode === 2) ? 3 : mode;
+            nrf52DisplayMode = (actualMode === 2 && previousMode === 2) ? 3 : actualMode;
             addLog(`nRF52 mode ${nrf52DisplayMode} command sent`);
         }
         async function switchDisplayMode(mode) {
@@ -2777,6 +2901,463 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             addLog(t('nRF52 image uploaded; Picture Mode is now active.'));
             return true;
         }
+
+        let clockImageOriginal = null;
+        let clockImageRotation = 0;
+        let clockImageFill = false;
+        let clockImageScale = 1;
+        let clockImageOffsetX = 0;
+        let clockImageOffsetY = 0;
+
+        const CLOCK_IMAGE_TARGETS = {
+            model2_290: {
+                minVersion: 30,
+                width: 194,
+                height: 128,
+                fullWidth: 296,
+                mode: 0x83,
+                planeBytes: 4736,
+                transfer: 'ssd1680-fullframe',
+                label: 'màn 2.9 model 2',
+                title: 'Đồng hồ và ảnh – màn 2.9 inch (Web v58 dùng chung)',
+                description: 'Ảnh 194×128 nằm sát đường chia bên trái; cụm đồng hồ Face 2 bên phải tiếp tục cập nhật mỗi phút.',
+                imageSide: 'trái',
+                clockSide: 'phải'
+            },
+            model2_213: {
+                minVersion: 40,
+                width: 148,
+                height: 128,
+                fullWidth: 250,
+                mode: 0x83,
+                planeBytes: 4000,
+                transfer: 'ssd1680-fullframe',
+                label: 'màn 2.13 CE/no CE model 2',
+                title: 'Đồng hồ và ảnh – màn 2.13 CE/no CE (Web v58 dùng chung)',
+                description: 'Ảnh 148×128 nằm bên trái; cụm đồng hồ Face 2 rộng 102 pixel bên phải tiếp tục cập nhật mỗi phút.',
+                imageSide: 'trái',
+                clockSide: 'phải'
+            },
+            model7_750: {
+                minVersion: 53,
+                width: 400,
+                height: 480,
+                mode: 4,
+                planeBytes: 24000,
+                transfer: 'clock-image-v54',
+                label: 'màn 7.5 model 7',
+                title: 'Đồng hồ và ảnh – màn 7.5 inch (ảnh nửa màn + chỉnh sửa)',
+                description: 'Đồng hồ Face 1 nằm bên trái. Ảnh 400×480 chiếm trọn nửa phải và không bị refresh ở phút 00/30.',
+                imageSide: 'phải',
+                clockSide: 'trái'
+            }
+        };
+
+        function getClockImageTarget() {
+            if (deviceProtocol !== PROTOCOL_NRF52 || !nrf52ModelDetected) return null;
+            if (nrf52ModelId === 7) return CLOCK_IMAGE_TARGETS.model7_750;
+            if (nrf52ModelId !== 2) return null;
+            if (nrf52PanelProfile === 0x21) return CLOCK_IMAGE_TARGETS.model2_213;
+            // The released 2.9 Clock+Image firmware is v30. Versions 39+
+            // without the 2.13 capability marker are intentionally rejected,
+            // because model id 2 alone cannot distinguish the two panel sizes.
+            if (nrf52FirmwareVersion >= 30 && nrf52FirmwareVersion < 39) {
+                return CLOCK_IMAGE_TARGETS.model2_290;
+            }
+            return null;
+        }
+
+        function configureClockImageTarget(target) {
+            if (!target) return;
+            const canvas = document.getElementById('clock-image-canvas');
+            const title = document.getElementById('clock-image-title');
+            const description = document.getElementById('clock-image-description');
+            if (title) title.textContent = target.title;
+            if (description) description.textContent = target.description;
+            if (!canvas || (canvas.width === target.width && canvas.height === target.height)) return;
+
+            canvas.width = target.width;
+            canvas.height = target.height;
+            clockImageScale = 1;
+            clockImageOffsetX = 0;
+            clockImageOffsetY = 0;
+            resetClockQuickOverlay(true);
+            renderClockImage();
+        }
+
+        function updateClockImageAvailability() {
+            const button = document.getElementById('clock-image-tab-button');
+            const uploadButton = document.getElementById('clock-image-upload-button');
+            const status = document.getElementById('clock-image-status');
+            const target = getClockImageTarget();
+            const supported = target && nrf52FirmwareVersion >= target.minVersion;
+            if (target) configureClockImageTarget(target);
+            // Keep the tab visible before connecting so the user can find the
+            // feature. Hide it only after a DA14585 device is positively
+            // identified; unsupported nRF52 devices see a disabled upload
+            // button and an explanatory status instead.
+            if (button) button.style.display = deviceProtocol === PROTOCOL_DA14585 ? 'none' : '';
+            if (uploadButton) uploadButton.disabled = !supported;
+            if (status) {
+                if (supported) {
+                    status.textContent = `Đã nhận ${target.label}, firmware v${nrf52FirmwareVersion}. Sẵn sàng chọn ảnh ${target.width}×${target.height}.`;
+                } else if (deviceProtocol === PROTOCOL_NRF52) {
+                    const requirement = target
+                        ? `${target.label}, firmware v${target.minVersion}+`
+                        : 'màn 2.13 v40+, màn 2.9 v30 hoặc màn 7.5 v53+ có firmware Đồng hồ và ảnh';
+                    status.textContent = `Cần ${requirement} (đang nhận model ${nrf52ModelDetected ? nrf52ModelId : '?'}, v${nrf52FirmwareVersion || '?'}).`;
+                } else if (deviceProtocol == null) {
+                    status.textContent = 'Hãy kết nối màn nRF52 2.13, 2.9 hoặc 7.5 có firmware Đồng hồ và ảnh.';
+                } else {
+                    status.textContent = 'Chức năng này chỉ hỗ trợ firmware nRF52 Đồng hồ và ảnh.';
+                }
+            }
+        }
+
+        function setClockImageProgress(percent, text) {
+            const progress = document.getElementById('clock-image-progress');
+            const status = document.getElementById('clock-image-status');
+            if (progress) progress.value = Math.max(0, Math.min(100, percent));
+            if (status && text) status.textContent = text;
+        }
+
+        function waitForClockImageResult(timeoutMs) {
+            resolveClockImageResult(false);
+            return new Promise(resolve => {
+                const timer = setTimeout(() => {
+                    clockImageResultWaiter = null;
+                    resolve(false);
+                }, timeoutMs);
+                clockImageResultWaiter = { resolve, timer };
+            });
+        }
+
+        function resolveClockImageResult(success) {
+            if (!clockImageResultWaiter) return;
+            clearTimeout(clockImageResultWaiter.timer);
+            const resolve = clockImageResultWaiter.resolve;
+            clockImageResultWaiter = null;
+            resolve(!!success);
+        }
+
+        function waitForClockImageReady(timeoutMs) {
+            resolveClockImageReady(false);
+            return new Promise(resolve => {
+                const timer = setTimeout(() => {
+                    clockImageReadyWaiter = null;
+                    resolve(false);
+                }, timeoutMs);
+                clockImageReadyWaiter = { resolve, timer };
+            });
+        }
+
+        function resolveClockImageReady(ready) {
+            if (!clockImageReadyWaiter) return false;
+            clearTimeout(clockImageReadyWaiter.timer);
+            const resolve = clockImageReadyWaiter.resolve;
+            clockImageReadyWaiter = null;
+            resolve(!!ready);
+            return true;
+        }
+
+        function loadClockImageFile() {
+            const input = document.getElementById('clock-image-file');
+            if (!input || !input.files || !input.files.length) return;
+            const url = URL.createObjectURL(input.files[0]);
+            const image = new Image();
+            image.onload = () => {
+                URL.revokeObjectURL(url);
+                clockImageOriginal = image;
+                clockImageRotation = 0;
+                clockImageFill = false;
+                clockImageScale = 1;
+                clockImageOffsetX = 0;
+                clockImageOffsetY = 0;
+                resetClockQuickOverlay(true);
+                renderClockImage();
+            };
+            image.src = url;
+        }
+
+        function clockImageFit(fill) {
+            clockImageFill = !!fill;
+            clockImageScale = 1;
+            clockImageOffsetX = 0;
+            clockImageOffsetY = 0;
+            renderClockImage();
+        }
+
+        function rotateClockImage(degrees) {
+            clockImageRotation = (clockImageRotation + degrees + 360) % 360;
+            renderClockImage();
+        }
+
+        function zoomClockImage(factor) {
+            clockImageScale = Math.max(0.2, Math.min(8, clockImageScale * factor));
+            renderClockImage();
+        }
+
+        function moveClockImage(dx, dy) {
+            clockImageOffsetX = Math.max(-800, Math.min(800, clockImageOffsetX + dx));
+            clockImageOffsetY = Math.max(-800, Math.min(800, clockImageOffsetY + dy));
+            renderClockImage();
+        }
+
+        function resetClockImageEditor() {
+            clockImageRotation = 0;
+            clockImageFill = false;
+            clockImageScale = 1;
+            clockImageOffsetX = 0;
+            clockImageOffsetY = 0;
+            const brightness = document.getElementById('clock-image-brightness');
+            const contrast = document.getElementById('clock-image-contrast');
+            const redThreshold = document.getElementById('clock-image-red-threshold');
+            const bwThreshold = document.getElementById('clock-image-bw-threshold');
+            if (brightness) brightness.value = 0;
+            if (contrast) contrast.value = 15;
+            if (redThreshold) redThreshold.value = 150;
+            if (bwThreshold) bwThreshold.value = 145;
+            renderClockImage();
+        }
+
+        function quantizeClockImageCanvas(ctx, applyAdjustments) {
+            const canvas = ctx.canvas;
+            const brightness = applyAdjustments ? (parseInt(document.getElementById('clock-image-brightness').value, 10) || 0) : 0;
+            const contrastValue = applyAdjustments ? (parseInt(document.getElementById('clock-image-contrast').value, 10) || 0) : 0;
+            const redThreshold = parseInt(document.getElementById('clock-image-red-threshold').value, 10) || 150;
+            const bwThreshold = parseInt(document.getElementById('clock-image-bw-threshold').value, 10) || 145;
+            const contrast = (259 * (contrastValue + 255)) / (255 * (259 - contrastValue));
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            for (let i = 0; i < pixels.length; i += 4) {
+                let r = contrast * (pixels[i] - 128) + 128 + brightness * 2.55;
+                let g = contrast * (pixels[i + 1] - 128) + 128 + brightness * 2.55;
+                let b = contrast * (pixels[i + 2] - 128) + 128 + brightness * 2.55;
+                r = Math.max(0, Math.min(255, r));
+                g = Math.max(0, Math.min(255, g));
+                b = Math.max(0, Math.min(255, b));
+                const red = r >= redThreshold && r - Math.max(g, b) >= 20;
+                const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+                if (red) {
+                    pixels[i] = 255; pixels[i + 1] = 0; pixels[i + 2] = 0;
+                } else if (luma < bwThreshold) {
+                    pixels[i] = 0; pixels[i + 1] = 0; pixels[i + 2] = 0;
+                } else {
+                    pixels[i] = 255; pixels[i + 1] = 255; pixels[i + 2] = 255;
+                }
+                pixels[i + 3] = 255;
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function renderClockImage() {
+            const canvas = document.getElementById('clock-image-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (clockImageOriginal) {
+                const rotated = clockImageRotation === 90 || clockImageRotation === 270;
+                const sourceW = rotated ? clockImageOriginal.height : clockImageOriginal.width;
+                const sourceH = rotated ? clockImageOriginal.width : clockImageOriginal.height;
+                const ratio = (clockImageFill ? Math.max : Math.min)(canvas.width / sourceW, canvas.height / sourceH) * clockImageScale;
+                ctx.save();
+                ctx.translate(canvas.width / 2 + clockImageOffsetX, canvas.height / 2 + clockImageOffsetY);
+                ctx.rotate(clockImageRotation * Math.PI / 180);
+                ctx.drawImage(clockImageOriginal,
+                    -clockImageOriginal.width * ratio / 2,
+                    -clockImageOriginal.height * ratio / 2,
+                    clockImageOriginal.width * ratio,
+                    clockImageOriginal.height * ratio);
+                ctx.restore();
+                quantizeClockImageCanvas(ctx, true);
+            }
+            compositeClockQuickOverlay();
+            // Canvas text and curves are anti-aliased. Quantize once more after
+            // compositing so every transmitted pixel is exact white/black/red.
+            quantizeClockImageCanvas(ctx, false);
+        }
+
+        function clockImageCanvasToPlanes(canvas, target) {
+            const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+            const black = [];
+            const red = [];
+            let blackByte = 0;
+            let redByte = 0;
+            let bitCount = 0;
+            const pixelOffsets = [];
+            if (target && target.transfer === 'ssd1680-raw') {
+                // The 2.9 GUI is landscape but SSD1680 RAM is 128x296 with
+                // GFX_ROTATE_270. The left 192x128 canvas maps to physical
+                // RAM x=0..127, y=104..295.
+                for (let row = 0; row < canvas.width; row++) {
+                    for (let column = 0; column < canvas.height; column++) {
+                        const sourceX = canvas.width - 1 - row;
+                        const sourceY = column;
+                        pixelOffsets.push((sourceY * canvas.width + sourceX) * 4);
+                    }
+                }
+            } else {
+                for (let i = 0; i < pixels.length; i += 4) pixelOffsets.push(i);
+            }
+            for (const i of pixelOffsets) {
+                const isBlack = pixels[i] === 0 && pixels[i + 1] === 0 && pixels[i + 2] === 0;
+                const isRed = pixels[i] === 255 && pixels[i + 1] === 0 && pixels[i + 2] === 0;
+                blackByte = (blackByte << 1) | (isBlack ? 0 : 1);
+                redByte = (redByte << 1) | (isRed ? 0 : 1);
+                bitCount++;
+                if (bitCount === 8) {
+                    black.push(blackByte);
+                    red.push(redByte);
+                    blackByte = 0;
+                    redByte = 0;
+                    bitCount = 0;
+                }
+            }
+            return { black, red };
+        }
+
+        function ssd1680ClockImageToFullPlanes(canvas, target) {
+            const fullCanvas = document.createElement('canvas');
+            fullCanvas.width = target.fullWidth;
+            fullCanvas.height = 128;
+            const ctx = fullCanvas.getContext('2d', { willReadFrequently: true });
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, fullCanvas.width, fullCanvas.height);
+            ctx.drawImage(canvas, 0, 0);
+
+            // Use the same proven column-first conversion and WRITE_IMAGE
+            // transport as the normal 2.13/2.9-inch full-screen uploader.
+            const black = canvas2bytes_bw(fullCanvas);
+            const red = canvas2bytes_bw(fullCanvas, 'bwr').map(byte => byte ^ 0xff);
+            return { black, red };
+        }
+
+        async function sendNrf52Register(command, data = []) {
+            await sendCommand(new Uint8Array([NRF52_CMD_SEND_COMMAND, command]));
+            if (data.length) {
+                await sendCommand(new Uint8Array([NRF52_CMD_SEND_DATA, ...data]));
+            }
+        }
+
+        async function openNrf290ClockImagePlane(blackPlane) {
+            // EPD_TOP=8, physical window x=0..127, y=104..295.
+            await sendNrf52Register(0x11, [0x03]);
+            await sendNrf52Register(0x44, [0x01, 0x10]);
+            await sendNrf52Register(0x45, [0x68, 0x00, 0x27, 0x01]);
+            await sendNrf52Register(0x4e, [0x01]);
+            await sendNrf52Register(0x4f, [0x68, 0x00]);
+            await sendNrf52Register(blackPlane ? 0x24 : 0x26);
+        }
+
+        async function sendNrf290ClockImagePlane(data, blackPlane, startPercent, endPercent) {
+            await openNrf290ClockImagePlane(blackPlane);
+            const chunkSize = Math.min(nrf52ImageChunkSize, 240);
+            const total = Math.ceil(data.length / chunkSize);
+            for (let offset = 0, part = 0; offset < data.length; offset += chunkSize, part++) {
+                const chunk = data.slice(offset, offset + chunkSize);
+                await sendCommand(new Uint8Array([NRF52_CMD_SEND_DATA, ...chunk]));
+                const percent = startPercent + ((part + 1) / total) * (endPercent - startPercent);
+                setClockImageProgress(percent, `Đang gửi lớp ${blackPlane ? 'đen' : 'đỏ'} ${part + 1}/${total}`);
+                await delay(8);
+            }
+        }
+
+        async function sendClockImagePlane(data, blackPlane, startPercent, endPercent) {
+            const chunkSize = nrf52ImageChunkSize;
+            const total = Math.ceil(data.length / chunkSize);
+            for (let offset = 0, part = 0; offset < data.length; offset += chunkSize, part++) {
+                const chunk = data.slice(offset, offset + chunkSize);
+                const cfg = (offset === 0 ? 0x00 : 0xf0) | (blackPlane ? 0x0f : 0x00);
+                await sendCommand(new Uint8Array([NRF52_CMD_WRITE_CLOCK_IMAGE, cfg, ...chunk]));
+                const completed = part + 1;
+                const percent = startPercent + (completed / total) * (endPercent - startPercent);
+                setClockImageProgress(percent, `Đang gửi lớp ${blackPlane ? 'đen' : 'đỏ'} ${completed}/${total}`);
+                await delay(8);
+            }
+        }
+
+        async function uploadClockImage() {
+            const target = getClockImageTarget();
+            const supported = target && nrf52FirmwareVersion >= target.minVersion;
+            if (!supported) {
+                setClockImageProgress(0, 'Thiết bị hoặc firmware hiện tại chưa hỗ trợ chế độ Đồng hồ và ảnh.');
+                return;
+            }
+            if (!clockImageOriginal && !clockQuickOverlayHasContent()) {
+                setClockImageProgress(0, 'Hãy chọn ảnh hoặc tạo nội dung trước.');
+                return;
+            }
+
+            const canvas = document.getElementById('clock-image-canvas');
+            renderClockImage();
+            try {
+                setClockImageProgress(1, 'Đang chuyển sang mode Đồng hồ và ảnh...');
+                if (target.transfer === 'clock-image-v54') {
+                    // Firmware 7.5 reports READY after its regional clock refresh.
+                    const readyPromise = waitForClockImageReady(60000);
+                    await sendNrf52Mode(target.mode);
+                    setClockImageProgress(2, 'Đang chờ màn hình hoàn tất refresh vùng đồng hồ...');
+                    const ready = await readyPromise;
+                    if (!ready) {
+                        throw new Error('Thiết bị chưa báo sẵn sàng; không ghi ảnh để tránh nhiễu màn hình.');
+                    }
+                } else if (target.transfer === 'ssd1680-fullframe') {
+                    // Reset the controller and restore its complete 128x296
+                    // RAM window before using the standard image transport.
+                    // Face 2 is selected only after both planes are complete,
+                    // so firmware can draw the clock over the white right side
+                    // and perform the single full refresh that reveals both.
+                    setClockImageProgress(2, `Đang khởi tạo bộ nhớ ${target.label}...`);
+                    await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
+                    await delay(150);
+                } else {
+                    await sendNrf52Mode(target.mode);
+                    setClockImageProgress(2, 'Đang chờ Face 2 bên phải refresh xong...');
+                    await delay(12000);
+                }
+
+                const { black, red } = target.transfer === 'ssd1680-fullframe'
+                    ? ssd1680ClockImageToFullPlanes(canvas, target)
+                    : clockImageCanvasToPlanes(canvas, target);
+                if (black.length !== target.planeBytes || red.length !== target.planeBytes) {
+                    throw new Error(`Kích thước dữ liệu sai: ${black.length}/${red.length}`);
+                }
+
+                if (target.transfer === 'clock-image-v54') {
+                    const resultPromise = waitForClockImageResult(190000);
+                    await sendClockImagePlane(black, true, 5, 47);
+                    await sendClockImagePlane(red, false, 47, 89);
+                    setClockImageProgress(90, `Đã gửi ảnh, đang refresh riêng vùng bên ${target.imageSide}...`);
+                    await sendCommand(new Uint8Array([NRF52_CMD_COMMIT_CLOCK_IMAGE]));
+                    const accepted = await resultPromise;
+                    if (!accepted) {
+                        throw new Error('Thiết bị không xác nhận ảnh hoàn chỉnh hoặc đã hết thời gian chờ.');
+                    }
+                } else if (target.transfer === 'ssd1680-fullframe') {
+                    await sendNrf52ImagePlane(black, true, 5, 46);
+                    await sendNrf52ImagePlane(red, false, 46, 87);
+                    setClockImageProgress(89, 'Đã gửi ảnh; đang vẽ đồng hồ bên phải và refresh màn hình...');
+                    await sendNrf52Mode(target.mode);
+                    await delay(12000);
+                } else {
+                    await sendNrf290ClockImagePlane(black, true, 5, 47);
+                    await sendNrf290ClockImagePlane(red, false, 47, 89);
+                    setClockImageProgress(90, 'Đã gửi ảnh, đang refresh vùng ảnh bên trái...');
+                    await sendCommand(new Uint8Array([NRF52_CMD_REFRESH]));
+                    await delay(12000);
+                }
+                nrf52DisplayMode = target.mode & 0x7f;
+                setClockImageProgress(100, `Hoàn tất. Đồng hồ bên ${target.clockSide} sẽ tiếp tục cập nhật mỗi phút.`);
+                addLog(`Thiết bị đã xác nhận ảnh Đồng hồ và ảnh ${target.width}x${target.height} bên ${target.imageSide}.`);
+            } catch (error) {
+                resolveClockImageReady(false);
+                resolveClockImageResult(false);
+                setClockImageProgress(0, `Tải ảnh thất bại: ${error.message || error}`);
+                addLog(`Clock-image upload failed: ${error.message || error}`);
+            }
+        }
+
         async function clearScreen(cmd) {
             addLog(t('Refresh screen'))
             await triggerEpdCmd(`00${cmd}`);
@@ -3141,6 +3722,26 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
 
             const message = new TextDecoder().decode(data);
+            if (message.startsWith('clock_image=')) {
+                if (message.startsWith('clock_image=ready')) {
+                    if (resolveClockImageReady(true)) {
+                        addLog('> UC8179 đã refresh xong vùng đồng hồ; bắt đầu truyền ảnh.');
+                    }
+                    return;
+                }
+                if (message.startsWith('clock_image=busy')) {
+                    resolveClockImageReady(false);
+                    resolveClockImageResult(false);
+                    addLog('> UC8179 vẫn đang refresh; firmware đã chặn ghi ảnh để tránh nhiễu.');
+                    return;
+                }
+                const success = message.startsWith('clock_image=ok');
+                addLog(success
+                    ? '> Thiết bị xác nhận ảnh Đồng hồ và ảnh đã refresh thành công.'
+                    : '> Thiết bị báo dữ liệu ảnh Đồng hồ và ảnh bị thiếu hoặc refresh thất bại.');
+                resolveClockImageResult(success);
+                return;
+            }
             if (message.startsWith('activation=ok')) {
                 addLog('> UC8176 activation: active');
                 resolveNrf52Activation({ kind: 'legacy', active: true });
@@ -3165,9 +3766,26 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             if (isConfig) {
                 nrf52ModelId = data[7];
                 nrf52ModelDetected = true;
+                nrf52PanelProfile = null;
                 if (data.length > 11) nrf52DisplayMode = data[11];
-                addLog(`> nRF52 model ${nrf52ModelId}, current mode: ${nrf52DisplayMode}`);
+                if (nrf52ModelId === 2 && data.length > 13 && data[13] === 0x21) {
+                    nrf52PanelProfile = data[13];
+                }
+                if (nrf52ModelId === 7 && data.length > 12) {
+                    const selector = document.getElementById('week-start-selector');
+                    const storedWeekStart = data[12] === 0 ? '0' : '1';
+                    if (selector) selector.value = storedWeekStart;
+                    try {
+                        localStorage.setItem('epd-week-start', storedWeekStart);
+                    } catch (storageError) {
+                        // Ignore unavailable browser storage.
+                    }
+                    updateWeekStartStatus(`Thiết bị đang dùng ${storedWeekStart === '0' ? 'Chủ Nhật' : 'Thứ 2'}.`);
+                }
+                const panelLabel = nrf52PanelProfile === 0x21 ? ', panel: 2.13' : '';
+                addLog(`> nRF52 model ${nrf52ModelId}${panelLabel}, current mode: ${nrf52DisplayMode}`);
                 selectNrf52CanvasForModel();
+                updateClockImageAvailability();
             } else {
                 addLog(`> nRF52 response: ${message.trim() || bytesToHex(data)}`);
             }
@@ -3175,9 +3793,23 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         async function connectNrf52() {
             epdService = await gattServer.getPrimaryService(NRF52_SERVICE_UUID);
             epdCharacteristic = await epdService.getCharacteristic(NRF52_CHARACTERISTIC_UUID);
-            await epdCharacteristic.startNotifications();
+            try {
+                const appVersionCharacteristic = await epdService.getCharacteristic(NRF52_APP_VERSION_UUID);
+                const appVersionValue = await appVersionCharacteristic.readValue();
+                nrf52FirmwareVersion = appVersionValue.getUint8(0);
+                addLog(`> nRF52 firmware version: ${nrf52FirmwareVersion}`);
+            } catch (versionError) {
+                nrf52FirmwareVersion = 0;
+                addLog('> Không đọc được phiên bản firmware; ẩn chức năng Đồng hồ và ảnh.');
+            }
+            // Register before enabling CCCD. Firmware sends its model config
+            // immediately when notifications become active; registering after
+            // startNotifications could miss that first packet and leave the
+            // Clock + Image tab incorrectly hidden/disabled.
             epdCharacteristic.addEventListener('characteristicvaluechanged', handleNrf52Notification);
+            await epdCharacteristic.startNotifications();
             setDetectedProtocol(PROTOCOL_NRF52);
+            updateClockImageAvailability();
             await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
             addLog('> nRF52 connected; display initialized.');
         }
@@ -3443,6 +4075,323 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 resetQuickEditorOverlay(true);
             }
+        }
+
+        let clockQuickOverlay = null;
+        let clockQuickHistory = [];
+        let clockQuickRedo = [];
+        let clockQuickEditorTool = null;
+        let clockQuickDrawing = false;
+        let clockQuickLastPoint = null;
+        let clockQuickPendingPlacement = null;
+        let clockQuickInitialized = false;
+        const CLOCK_QUICK_HISTORY_LIMIT = 10;
+
+        function ensureClockQuickOverlay() {
+            const canvas = document.getElementById('clock-image-canvas');
+            if (!canvas) return null;
+            if (!clockQuickOverlay) clockQuickOverlay = document.createElement('canvas');
+            if (clockQuickOverlay.width !== canvas.width || clockQuickOverlay.height !== canvas.height) {
+                clockQuickOverlay.width = canvas.width;
+                clockQuickOverlay.height = canvas.height;
+                clockQuickHistory = [];
+                clockQuickRedo = [];
+                updateClockQuickHistoryButtons();
+            }
+            return clockQuickOverlay;
+        }
+
+        function clockQuickOverlayHasContent() {
+            const overlay = ensureClockQuickOverlay();
+            if (!overlay) return false;
+            const pixels = overlay.getContext('2d').getImageData(0, 0, overlay.width, overlay.height).data;
+            for (let i = 3; i < pixels.length; i += 4) {
+                if (pixels[i] !== 0) return true;
+            }
+            return false;
+        }
+
+        function resetClockQuickOverlay(clearHistory = true) {
+            const overlay = ensureClockQuickOverlay();
+            if (!overlay) return;
+            overlay.getContext('2d').clearRect(0, 0, overlay.width, overlay.height);
+            clockQuickPendingPlacement = null;
+            if (clearHistory) {
+                clockQuickHistory = [];
+                clockQuickRedo = [];
+            }
+            updateClockQuickHistoryButtons();
+        }
+
+        function updateClockQuickHistoryButtons() {
+            const undo = document.getElementById('clock-quick-undo');
+            const redo = document.getElementById('clock-quick-redo');
+            if (undo) undo.disabled = clockQuickHistory.length === 0;
+            if (redo) redo.disabled = clockQuickRedo.length === 0;
+        }
+
+        function getClockQuickSnapshot() {
+            const overlay = ensureClockQuickOverlay();
+            return overlay.getContext('2d').getImageData(0, 0, overlay.width, overlay.height);
+        }
+
+        function saveClockQuickHistory() {
+            clockQuickHistory.push(getClockQuickSnapshot());
+            if (clockQuickHistory.length > CLOCK_QUICK_HISTORY_LIMIT) clockQuickHistory.shift();
+            clockQuickRedo = [];
+            updateClockQuickHistoryButtons();
+        }
+
+        function compositeClockQuickOverlay() {
+            const canvas = document.getElementById('clock-image-canvas');
+            const overlay = ensureClockQuickOverlay();
+            if (!canvas || !overlay) return;
+            canvas.getContext('2d').drawImage(overlay, 0, 0);
+        }
+
+        function redrawClockQuickEditorCanvas() {
+            renderClockImage();
+        }
+
+        function clockQuickUndo() {
+            if (!clockQuickHistory.length) return;
+            const overlay = ensureClockQuickOverlay();
+            clockQuickRedo.push(getClockQuickSnapshot());
+            overlay.getContext('2d').putImageData(clockQuickHistory.pop(), 0, 0);
+            updateClockQuickHistoryButtons();
+            redrawClockQuickEditorCanvas();
+        }
+
+        function clockQuickRedoAction() {
+            if (!clockQuickRedo.length) return;
+            const overlay = ensureClockQuickOverlay();
+            clockQuickHistory.push(getClockQuickSnapshot());
+            overlay.getContext('2d').putImageData(clockQuickRedo.pop(), 0, 0);
+            updateClockQuickHistoryButtons();
+            redrawClockQuickEditorCanvas();
+        }
+
+        function setClockQuickStatus(message) {
+            const status = document.getElementById('clock-quick-editor-status');
+            if (status) status.textContent = message;
+        }
+
+        function setClockQuickTool(tool) {
+            clockQuickEditorTool = clockQuickEditorTool === tool ? null : tool;
+            clockQuickPendingPlacement = null;
+            const buttonMap = {
+                brush: 'clock-quick-brush-mode',
+                eraser: 'clock-quick-eraser-mode',
+                text: 'clock-quick-text-mode',
+                todo: 'clock-quick-todo-mode',
+                schedule: 'clock-quick-schedule-mode'
+            };
+            Object.entries(buttonMap).forEach(([name, id]) => {
+                const button = document.getElementById(id);
+                if (button) button.classList.toggle('active', clockQuickEditorTool === name);
+            });
+            const brushOptions = document.getElementById('clock-quick-brush-options');
+            const textOptions = document.getElementById('clock-quick-text-options');
+            const todoOptions = document.getElementById('clock-quick-todo-options');
+            const scheduleOptions = document.getElementById('clock-quick-schedule-options');
+            if (brushOptions) brushOptions.hidden = clockQuickEditorTool !== 'brush' && clockQuickEditorTool !== 'eraser';
+            if (textOptions) textOptions.hidden = clockQuickEditorTool !== 'text';
+            if (todoOptions) todoOptions.hidden = clockQuickEditorTool !== 'todo';
+            if (scheduleOptions) scheduleOptions.hidden = clockQuickEditorTool !== 'schedule';
+            const brushColor = document.getElementById('clock-quick-brush-color');
+            if (brushColor) brushColor.disabled = clockQuickEditorTool === 'eraser';
+            const canvas = document.getElementById('clock-image-canvas');
+            if (canvas) canvas.classList.toggle('quick-editor-active', !!clockQuickEditorTool);
+            const messages = {
+                brush: 'Kéo trên ảnh để vẽ.',
+                eraser: 'Kéo trên ảnh để tẩy thành màu trắng.',
+                text: 'Nhập chữ, bấm Thêm chữ, rồi bấm vị trí cần đặt trên ảnh.',
+                todo: 'Nhập công việc, bấm Thêm công việc, rồi bấm vị trí cần đặt.',
+                schedule: 'Nhập mỗi ô trên một dòng, sau đó bấm Tạo thời khóa biểu.'
+            };
+            setClockQuickStatus(clockQuickEditorTool ? messages[clockQuickEditorTool] : 'Chọn công cụ để chỉnh sửa phần ảnh bên phải.');
+        }
+
+        function getClockQuickPoint(event) {
+            const canvas = document.getElementById('clock-image-canvas');
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: Math.max(0, Math.min(canvas.width, (event.clientX - rect.left) * canvas.width / rect.width)),
+                y: Math.max(0, Math.min(canvas.height, (event.clientY - rect.top) * canvas.height / rect.height))
+            };
+        }
+
+        function addClockQuickPlacement(event) {
+            if (!clockQuickPendingPlacement) return false;
+            const point = getClockQuickPoint(event);
+            const overlay = ensureClockQuickOverlay();
+            saveClockQuickHistory();
+            drawQuickEditorPlacement(overlay.getContext('2d'), clockQuickPendingPlacement, point);
+            clockQuickPendingPlacement = null;
+            redrawClockQuickEditorCanvas();
+            setClockQuickStatus('Đã thêm nội dung. Có thể tiếp tục chỉnh sửa hoặc Hoàn tác.');
+            return true;
+        }
+
+        function createClockQuickSchedule() {
+            const days = Math.max(1, Math.min(7, parseInt(document.getElementById('clock-quick-schedule-days').value) || 7));
+            const rows = Math.max(1, Math.min(12, parseInt(document.getElementById('clock-quick-schedule-rows').value) || 6));
+            const requestedSize = Math.max(8, Math.min(48, parseInt(document.getElementById('clock-quick-schedule-size').value) || 16));
+            const color = document.getElementById('clock-quick-schedule-color').value;
+            const values = document.getElementById('clock-quick-schedule-input').value.split(/\r?\n/).map(value => value.trim());
+            const overlay = ensureClockQuickOverlay();
+            const ctx = overlay.getContext('2d');
+            saveClockQuickHistory();
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, overlay.width, overlay.height);
+            const margin = Math.max(3, Math.round(Math.min(overlay.width, overlay.height) * 0.015));
+            const totalRows = rows + 1;
+            const totalCols = days + 1;
+            const tableWidth = overlay.width - margin * 2;
+            const tableHeight = overlay.height - margin * 2;
+            const cellWidth = tableWidth / totalCols;
+            const cellHeight = tableHeight / totalRows;
+            const fontSize = Math.max(7, Math.min(requestedSize, Math.floor(cellHeight * 0.46), Math.floor(cellWidth * 0.3)));
+            const lineWidth = Math.max(1, Math.round(Math.min(overlay.width, overlay.height) / 240));
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = lineWidth;
+            const alignLine = value => lineWidth % 2 === 1 ? Math.round(value) + 0.5 : Math.round(value);
+            const columnEdges = Array.from({ length: totalCols + 1 }, (_, index) => Math.round(margin + tableWidth * index / totalCols));
+            const rowEdges = Array.from({ length: totalRows + 1 }, (_, index) => Math.round(margin + tableHeight * index / totalRows));
+            for (let row = 0; row <= totalRows; row++) {
+                const y = alignLine(rowEdges[row]);
+                ctx.beginPath();
+                ctx.moveTo(alignLine(columnEdges[0]), y);
+                ctx.lineTo(alignLine(columnEdges[totalCols]), y);
+                ctx.stroke();
+            }
+            for (let col = 0; col <= totalCols; col++) {
+                const x = alignLine(columnEdges[col]);
+                ctx.beginPath();
+                ctx.moveTo(x, alignLine(rowEdges[0]));
+                ctx.lineTo(x, alignLine(rowEdges[totalRows]));
+                ctx.stroke();
+            }
+            const dayNames = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const firstRowCenter = (rowEdges[0] + rowEdges[1]) / 2;
+            drawQuickScheduleText(ctx, 'Tiết', (columnEdges[0] + columnEdges[1]) / 2, firstRowCenter,
+                columnEdges[1] - columnEdges[0] - 6, fontSize, true);
+            for (let day = 0; day < days; day++) {
+                drawQuickScheduleText(ctx, dayNames[day],
+                    (columnEdges[day + 1] + columnEdges[day + 2]) / 2, firstRowCenter,
+                    columnEdges[day + 2] - columnEdges[day + 1] - 6, fontSize, true);
+            }
+            let valueIndex = 0;
+            for (let row = 0; row < rows; row++) {
+                const y = (rowEdges[row + 1] + rowEdges[row + 2]) / 2;
+                drawQuickScheduleText(ctx, String(row + 1),
+                    (columnEdges[0] + columnEdges[1]) / 2, y,
+                    columnEdges[1] - columnEdges[0] - 6, fontSize, false);
+                for (let day = 0; day < days; day++) {
+                    const value = values[valueIndex++] || '';
+                    if (value) {
+                        drawQuickScheduleText(ctx, value,
+                            (columnEdges[day + 1] + columnEdges[day + 2]) / 2, y,
+                            columnEdges[day + 2] - columnEdges[day + 1] - 6, fontSize, false);
+                    }
+                }
+            }
+            quantizeQuickSchedule(ctx, overlay.width, overlay.height, color);
+            redrawClockQuickEditorCanvas();
+            setClockQuickStatus('Đã tạo thời khóa biểu. Mỗi dòng nhập liệu điền một ô từ trái sang phải.');
+        }
+
+        function initClockQuickEditorTools() {
+            if (clockQuickInitialized) return;
+            clockQuickInitialized = true;
+            ensureClockQuickOverlay();
+            const canvas = document.getElementById('clock-image-canvas');
+            document.getElementById('clock-quick-brush-mode').addEventListener('click', () => setClockQuickTool('brush'));
+            document.getElementById('clock-quick-eraser-mode').addEventListener('click', () => setClockQuickTool('eraser'));
+            document.getElementById('clock-quick-text-mode').addEventListener('click', () => setClockQuickTool('text'));
+            document.getElementById('clock-quick-todo-mode').addEventListener('click', () => setClockQuickTool('todo'));
+            document.getElementById('clock-quick-schedule-mode').addEventListener('click', () => setClockQuickTool('schedule'));
+            document.getElementById('clock-quick-undo').addEventListener('click', clockQuickUndo);
+            document.getElementById('clock-quick-redo').addEventListener('click', clockQuickRedoAction);
+            document.getElementById('clock-quick-clear').addEventListener('click', () => {
+                saveClockQuickHistory();
+                resetClockQuickOverlay(false);
+                redrawClockQuickEditorCanvas();
+                setClockQuickStatus('Đã xóa phần chữ và nét vẽ; ảnh gốc vẫn được giữ nguyên.');
+            });
+            document.getElementById('clock-quick-add-text').addEventListener('click', () => {
+                const text = document.getElementById('clock-quick-text-input').value.trim();
+                if (!text) {
+                    setClockQuickStatus('Hãy nhập chữ trước.');
+                    return;
+                }
+                clockQuickPendingPlacement = {
+                    type: 'text',
+                    text,
+                    font: document.getElementById('clock-quick-font-family').value,
+                    size: Math.max(6, Math.min(160, parseInt(document.getElementById('clock-quick-font-size').value) || 24)),
+                    color: document.getElementById('clock-quick-text-color').value,
+                    bold: document.getElementById('clock-quick-text-bold').checked,
+                    italic: document.getElementById('clock-quick-text-italic').checked
+                };
+                setClockQuickStatus('Bấm vào vị trí muốn đặt chữ trên ảnh.');
+            });
+            document.getElementById('clock-quick-add-todo').addEventListener('click', () => {
+                const text = document.getElementById('clock-quick-todo-input').value.trim();
+                if (!text) {
+                    setClockQuickStatus('Hãy nhập nội dung công việc trước.');
+                    return;
+                }
+                clockQuickPendingPlacement = {
+                    type: 'todo',
+                    text,
+                    size: Math.max(8, Math.min(120, parseInt(document.getElementById('clock-quick-todo-size').value) || 22)),
+                    color: document.getElementById('clock-quick-todo-color').value
+                };
+                setClockQuickStatus('Bấm vào vị trí muốn đặt công việc trên ảnh.');
+            });
+            document.getElementById('clock-quick-create-schedule').addEventListener('click', createClockQuickSchedule);
+            canvas.addEventListener('pointerdown', event => {
+                if (addClockQuickPlacement(event)) {
+                    event.preventDefault();
+                    return;
+                }
+                if (clockQuickEditorTool !== 'brush' && clockQuickEditorTool !== 'eraser') return;
+                event.preventDefault();
+                saveClockQuickHistory();
+                clockQuickDrawing = true;
+                clockQuickLastPoint = getClockQuickPoint(event);
+                if (canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
+                const color = clockQuickEditorTool === 'eraser' ? '#ffffff' : document.getElementById('clock-quick-brush-color').value;
+                const size = Math.max(1, Math.min(100, parseInt(document.getElementById('clock-quick-brush-size').value) || 4));
+                drawQuickEditorDot(ensureClockQuickOverlay().getContext('2d'), clockQuickLastPoint, color, size);
+                drawQuickEditorDot(canvas.getContext('2d'), clockQuickLastPoint, color, size);
+            });
+            canvas.addEventListener('pointermove', event => {
+                if (!clockQuickDrawing || !clockQuickLastPoint) return;
+                event.preventDefault();
+                const point = getClockQuickPoint(event);
+                const color = clockQuickEditorTool === 'eraser' ? '#ffffff' : document.getElementById('clock-quick-brush-color').value;
+                const size = Math.max(1, Math.min(100, parseInt(document.getElementById('clock-quick-brush-size').value) || 4));
+                drawQuickEditorSegment(ensureClockQuickOverlay().getContext('2d'), clockQuickLastPoint, point, color, size);
+                drawQuickEditorSegment(canvas.getContext('2d'), clockQuickLastPoint, point, color, size);
+                clockQuickLastPoint = point;
+            });
+            const finishDrawing = () => {
+                if (!clockQuickDrawing) return;
+                clockQuickDrawing = false;
+                clockQuickLastPoint = null;
+                redrawClockQuickEditorCanvas();
+                updateClockQuickHistoryButtons();
+            };
+            canvas.addEventListener('pointerup', finishDrawing);
+            canvas.addEventListener('pointercancel', finishDrawing);
+            updateClockQuickHistoryButtons();
+            renderClockImage();
         }
 
         let quickEditorOverlay = null;
@@ -3867,6 +4816,17 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             compositeQuickEditorOverlay();
         }
         document.body.onload = () => {
+            const weekStartSelector = document.getElementById('week-start-selector');
+            if (weekStartSelector) {
+                try {
+                    const savedWeekStart = localStorage.getItem('epd-week-start');
+                    if (savedWeekStart === '0' || savedWeekStart === '1') {
+                        weekStartSelector.value = savedWeekStart;
+                    }
+                } catch (storageError) {
+                    // Keep the default Monday selection when storage is blocked.
+                }
+            }
             setInterval(() => {
                 const { localeTimeString, year, month, day, week } = getUnixTime();
                 document.getElementById('time-setter').innerText = `${t('Set Time:')}${year}-${month}-${day} ${localeTimeString} ${t('Week')}${week}`;
@@ -3877,6 +4837,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             initQuickEditorTools();
+            initClockQuickEditorTools();
             let is_allow_drawing = false;
             let is_allow_move_editor = false;
             const image_mode = document.getElementById('canvas-mode');
