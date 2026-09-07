@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <title>Thẻ mực điện tử - Web v59.3 (2.13 / 2.9 / 7.5)</title>
+    <title>Thẻ mực điện tử - Web v59.4 (2.13 / 2.9 / 7.5)</title>
     <style>
         /* Base style reset */
         * {
@@ -842,7 +842,7 @@
     <script>
         const APP_TRANSLATIONS = {
             vi: {
-                "E-Paper Tag - Web v59.3 (2.13 / 2.9 / 7.5)": "Thẻ mực điện tử - Web v59.3 (2.13 / 2.9 / 7.5)",
+                "E-Paper Tag - Web v59.4 (2.13 / 2.9 / 7.5)": "Thẻ mực điện tử - Web v59.4 (2.13 / 2.9 / 7.5)",
                 "Language selector": "Bộ chọn ngôn ngữ",
                 "Language:": "Ngôn ngữ:",
                 "E-Paper Settings": "Cài đặt màn hình E-Paper",
@@ -1127,7 +1127,7 @@
         function applyLanguage(lang = getCurrentLanguage()) {
             localStorage.setItem('app-language', lang);
             document.documentElement.lang = lang;
-            document.title = translateText('E-Paper Tag - Web v59.3 (2.13 / 2.9 / 7.5)', lang);
+            document.title = translateText('E-Paper Tag - Web v59.4 (2.13 / 2.9 / 7.5)', lang);
 
             const selector = document.getElementById('language-selector');
             if (selector) selector.value = lang;
@@ -2523,16 +2523,17 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         function nrf52WeekStartModelSupported() {
             if (!nrf52ModelDetected) return false;
             if (nrf52ModelId === 7) return nrf52FirmwareVersion >= 48;
-            // The 2.9 v18.5 release reports model 2 and app version 0x22.
-            // Versions 39+ can be 2.13 firmware and need their own marker.
-            return nrf52ModelId === 2 && nrf52PanelProfile !== 0x21 &&
-                nrf52FirmwareVersion >= 0x22 && nrf52FirmwareVersion < 39;
+            if (nrf52ModelId !== 2) return false;
+            // 2.13 CE v19.2 reports panel profile 0x21 and app version 0x2B.
+            if (nrf52PanelProfile === 0x21) return nrf52FirmwareVersion >= 0x2B;
+            // The compatible 2.9 release reports model 2 and app version 0x22.
+            return nrf52FirmwareVersion >= 0x22 && nrf52FirmwareVersion < 39;
         }
         async function sendNrf52WeekStart(silent = false) {
             const supported = deviceProtocol === PROTOCOL_NRF52 &&
                 nrf52WeekStartModelSupported();
             if (!supported) {
-                if (!silent) updateWeekStartStatus('Chỉ gửi cho màn nRF52 2.9 hoặc 7.5 có firmware tương thích.');
+                if (!silent) updateWeekStartStatus('Chỉ gửi cho màn nRF52 2.13, 2.9 hoặc 7.5 có firmware tương thích.');
                 return false;
             }
             const weekStart = getSelectedWeekStart();
