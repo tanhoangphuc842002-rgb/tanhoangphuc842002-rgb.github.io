@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <title>Thẻ mực điện tử - Web v59.4 (2.13 / 2.9 / 7.5)</title>
+    <title>Thẻ mực điện tử - Web v59.5 (2.13 / 2.9 / 7.5)</title>
     <style>
         /* Base style reset */
         * {
@@ -842,7 +842,7 @@
     <script>
         const APP_TRANSLATIONS = {
             vi: {
-                "E-Paper Tag - Web v59.4 (2.13 / 2.9 / 7.5)": "Thẻ mực điện tử - Web v59.4 (2.13 / 2.9 / 7.5)",
+                "E-Paper Tag - Web v59.5 (2.13 / 2.9 / 7.5)": "Thẻ mực điện tử - Web v59.5 (2.13 / 2.9 / 7.5)",
                 "Language selector": "Bộ chọn ngôn ngữ",
                 "Language:": "Ngôn ngữ:",
                 "E-Paper Settings": "Cài đặt màn hình E-Paper",
@@ -1127,7 +1127,7 @@
         function applyLanguage(lang = getCurrentLanguage()) {
             localStorage.setItem('app-language', lang);
             document.documentElement.lang = lang;
-            document.title = translateText('E-Paper Tag - Web v59.4 (2.13 / 2.9 / 7.5)', lang);
+            document.title = translateText('E-Paper Tag - Web v59.5 (2.13 / 2.9 / 7.5)', lang);
 
             const selector = document.getElementById('language-selector');
             if (selector) selector.value = lang;
@@ -2462,6 +2462,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let nrf52ModelDetected = false;
         let nrf52FirmwareVersion = 0;
         let nrf52PanelProfile = null;
+        let nrf52WeekStartConfirmed = null;
+        let nrf52WeekStartLastSent = null;
+        let nrf52WeekStartAckWaiter = null;
+        let nrf52WeekStartSendPromise = null;
         let nrf52ActivationWaiter = null;
         let clockImageResultWaiter = null;
         let clockImageReadyWaiter = null;
@@ -2486,6 +2490,13 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             nrf52ModelDetected = false;
             nrf52FirmwareVersion = 0;
             nrf52PanelProfile = null;
+            nrf52WeekStartConfirmed = null;
+            nrf52WeekStartLastSent = null;
+            if (nrf52WeekStartAckWaiter) {
+                clearTimeout(nrf52WeekStartAckWaiter.timer);
+                nrf52WeekStartAckWaiter.resolve(null);
+                nrf52WeekStartAckWaiter = null;
+            }
             nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
             if (nrf52ActivationWaiter) {
                 clearTimeout(nrf52ActivationWaiter.timer);
@@ -2520,6 +2531,31 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const status = document.getElementById('week-start-status');
             if (status) status.textContent = message;
         }
+        const WEEK_START_STORAGE_KEY = 'epd-week-start';
+        const WEEK_START_PENDING_KEY = 'epd-week-start-pending';
+        function readStoredWeekStart(key) {
+            try {
+                const value = localStorage.getItem(key);
+                return value === '0' || value === '1' ? Number(value) : null;
+            } catch (storageError) {
+                return null;
+            }
+        }
+        function storeWeekStart(key, value) {
+            try {
+                localStorage.setItem(key, String(value));
+            } catch (storageError) {
+                // BLE still works when private browsing disables storage.
+            }
+        }
+        function clearPendingWeekStart(value) {
+            try {
+                if (localStorage.getItem(WEEK_START_PENDING_KEY) === String(value))
+                    localStorage.removeItem(WEEK_START_PENDING_KEY);
+            } catch (storageError) {
+                // Ignore unavailable browser storage.
+            }
+        }
         function nrf52WeekStartModelSupported() {
             if (!nrf52ModelDetected) return false;
             if (nrf52ModelId === 7) return nrf52FirmwareVersion >= 48;
@@ -2529,7 +2565,32 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             // The compatible 2.9 release reports model 2 and app version 0x22.
             return nrf52FirmwareVersion >= 0x22 && nrf52FirmwareVersion < 39;
         }
+        function nrf52WeekStartAckSupported() {
+            return nrf52ModelDetected && nrf52ModelId === 2 &&
+                nrf52PanelProfile !== 0x21 &&
+                nrf52FirmwareVersion >= 0x23 && nrf52FirmwareVersion < 39;
+        }
+        function waitForNrf52WeekStartAck(weekStart, timeoutMs = 8000) {
+            if (nrf52WeekStartAckWaiter) {
+                clearTimeout(nrf52WeekStartAckWaiter.timer);
+                nrf52WeekStartAckWaiter.resolve(null);
+            }
+            return new Promise(resolve => {
+                const waiter = {
+                    weekStart,
+                    resolve,
+                    timer: setTimeout(() => {
+                        if (nrf52WeekStartAckWaiter === waiter)
+                            nrf52WeekStartAckWaiter = null;
+                        resolve(null);
+                    }, timeoutMs)
+                };
+                nrf52WeekStartAckWaiter = waiter;
+            });
+        }
         async function sendNrf52WeekStart(silent = false) {
+            if (nrf52WeekStartSendPromise)
+                await nrf52WeekStartSendPromise;
             const supported = deviceProtocol === PROTOCOL_NRF52 &&
                 nrf52WeekStartModelSupported();
             if (!supported) {
@@ -2537,24 +2598,102 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 return false;
             }
             const weekStart = getSelectedWeekStart();
-            await sendCommand(new Uint8Array([NRF52_CMD_SET_WEEK_START, weekStart]));
             const label = weekStart === 0 ? 'Chủ Nhật' : 'Thứ 2';
-            updateWeekStartStatus(`Đã lưu ${label}; hiển thị ở lần full refresh hoặc chuyển mode tiếp theo.`);
-            if (!silent) addLog(`Ngày đầu tuần đã đặt là ${label}.`);
-            return true;
+            const requiresAck = nrf52WeekStartAckSupported();
+            const pending = readStoredWeekStart(WEEK_START_PENDING_KEY);
+            if (pending === null && (requiresAck ? nrf52WeekStartConfirmed : nrf52WeekStartLastSent) === weekStart)
+                return true;
+
+            const operation = (async () => {
+                try {
+                    updateWeekStartStatus(`Đang lưu ${label}...`);
+                    if (!requiresAck) {
+                        await sendCommand(new Uint8Array([NRF52_CMD_SET_WEEK_START, weekStart]));
+                        nrf52WeekStartLastSent = weekStart;
+                        clearPendingWeekStart(weekStart);
+                        updateWeekStartStatus(`Đã gửi ${label}; firmware này không phản hồi trạng thái lưu FDS.`);
+                        if (!silent) addLog(`Đã gửi ngày đầu tuần ${label}; chưa có xác nhận FDS.`);
+                        return true;
+                    }
+
+                    let readyState = null;
+                    const readyDeadline = Date.now() + 10000;
+                    do {
+                        const readyReply = waitForNrf52WeekStartAck(null, 3000);
+                        await sendCommand(new Uint8Array([NRF52_CMD_SET_WEEK_START]));
+                        readyState = await readyReply;
+                        if (!readyState)
+                            throw new Error('Thiết bị chưa phản hồi trạng thái FDS.');
+                        if (readyState.state === 1)
+                            await delay(400);
+                    } while (readyState.state === 1 && Date.now() < readyDeadline);
+                    if (readyState.state === 1)
+                        throw new Error('FDS đang bận quá thời gian cho phép.');
+
+                    const deadline = Date.now() + 10000;
+                    let packet = new Uint8Array([NRF52_CMD_SET_WEEK_START, weekStart]);
+                    let result = null;
+                    do {
+                        const reply = waitForNrf52WeekStartAck(weekStart, 3000);
+                        await sendCommand(packet);
+                        result = await reply;
+                        if (!result)
+                            throw new Error('Thiết bị chưa xác nhận ghi FDS.');
+                        if (result.state === 1) {
+                            updateWeekStartStatus(`Firmware đang ghi ${label} vào FDS...`);
+                            await delay(400);
+                            packet = new Uint8Array([NRF52_CMD_SET_WEEK_START]);
+                        }
+                    } while (result.state === 1 && Date.now() < deadline);
+                    if (result.state === 1)
+                        throw new Error('Ghi FDS quá thời gian cho phép.');
+                    if (result.state !== 0)
+                        throw new Error('Firmware báo ghi FDS thất bại.');
+
+                    nrf52WeekStartConfirmed = weekStart;
+                    nrf52WeekStartLastSent = weekStart;
+                    storeWeekStart(WEEK_START_STORAGE_KEY, weekStart);
+                    clearPendingWeekStart(weekStart);
+                    updateWeekStartStatus(`Đã lưu ${label}; hiển thị ở lần full refresh hoặc chuyển mode tiếp theo.`);
+                    if (!silent) addLog(`Firmware đã xác nhận lưu ngày đầu tuần ${label} vào FDS.`);
+                    return true;
+                } catch (error) {
+                    if (nrf52WeekStartAckWaiter) {
+                        clearTimeout(nrf52WeekStartAckWaiter.timer);
+                        nrf52WeekStartAckWaiter.resolve(null);
+                        nrf52WeekStartAckWaiter = null;
+                    }
+                    updateWeekStartStatus(`Chưa lưu được ${label}: ${error.message || error}`);
+                    if (!silent) addLog(`Lỗi lưu ngày đầu tuần: ${error.message || error}`);
+                    return false;
+                }
+            })();
+            nrf52WeekStartSendPromise = operation;
+            try {
+                return await operation;
+            } finally {
+                if (nrf52WeekStartSendPromise === operation)
+                    nrf52WeekStartSendPromise = null;
+            }
         }
         async function setWeekStartFromUi() {
-            const value = String(getSelectedWeekStart());
-            try {
-                localStorage.setItem('epd-week-start', value);
-            } catch (storageError) {
-                // Private browsing can disable storage; BLE setting still works.
-            }
+            const value = getSelectedWeekStart();
+            storeWeekStart(WEEK_START_STORAGE_KEY, value);
+            storeWeekStart(WEEK_START_PENDING_KEY, value);
             if (deviceProtocol === PROTOCOL_NRF52) {
                 await sendNrf52WeekStart(false);
             } else {
                 updateWeekStartStatus('Đã chọn; sẽ gửi sau khi kết nối màn 2.9 hoặc 7.5 tương thích.');
             }
+        }
+        async function sendPendingWeekStartAfterDetection() {
+            const pending = readStoredWeekStart(WEEK_START_PENDING_KEY);
+            if (pending === null || deviceProtocol !== PROTOCOL_NRF52 ||
+                !nrf52WeekStartModelSupported())
+                return;
+            const selector = document.getElementById('week-start-selector');
+            if (selector) selector.value = String(pending);
+            await sendNrf52WeekStart(true);
         }
         async function sendNrf52Mode(mode) {
             const previousMode = nrf52DisplayMode;
@@ -3620,6 +3759,22 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         function handleNrf52Notification(event) {
             const value = event.target.value;
             const data = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+            if (data.length === 3 && data[0] === NRF52_CMD_SET_WEEK_START &&
+                data[1] <= 2 && data[2] <= 1) {
+                const state = data[1];
+                const weekStart = data[2];
+                if (state === 1)
+                    updateWeekStartStatus(`Firmware đang ghi ${weekStart === 0 ? 'Chủ Nhật' : 'Thứ 2'} vào FDS...`);
+                if (nrf52WeekStartAckWaiter &&
+                    (nrf52WeekStartAckWaiter.weekStart === null ||
+                     nrf52WeekStartAckWaiter.weekStart === weekStart)) {
+                    const waiter = nrf52WeekStartAckWaiter;
+                    clearTimeout(waiter.timer);
+                    nrf52WeekStartAckWaiter = null;
+                    waiter.resolve({ state, weekStart });
+                }
+                return;
+            }
             if (data.length === 7 && data[0] === NRF52_CMD_SET_SLEEP_SCHEDULE &&
                 data[1] <= 2 && data[2] <= 1 && data[3] < 24 && data[4] < 60 &&
                 data[5] < 24 && data[6] < 60) {
@@ -3685,7 +3840,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 return;
             }
 
-            const isConfig = data.length >= 8 && data.length <= 16 &&
+            const isConfig = data.length >= 8 && data.length <= 22 &&
                 [1, 2, 3, 4, 5, 7].includes(data[7]);
             if (isConfig) {
                 nrf52ModelId = data[7];
@@ -3697,19 +3852,29 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 }
                 if (nrf52WeekStartModelSupported() && data.length > 12) {
                     const selector = document.getElementById('week-start-selector');
-                    const storedWeekStart = data[12] === 0 ? '0' : '1';
-                    if (selector) selector.value = storedWeekStart;
-                    try {
-                        localStorage.setItem('epd-week-start', storedWeekStart);
-                    } catch (storageError) {
-                        // Ignore unavailable browser storage.
+                    const deviceWeekStart = data[12] === 1 ? 1 : 0;
+                    const pendingWeekStart = readStoredWeekStart(WEEK_START_PENDING_KEY);
+                    nrf52WeekStartConfirmed = deviceWeekStart;
+                    nrf52WeekStartLastSent = deviceWeekStart;
+                    if (pendingWeekStart === null) {
+                        if (selector) selector.value = String(deviceWeekStart);
+                        storeWeekStart(WEEK_START_STORAGE_KEY, deviceWeekStart);
+                        updateWeekStartStatus(`Thiết bị đang dùng ${deviceWeekStart === 0 ? 'Chủ Nhật' : 'Thứ 2'}.`);
+                    } else if (pendingWeekStart === deviceWeekStart) {
+                        if (selector) selector.value = String(deviceWeekStart);
+                        clearPendingWeekStart(deviceWeekStart);
+                        updateWeekStartStatus(`Thiết bị xác nhận đang dùng ${deviceWeekStart === 0 ? 'Chủ Nhật' : 'Thứ 2'}.`);
+                    } else {
+                        if (selector) selector.value = String(pendingWeekStart);
+                        updateWeekStartStatus('Đã nhận diện thiết bị; đang chờ gửi lựa chọn ngày đầu tuần.');
                     }
-                    updateWeekStartStatus(`Thiết bị đang dùng ${storedWeekStart === '0' ? 'Chủ Nhật' : 'Thứ 2'}.`);
                 }
                 const panelLabel = nrf52PanelProfile === 0x21 ? ', panel: 2.13' : '';
                 addLog(`> nRF52 model ${nrf52ModelId}${panelLabel}, current mode: ${nrf52DisplayMode}`);
                 selectNrf52CanvasForModel();
                 updateClockImageAvailability();
+                if (deviceProtocol === PROTOCOL_NRF52)
+                    setTimeout(() => sendPendingWeekStartAfterDetection(), 0);
             } else {
                 addLog(`> nRF52 response: ${message.trim() || bytesToHex(data)}`);
             }
@@ -3736,6 +3901,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             updateClockImageAvailability();
             await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
             await delay(80);
+            await sendPendingWeekStartAfterDetection();
             await readSleepSchedule();
             addLog('> nRF52 connected; display initialized.');
         }
@@ -4772,14 +4938,11 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         document.body.onload = () => {
             const weekStartSelector = document.getElementById('week-start-selector');
             if (weekStartSelector) {
-                try {
-                    const savedWeekStart = localStorage.getItem('epd-week-start');
-                    if (savedWeekStart === '0' || savedWeekStart === '1') {
-                        weekStartSelector.value = savedWeekStart;
-                    }
-                } catch (storageError) {
-                    // Keep the default Monday selection when storage is blocked.
-                }
+                const pendingWeekStart = readStoredWeekStart(WEEK_START_PENDING_KEY);
+                const savedWeekStart = readStoredWeekStart(WEEK_START_STORAGE_KEY);
+                const initialWeekStart = pendingWeekStart !== null ? pendingWeekStart : savedWeekStart;
+                if (initialWeekStart !== null)
+                    weekStartSelector.value = String(initialWeekStart);
             }
             updateTimeSetterLabel();
             setInterval(updateTimeSetterLabel, 1000);
