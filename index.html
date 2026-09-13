@@ -1484,7 +1484,7 @@
             Screen Size:
             <select id="screen-size" onchange="updateCanvasSize()">
                 <option value="da14585_2.13_212x104">DA14585 2.13&quot; BW (212x104, mặc định)</option>
-                <option value="da14585_2.13_250x128">DA14585 2.13&quot; BW (250x128, chọn thủ công)</option>
+                <option value="da14585_2.13_250x128">DA14585 2.13&quot; BW (250x128)</option>
                 <option value="nrf52_2.13_250x128" selected>nRF52 2.13&quot; BWR/BW (250x128, tự nhận dạng)</option>
                 <option value="nrf52_2.9_296x128">nRF52 2.9&quot; BWR/CE (296x128)</option>
                 <option value="nrf52_4.2_400x300">nRF52 4.2&quot; BWR UC8176 (400x300)</option>
@@ -2487,7 +2487,9 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let clockImageResultWaiter = null;
         let clockImageReadyWaiter = null;
         let da14585ClockImageWaiter = null;
+        let da14585ClockImageBeginWaiter = null;
         let clockImageUploadBusy = false;
+        let da14585ModeSwitchBusy = false;
         let nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
         function delay(delayInMs) {
             return new Promise(resolve => {
@@ -2525,7 +2527,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
             resolveClockImageReady(false);
             resolveClockImageResult(false);
+            resolveDa14585ClockImageBegin(false);
             resolveDa14585ClockImage(null);
+            clockImageUploadBusy = false;
+            da14585ModeSwitchBusy = false;
             const protocolLabel = document.getElementById('device-protocol');
             if (protocolLabel) protocolLabel.textContent = t('Device: not connected');
             updateClockImageAvailability();
@@ -2738,13 +2743,23 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             addLog(`nRF52 mode ${nrf52DisplayMode} command sent`);
         }
         async function switchDisplayMode(mode) {
-            if (clockImageUploadBusy) {
+            if (clockImageUploadBusy || da14585ModeSwitchBusy) {
                 addLog('> Hãy chờ tải Đồng hồ và ảnh và refresh màn hình hoàn tất trước khi chuyển mode.');
                 return;
             }
             if (deviceProtocol === PROTOCOL_DA14585) {
-                if (mode === 0) await triggerRxTxCmd('e100');
-                else await setri(mode === 2 ? 'e102' : 'e101');
+                da14585ModeSwitchBusy = true;
+                updateClockImageAvailability();
+                try {
+                    if (mode === 0) await triggerRxTxCmd('e100');
+                    else await setri(mode === 2 ? 'e102' : 'e101');
+                    // Keep Web Bluetooth writes serialized until the E1/E2 pair
+                    // has completely left the browser's GATT queue.
+                    await delay(600);
+                } finally {
+                    da14585ModeSwitchBusy = false;
+                    updateClockImageAvailability();
+                }
                 return;
             }
             if (deviceProtocol === PROTOCOL_NRF52) {
@@ -2989,7 +3004,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             if (target) configureClockImageTarget(target);
             // Keep the tab visible for both DA14585 and nRF52 devices.
             if (button) button.style.display = '';
-            if (uploadButton) uploadButton.disabled = !supported || clockImageUploadBusy;
+            if (uploadButton) uploadButton.disabled = !supported || clockImageUploadBusy || da14585ModeSwitchBusy;
             if (status) {
                 if (supported) {
                     status.textContent = target.transfer === 'da14585-clock-image'
@@ -3054,6 +3069,26 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const resolve = da14585ClockImageWaiter.resolve;
             da14585ClockImageWaiter = null;
             resolve(result);
+            return true;
+        }
+
+        function waitForDa14585ClockImageBegin(timeoutMs) {
+            resolveDa14585ClockImageBegin(false);
+            return new Promise(resolve => {
+                const timer = setTimeout(() => {
+                    da14585ClockImageBeginWaiter = null;
+                    resolve(false);
+                }, timeoutMs);
+                da14585ClockImageBeginWaiter = { resolve, timer };
+            });
+        }
+
+        function resolveDa14585ClockImageBegin(ready) {
+            if (!da14585ClockImageBeginWaiter) return false;
+            clearTimeout(da14585ClockImageBeginWaiter.timer);
+            const resolve = da14585ClockImageBeginWaiter.resolve;
+            da14585ClockImageBeginWaiter = null;
+            resolve(!!ready);
             return true;
         }
 
@@ -3351,7 +3386,12 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
 
             setClockImageProgress(2, 'Đang chuẩn bị vùng Đồng hồ và ảnh...');
+            resolveDa14585ClockImage(null);
+            const beginPromise = waitForDa14585ClockImageBegin(5000);
             await sendDa14585ClockImagePacket(new Uint8Array([0xfc, 0x00]), 'lệnh bắt đầu');
+            if (!await beginPromise) {
+                throw new Error('Thiết bị không xác nhận đã sẵn sàng nhận ảnh. Hãy kiểm tra đúng firmware và thử lại.');
+            }
 
             // Keep the complete GATT write at 20 bytes (4-byte FC header +
             // 16-byte image payload), so upload also works with the default
@@ -3402,6 +3442,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
 
             const canvas = document.getElementById('clock-image-canvas');
             renderClockImage();
+            if (da14585ModeSwitchBusy) {
+                setClockImageProgress(0, 'Thiết bị đang chuyển mode. Hãy chờ nút tải sáng lại rồi bấm tải ảnh.');
+                return;
+            }
             if (clockImageUploadBusy) {
                 setClockImageProgress(0, 'Thiết bị đang xử lý lần tải trước. Hãy chờ màn hình hoàn tất.');
                 return;
@@ -3562,7 +3606,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 resetQuickEditorOverlay(true);
                 update_image();
-                addLog('Canvas size updated to: 250x128 (DA14585 BW, chọn thủ công)');
+                addLog('Canvas size updated to: 250x128 (DA14585 BW)');
                 if (deviceProtocol === PROTOCOL_DA14585) updateClockImageAvailability();
                 return;
             }
@@ -4189,8 +4233,30 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 const state = data[1];
                 const received = (data[2] << 8) | data[3];
                 const sleepActive = data[4] === 1;
-                if (state === 1) {
+                if (state === 4) {
+                    const panelWidth = received;
+                    const panelHeight = data[4];
+                    const sizeSelect = document.getElementById('screen-size');
+                    const detectedValue = panelWidth === 250 && panelHeight === 128
+                        ? 'da14585_2.13_250x128'
+                        : (panelWidth === 212 && panelHeight === 104
+                            ? 'da14585_2.13_212x104'
+                            : null);
+                    if (detectedValue && sizeSelect) {
+                        if (sizeSelect.value !== detectedValue) {
+                            sizeSelect.value = detectedValue;
+                            updateCanvasSize();
+                        }
+                        const protocolLabel = document.getElementById('device-protocol');
+                        if (protocolLabel) protocolLabel.textContent = `${t('Device:')} DA14585 ${panelWidth}×${panelHeight}`;
+                        addLog(`> Tự nhận dạng màn DA14585: ${panelWidth}x${panelHeight}`);
+                        updateClockImageAvailability();
+                    } else {
+                        addLog(`> DA14585 báo kích thước chưa hỗ trợ: ${panelWidth}x${panelHeight}`);
+                    }
+                } else if (state === 1) {
                     addLog('> Thiết bị đã mở vùng nhận ảnh Đồng hồ và ảnh.');
+                    resolveDa14585ClockImageBegin(true);
                 } else if (state === 2) {
                     addLog(`> Thiết bị xác nhận đã nhận đủ ${received} byte và refresh màn hình hoàn tất.`);
                     resolveDa14585ClockImage({ success: true, received, sleepActive });
@@ -4345,8 +4411,13 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                         epdCharacteristic = await epdService.getCharacteristic('4b646063-6264-f3a7-8941-e65356ea82fe');
                         addLog('> epdCharacteristic Service connected');
                         try {
-                            await epdCharacteristic.startNotifications();
                             epdCharacteristic.addEventListener('characteristicvaluechanged', handleNrf52Notification);
+                            await epdCharacteristic.startNotifications();
+                            // New DA14585 firmware replies FC 04 width/height.
+                            // Older firmware safely ignores the probe and keeps
+                            // the 212x104 fallback selected by setDetectedProtocol().
+                            await sendCommand(new Uint8Array([0xfc, 0x03]));
+                            await delay(120);
                         } catch (notifyError) {
                             addLog('> Không bật được notification; sẽ xác nhận lịch bằng cách đọc lại 1F1F.');
                         }
