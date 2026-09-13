@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <title>Thẻ mực điện tử - Web v59.5 (2.13 / 2.9 / 7.5)</title>
+    <title>Thẻ mực điện tử - Điều khiển Bluetooth</title>
     <style>
         /* Base style reset */
         * {
@@ -154,8 +154,19 @@
             font-weight: 600;
         }
 
-        .sleep-time-grid input[type="time"] {
+        .sleep-time-grid input[type="time"],
+        .sleep-time-grid select {
             margin: 0;
+        }
+
+        .sleep-capability-note {
+            margin: 12px 0 0;
+            padding: 10px 12px;
+            border: 1px solid #e4bd68;
+            border-radius: 8px;
+            background: #fff8e7;
+            color: #72500b;
+            font-weight: 600;
         }
 
         .sleep-actions {
@@ -842,7 +853,7 @@
     <script>
         const APP_TRANSLATIONS = {
             vi: {
-                "E-Paper Tag - Web v59.5 (2.13 / 2.9 / 7.5)": "Thẻ mực điện tử - Web v59.5 (2.13 / 2.9 / 7.5)",
+                "E-Paper Tag - Bluetooth Controller": "Thẻ mực điện tử - Điều khiển Bluetooth",
                 "Language selector": "Bộ chọn ngôn ngữ",
                 "Language:": "Ngôn ngữ:",
                 "E-Paper Settings": "Cài đặt màn hình E-Paper",
@@ -892,6 +903,7 @@
                 "The device did not confirm these times. Please reconnect and read the schedule again.": "Thiết bị chưa xác nhận đúng giờ đã chọn. Bạn hãy kết nối lại để đọc lịch.",
                 "DA14585: schedule command sent, but this firmware does not confirm saving.": "DA14585: đã gửi lệnh hẹn giờ; firmware này không có phản hồi xác nhận đã lưu.",
                 "This DA14585 firmware only supports whole hours; minutes were ignored.": "Firmware DA14585 này chỉ hỗ trợ giờ tròn; phần phút đã được bỏ qua.",
+                "This DA14585 device supports whole-hour schedules only. Minutes are fixed at :00.": "Thiết bị DA14585 này chỉ hỗ trợ hẹn giờ theo giờ tròn. Phút được cố định là :00.",
                 "2.13\" low-res clock parking sign - Enter number:": "Biển số/đồng hồ 2.13\" độ phân giải thấp - Nhập số:",
                 "Set Number Display": "Cài hiển thị số",
                 "Activate (not needed if display is working):": "Kích hoạt (không cần nếu màn hình đang hoạt động):",
@@ -1127,7 +1139,7 @@
         function applyLanguage(lang = getCurrentLanguage()) {
             localStorage.setItem('app-language', lang);
             document.documentElement.lang = lang;
-            document.title = translateText('E-Paper Tag - Web v59.5 (2.13 / 2.9 / 7.5)', lang);
+            document.title = translateText('E-Paper Tag - Bluetooth Controller', lang);
 
             const selector = document.getElementById('language-selector');
             if (selector) selector.value = lang;
@@ -1215,15 +1227,18 @@
             <p>The clock keeps running, but the display stops refreshing during this period.</p>
             <p>Example: 23:00 to 07:00 pauses the display overnight, every day.</p>
             <div class="sleep-time-grid">
-                <label for="sleep-start-time">
+                <label id="sleep-start-label" for="sleep-start-time">
                     <span>Sleep from</span>
                     <input type="time" id="sleep-start-time" value="23:00" step="60">
+                    <select id="sleep-start-hour" hidden disabled></select>
                 </label>
-                <label for="sleep-end-time">
+                <label id="sleep-end-label" for="sleep-end-time">
                     <span>Wake at</span>
                     <input type="time" id="sleep-end-time" value="07:00" step="60">
+                    <select id="sleep-end-hour" hidden disabled></select>
                 </label>
             </div>
+            <p id="sleep-schedule-capability-note" class="sleep-capability-note" role="note" hidden>This DA14585 device supports whole-hour schedules only. Minutes are fixed at :00.</p>
             <div class="sleep-actions">
                 <button type="button" onclick="setSleepSchedule(true)">Save and enable</button>
                 <button type="button" class="sleep-disable-button" onclick="setSleepSchedule(false)">Disable schedule</button>
@@ -1451,12 +1466,12 @@
                 <button type="button" id="clock-quick-create-schedule">Tạo thời khóa biểu</button>
             </div>
 
-            <div id="clock-quick-editor-status" role="status">Chọn công cụ để chỉnh sửa phần ảnh bên phải.</div>
+            <div id="clock-quick-editor-status" role="status">Chọn công cụ để chỉnh sửa phần ảnh.</div>
         </div>
         <div class="button-group">
             <button id="clock-image-upload-button" type="button" onclick="uploadClockImage()">Chuyển sang Đồng hồ và ảnh + tải ảnh</button>
             <progress id="clock-image-progress" max="100" value="0" style="width:min(500px,100%);"></progress>
-            <span id="clock-image-status">Hỗ trợ chung màn 2.13, 2.9 và 7.5 có firmware Đồng hồ và ảnh tương thích.</span>
+            <span id="clock-image-status">Hỗ trợ DA14585 và các màn nRF52 có chức năng Đồng hồ và ảnh tương thích.</span>
         </div>
     </div>
 
@@ -1468,7 +1483,9 @@
         <div class="button-group">
             Screen Size:
             <select id="screen-size" onchange="updateCanvasSize()">
-                <option value="nrf52_2.13_250x128">nRF52 2.13&quot; BWR/BW (250x128, tự nhận dạng)</option>
+                <option value="da14585_2.13_212x104">DA14585 2.13&quot; BW (212x104, mặc định)</option>
+                <option value="da14585_2.13_250x128">DA14585 2.13&quot; BW (250x128, chọn thủ công)</option>
+                <option value="nrf52_2.13_250x128" selected>nRF52 2.13&quot; BWR/BW (250x128, tự nhận dạng)</option>
                 <option value="nrf52_2.9_296x128">nRF52 2.9&quot; BWR/CE (296x128)</option>
                 <option value="nrf52_4.2_400x300">nRF52 4.2&quot; BWR UC8176 (400x300)</option>
                 <option value="nrf52_4.2_400x300_bw1619">nRF52 4.2&quot; BW SSD1619 (400x300)</option>
@@ -2469,6 +2486,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let nrf52ActivationWaiter = null;
         let clockImageResultWaiter = null;
         let clockImageReadyWaiter = null;
+        let da14585ClockImageWaiter = null;
+        let clockImageUploadBusy = false;
         let nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
         function delay(delayInMs) {
             return new Promise(resolve => {
@@ -2487,6 +2506,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             rxtxCharacteristic = null;
             rxtxService = null;
             deviceProtocol = null;
+            updateSleepScheduleInputMode();
             nrf52ModelDetected = false;
             nrf52FirmwareVersion = 0;
             nrf52PanelProfile = null;
@@ -2505,6 +2525,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
             resolveClockImageReady(false);
             resolveClockImageResult(false);
+            resolveDa14585ClockImage(null);
             const protocolLabel = document.getElementById('device-protocol');
             if (protocolLabel) protocolLabel.textContent = t('Device: not connected');
             updateClockImageAvailability();
@@ -2717,6 +2738,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             addLog(`nRF52 mode ${nrf52DisplayMode} command sent`);
         }
         async function switchDisplayMode(mode) {
+            if (clockImageUploadBusy) {
+                addLog('> Hãy chờ tải Đồng hồ và ảnh và refresh màn hình hoàn tất trước khi chuyển mode.');
+                return;
+            }
             if (deviceProtocol === PROTOCOL_DA14585) {
                 if (mode === 0) await triggerRxTxCmd('e100');
                 else await setri(mode === 2 ? 'e102' : 'e101');
@@ -2827,6 +2852,29 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let clockImageOffsetY = 0;
 
         const CLOCK_IMAGE_TARGETS = {
+            da14585_213_hr: {
+                minVersion: 0,
+                width: 134,
+                height: 128,
+                fullWidth: 250,
+                transfer: 'da14585-clock-image',
+                label: 'DA14585 màn 2.13 BW 250×128',
+                title: 'Đồng hồ và ảnh – Face 2 DA14585 250×128',
+                description: 'Ảnh đen trắng 134×128 thay khu vực lịch bên trái của Face 2; toàn bộ phần đồng hồ, ngày, thứ, nhiệt độ, điện áp và pin bên phải được giữ nguyên và tiếp tục cập nhật mỗi phút.',
+                imageSide: 'trái',
+                clockSide: 'phải'
+            },
+            da14585_213_bw: {
+                minVersion: 0,
+                width: 126,
+                height: 104,
+                transfer: 'da14585-clock-image',
+                label: 'DA14585 màn 2.13 BW',
+                title: 'Đồng hồ và ảnh – DA14585 2.13 inch BW',
+                description: 'Ảnh đen trắng 126×104 nằm bên trái; đồng hồ, ngày, nhiệt độ và pin nằm bên phải và tiếp tục cập nhật mỗi phút. Màu đỏ sẽ được đổi thành màu đen. Nếu đổi mode hoặc mặt đồng hồ, ảnh sẽ bị xóa và cần tải lại.',
+                imageSide: 'trái',
+                clockSide: 'phải'
+            },
             model2_290: {
                 minVersion: 30,
                 width: 194,
@@ -2871,6 +2919,12 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         };
 
         function getClockImageTarget() {
+            if (deviceProtocol === PROTOCOL_DA14585) {
+                const screenValue = document.getElementById('screen-size')?.value;
+                return screenValue === 'da14585_2.13_250x128'
+                    ? CLOCK_IMAGE_TARGETS.da14585_213_hr
+                    : CLOCK_IMAGE_TARGETS.da14585_213_bw;
+            }
             if (deviceProtocol !== PROTOCOL_NRF52 || !nrf52ModelDetected) return null;
             if (nrf52ModelId === 7) return CLOCK_IMAGE_TARGETS.model7_750;
             if (nrf52ModelId !== 2) return null;
@@ -2884,6 +2938,12 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             return null;
         }
 
+        function isClockImageTargetSupported(target) {
+            if (!target) return false;
+            if (target.transfer === 'da14585-clock-image') return deviceProtocol === PROTOCOL_DA14585;
+            return deviceProtocol === PROTOCOL_NRF52 && nrf52FirmwareVersion >= target.minVersion;
+        }
+
         function configureClockImageTarget(target) {
             if (!target) return;
             const canvas = document.getElementById('clock-image-canvas');
@@ -2893,13 +2953,31 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             if (description) description.textContent = target.description;
             if (!canvas || (canvas.width === target.width && canvas.height === target.height)) return;
 
+            const oldWidth = canvas.width || target.width;
+            const oldHeight = canvas.height || target.height;
+            const oldOverlay = ensureClockQuickOverlay();
+            const overlayCopy = document.createElement('canvas');
+            overlayCopy.width = oldWidth;
+            overlayCopy.height = oldHeight;
+            if (oldOverlay) {
+                overlayCopy.getContext('2d').drawImage(oldOverlay, 0, 0);
+            }
+
             canvas.width = target.width;
             canvas.height = target.height;
-            clockImageScale = 1;
-            clockImageOffsetX = 0;
-            clockImageOffsetY = 0;
-            resetClockQuickOverlay(true);
+            clockImageOffsetX *= target.width / oldWidth;
+            clockImageOffsetY *= target.height / oldHeight;
+
+            const resizedOverlay = ensureClockQuickOverlay();
+            if (resizedOverlay) {
+                resizedOverlay.getContext('2d').drawImage(
+                    overlayCopy, 0, 0, target.width, target.height);
+            }
+            clockQuickHistory = [];
+            clockQuickRedo = [];
+            updateClockQuickHistoryButtons();
             renderClockImage();
+            addLog(`Canvas Đồng hồ và ảnh tự động đổi từ ${oldWidth}x${oldHeight} sang ${target.width}x${target.height}.`);
         }
 
         function updateClockImageAvailability() {
@@ -2907,26 +2985,28 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const uploadButton = document.getElementById('clock-image-upload-button');
             const status = document.getElementById('clock-image-status');
             const target = getClockImageTarget();
-            const supported = target && nrf52FirmwareVersion >= target.minVersion;
+            const supported = isClockImageTargetSupported(target);
             if (target) configureClockImageTarget(target);
-            // Keep the tab visible before connecting so the user can find the
-            // feature. Hide it only after a DA14585 device is positively
-            // identified; unsupported nRF52 devices see a disabled upload
-            // button and an explanatory status instead.
-            if (button) button.style.display = deviceProtocol === PROTOCOL_DA14585 ? 'none' : '';
-            if (uploadButton) uploadButton.disabled = !supported;
+            // Keep the tab visible for both DA14585 and nRF52 devices.
+            if (button) button.style.display = '';
+            if (uploadButton) uploadButton.disabled = !supported || clockImageUploadBusy;
             if (status) {
                 if (supported) {
-                    status.textContent = `Đã nhận ${target.label}, firmware v${nrf52FirmwareVersion}. Sẵn sàng chọn ảnh ${target.width}×${target.height}.`;
+                    status.textContent = target.transfer === 'da14585-clock-image'
+                        ? `Đã nhận ${target.label}. Sẵn sàng chọn ảnh ${target.width}×${target.height} và chuyển sang Đồng hồ và ảnh.`
+                        : `Đã nhận ${target.label}, firmware v${nrf52FirmwareVersion}. Sẵn sàng chọn ảnh ${target.width}×${target.height}.`;
                 } else if (deviceProtocol === PROTOCOL_NRF52) {
                     const requirement = target
                         ? `${target.label}, firmware v${target.minVersion}+`
                         : 'màn 2.13 v40+, màn 2.9 v30 hoặc màn 7.5 v53+ có firmware Đồng hồ và ảnh';
                     status.textContent = `Cần ${requirement} (đang nhận model ${nrf52ModelDetected ? nrf52ModelId : '?'}, v${nrf52FirmwareVersion || '?'}).`;
                 } else if (deviceProtocol == null) {
-                    status.textContent = 'Hãy kết nối màn nRF52 2.13, 2.9 hoặc 7.5 có firmware Đồng hồ và ảnh.';
+                    status.textContent = 'Hãy kết nối DA14585 hoặc màn nRF52 có chức năng Đồng hồ và ảnh tương thích.';
+                } else if (deviceProtocol === PROTOCOL_DA14585 &&
+                           document.getElementById('screen-size')?.value === 'da14585_2.13_250x128') {
+                    status.textContent = 'Đã chọn DA14585 250×128. Truyền ảnh toàn màn cần firmware 250×128 tương thích; Đồng hồ và ảnh hiện chỉ hỗ trợ cấu hình 212×104.';
                 } else {
-                    status.textContent = 'Chức năng này chỉ hỗ trợ firmware nRF52 Đồng hồ và ảnh.';
+                    status.textContent = 'Firmware của thiết bị này chưa hỗ trợ Đồng hồ và ảnh.';
                 }
             }
         }
@@ -2955,6 +3035,26 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const resolve = clockImageResultWaiter.resolve;
             clockImageResultWaiter = null;
             resolve(!!success);
+        }
+
+        function waitForDa14585ClockImage(timeoutMs) {
+            resolveDa14585ClockImage(null);
+            return new Promise(resolve => {
+                const timer = setTimeout(() => {
+                    da14585ClockImageWaiter = null;
+                    resolve(null);
+                }, timeoutMs);
+                da14585ClockImageWaiter = { resolve, timer };
+            });
+        }
+
+        function resolveDa14585ClockImage(result) {
+            if (!da14585ClockImageWaiter) return false;
+            clearTimeout(da14585ClockImageWaiter.timer);
+            const resolve = da14585ClockImageWaiter.resolve;
+            da14585ClockImageWaiter = null;
+            resolve(result);
+            return true;
         }
 
         function waitForClockImageReady(timeoutMs) {
@@ -3194,13 +3294,107 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
         }
 
+        function clockImageCanvasToDa14585Bytes(canvas, target) {
+            let sourceCanvas = canvas;
+            if (canvas.width !== target.width || canvas.height !== target.height) {
+                sourceCanvas = document.createElement('canvas');
+                sourceCanvas.width = target.width;
+                sourceCanvas.height = target.height;
+                const sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
+                sourceCtx.fillStyle = '#ffffff';
+                sourceCtx.fillRect(0, 0, target.width, target.height);
+                sourceCtx.drawImage(canvas, 0, 0, target.width, target.height);
+                addLog(`Đã tự động căn ảnh từ ${canvas.width}x${canvas.height} về ${target.width}x${target.height}.`);
+            }
+
+            const pixels = sourceCanvas.getContext('2d', { willReadFrequently: true })
+                .getImageData(0, 0, target.width, target.height).data;
+            const totalPixels = target.width * target.height;
+            const packed = new Uint8Array(Math.ceil(totalPixels / 8));
+            packed.fill(0xff);
+
+            for (let pixelIndex = 0; pixelIndex < totalPixels; pixelIndex++) {
+                const i = pixelIndex * 4;
+                const isWhite = pixels[i] === 255 && pixels[i + 1] === 255 && pixels[i + 2] === 255;
+                if (!isWhite) {
+                    packed[pixelIndex >> 3] &= ~(0x80 >> (pixelIndex & 7));
+                }
+            }
+            return packed;
+        }
+
+        async function sendDa14585ClockImagePacket(packet, label) {
+            let lastError = null;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    await sendCommand(packet);
+                    return;
+                } catch (error) {
+                    lastError = error;
+                    if (attempt < 3) {
+                        addLog(`> DA14585: ${label} lỗi, đang thử lại ${attempt}/2...`);
+                        await delay(120 * attempt);
+                    }
+                }
+            }
+            throw new Error(`DA14585 không gửi được ${label}: ${lastError?.message || lastError}`);
+        }
+
+        async function uploadDa14585ClockImage(canvas, target) {
+            if (!bleDevice?.gatt?.connected || !epdCharacteristic) {
+                throw new Error('Thiết bị DA14585 chưa kết nối hoặc kênh truyền ảnh chưa sẵn sàng.');
+            }
+            const data = clockImageCanvasToDa14585Bytes(canvas, target);
+            const expectedBytes = (target.width * target.height) / 8;
+            if (data.length !== expectedBytes) {
+                throw new Error(`Kích thước dữ liệu DA14585 sai: ${data.length}/${expectedBytes} byte.`);
+            }
+
+            setClockImageProgress(2, 'Đang chuẩn bị vùng Đồng hồ và ảnh...');
+            await sendDa14585ClockImagePacket(new Uint8Array([0xfc, 0x00]), 'lệnh bắt đầu');
+
+            // Keep the complete GATT write at 20 bytes (4-byte FC header +
+            // 16-byte image payload), so upload also works with the default
+            // Bluetooth ATT MTU of 23 bytes.
+            const chunkSize = 16;
+            const totalParts = Math.ceil(data.length / chunkSize);
+            addLog(`> DA14585 Đồng hồ và ảnh: ${data.length} byte, ${totalParts} gói dữ liệu BLE an toàn (tối đa 20 byte/gói).`);
+            for (let offset = 0, part = 0; offset < data.length; offset += chunkSize, part++) {
+                const chunk = data.slice(offset, offset + chunkSize);
+                const packet = new Uint8Array(4 + chunk.length);
+                packet[0] = 0xfc;
+                packet[1] = 0x01;
+                packet[2] = (offset >> 8) & 0xff;
+                packet[3] = offset & 0xff;
+                packet.set(chunk, 4);
+                await sendDa14585ClockImagePacket(packet, `gói ảnh ${part + 1}/${totalParts}`);
+
+                const percent = 5 + ((part + 1) / totalParts) * 88;
+                setClockImageProgress(percent, `Đang gửi ảnh ${part + 1}/${totalParts}...`);
+                await delay(20);
+            }
+
+            setClockImageProgress(95, 'Đã gửi ảnh; đang chờ màn hình refresh Đồng hồ và ảnh hoàn tất...');
+            const resultPromise = waitForDa14585ClockImage(45000);
+            await sendDa14585ClockImagePacket(new Uint8Array([0xfc, 0x02]), 'lệnh hoàn tất');
+            const result = await resultPromise;
+            if (!result || !result.success) {
+                throw new Error('Thiết bị không xác nhận đã nhận đủ ảnh. Hãy ngắt kết nối rồi thử lại.');
+            }
+            return result;
+        }
+
         async function uploadClockImage() {
             const target = getClockImageTarget();
-            const supported = target && nrf52FirmwareVersion >= target.minVersion;
+            const supported = isClockImageTargetSupported(target);
             if (!supported) {
                 setClockImageProgress(0, 'Thiết bị hoặc firmware hiện tại chưa hỗ trợ chế độ Đồng hồ và ảnh.');
                 return;
             }
+
+            // Re-apply the detected device geometry at upload time. This also
+            // handles a canvas that was previously configured as 250x128.
+            configureClockImageTarget(target);
             if (!clockImageOriginal && !clockQuickOverlayHasContent()) {
                 setClockImageProgress(0, 'Hãy chọn ảnh hoặc tạo nội dung trước.');
                 return;
@@ -3208,8 +3402,25 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
 
             const canvas = document.getElementById('clock-image-canvas');
             renderClockImage();
+            if (clockImageUploadBusy) {
+                setClockImageProgress(0, 'Thiết bị đang xử lý lần tải trước. Hãy chờ màn hình hoàn tất.');
+                return;
+            }
+            clockImageUploadBusy = true;
+            updateClockImageAvailability();
             try {
                 setClockImageProgress(1, 'Đang chuyển sang mode Đồng hồ và ảnh...');
+                if (target.transfer === 'da14585-clock-image') {
+                    const result = await uploadDa14585ClockImage(canvas, target);
+                    if (result.sleepActive) {
+                        setClockImageProgress(100, 'Thiết bị đã nhận đủ ảnh nhưng màn hình đang trong giờ nghỉ. Ảnh sẽ hiện khi thiết bị hoạt động lại.');
+                        addLog('> Thiết bị xác nhận ảnh hợp lệ; lịch nghỉ hiện đang chặn refresh màn hình.');
+                    } else {
+                        setClockImageProgress(100, 'Hoàn tất. Ảnh đang hiển thị bên trái và đồng hồ ở bên phải. Nếu đổi mode hoặc mặt đồng hồ, bạn cần tải ảnh lại.');
+                        addLog(`Đã gửi ảnh Đồng hồ và ảnh DA14585 ${target.width}x${target.height}; đồng hồ tiếp tục cập nhật mỗi phút.`);
+                    }
+                    return;
+                }
                 if (target.transfer === 'clock-image-v54') {
                     // Firmware 7.5 reports READY after its regional clock refresh.
                     const readyPromise = waitForClockImageReady(60000);
@@ -3272,6 +3483,9 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 resolveClockImageResult(false);
                 setClockImageProgress(0, `Tải ảnh thất bại: ${error.message || error}`);
                 addLog(`Clock-image upload failed: ${error.message || error}`);
+            } finally {
+                clockImageUploadBusy = false;
+                updateClockImageAvailability();
             }
         }
 
@@ -3311,7 +3525,13 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
             let cod = '03';
             if (value.length == 7000 || value.length == 18000) { cod = '04'; }
-            const step = my_step;
+            // DA14585 must fit the complete command (4-byte header + data)
+            // inside the default 20-byte ATT payload. nRF52 keeps its normal
+            // negotiated transfer size in its separate upload path.
+            const step = deviceProtocol === PROTOCOL_DA14585 ? 32 : my_step;
+            if (deviceProtocol === PROTOCOL_DA14585) {
+                addLog(`> Truyền ảnh DA14585 bằng ${Math.ceil(value.length / step)} gói BLE an toàn.`);
+            }
             let partIndex = 0;
             for (let i = 0; i < value.length; i += step) {
                 addLog(`Sending block ${partIndex + 1} block. Block size: ${step / 2 + 4}byte. Start position: ${i / 2}`);
@@ -3324,6 +3544,28 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext("2d");
             let width, height;
+            if (sizeSelect.value === "da14585_2.13_212x104") {
+                canvas.width = 212;
+                canvas.height = 104;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                resetQuickEditorOverlay(true);
+                update_image();
+                addLog('Canvas size updated to: 212x104 (DA14585 BW)');
+                if (deviceProtocol === PROTOCOL_DA14585) updateClockImageAvailability();
+                return;
+            }
+            if (sizeSelect.value === "da14585_2.13_250x128") {
+                canvas.width = 250;
+                canvas.height = 128;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                resetQuickEditorOverlay(true);
+                update_image();
+                addLog('Canvas size updated to: 250x128 (DA14585 BW, chọn thủ công)');
+                if (deviceProtocol === PROTOCOL_DA14585) updateClockImageAvailability();
+                return;
+            }
             if (sizeSelect.value === "nrf52_2.9_296x128") {
                 canvas.width = 296;
                 canvas.height = 128;
@@ -3407,11 +3649,29 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         async function upload_image() {
             const canvas = document.getElementById('canvas');
             const startTime = new Date().getTime();
+            const screenValue = document.getElementById('screen-size')?.value;
+            if (deviceProtocol === PROTOCOL_DA14585 &&
+                screenValue !== 'da14585_2.13_212x104' &&
+                screenValue !== 'da14585_2.13_250x128') {
+                selectDa14585ImageCanvas();
+                addLog('> Đã tự động căn ảnh truyền sang 212x104 cho DA14585.');
+            }
             if (deviceProtocol === PROTOCOL_NRF52) {
                 if (await uploadNrf52Image(canvas)) {
                     addLog(`${t('Upload complete, time:')}${(new Date().getTime() - startTime) / 1000}${t('s')}`);
                 }
                 return;
+            }
+            if (deviceProtocol === PROTOCOL_DA14585) {
+                // Tell the new high-resolution firmware how many packed bytes
+                // belong to each column. Older DA14585 builds ignore 0x8F.
+                await sendCommand(new Uint8Array([
+                    0x8f,
+                    (canvas.width >> 8) & 0xff, canvas.width & 0xff,
+                    (canvas.height >> 8) & 0xff, canvas.height & 0xff
+                ]));
+                await delay(50);
+                addLog(`> Đã báo kích thước ảnh ${canvas.width}x${canvas.height} cho DA14585.`);
             }
             if(canvas.width==296){
                 
@@ -3510,6 +3770,13 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         }
 
         function parseSleepTime(inputId) {
+            if (deviceProtocol === PROTOCOL_DA14585) {
+                const hourSelectId = inputId === 'sleep-start-time' ? 'sleep-start-hour' : 'sleep-end-hour';
+                const hourSelect = document.getElementById(hourSelectId);
+                const hour = Number(hourSelect && hourSelect.value);
+                if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null;
+                return { hour, minute: 0 };
+            }
             const input = document.getElementById(inputId);
             const parts = input && input.value ? input.value.split(':') : [];
             const hour = Number(parts[0]);
@@ -3525,12 +3792,61 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const pad = value => String(value).padStart(2, '0');
             const start = document.getElementById('sleep-start-time');
             const end = document.getElementById('sleep-end-time');
+            const startHourSelect = document.getElementById('sleep-start-hour');
+            const endHourSelect = document.getElementById('sleep-end-hour');
             if (start) start.value = `${pad(startHour)}:${pad(startMinute)}`;
             if (end) end.value = `${pad(endHour)}:${pad(endMinute)}`;
+            if (startHourSelect) startHourSelect.value = String(startHour);
+            if (endHourSelect) endHourSelect.value = String(endHour);
         }
 
-        async function exchangeSleepSchedule(packet, timeoutMs = 3000) {
-            if (!epdCharacteristic || !gattServer || !gattServer.connected)
+        function ensureSleepHourOptions(select) {
+            if (!select || select.options.length) return;
+            for (let hour = 0; hour < 24; hour++) {
+                const option = document.createElement('option');
+                option.value = String(hour);
+                option.textContent = `${String(hour).padStart(2, '0')}:00`;
+                select.appendChild(option);
+            }
+        }
+
+        function updateSleepScheduleInputMode() {
+            const hourOnly = deviceProtocol === PROTOCOL_DA14585;
+            const controls = [
+                { timeId: 'sleep-start-time', hourId: 'sleep-start-hour', labelId: 'sleep-start-label' },
+                { timeId: 'sleep-end-time', hourId: 'sleep-end-hour', labelId: 'sleep-end-label' }
+            ];
+
+            controls.forEach(({ timeId, hourId, labelId }) => {
+                const timeInput = document.getElementById(timeId);
+                const hourSelect = document.getElementById(hourId);
+                const label = document.getElementById(labelId);
+                if (!timeInput || !hourSelect) return;
+
+                ensureSleepHourOptions(hourSelect);
+                if (hourOnly) {
+                    const parsedHour = Number((timeInput.value || '00:00').split(':')[0]);
+                    const safeHour = Number.isInteger(parsedHour) && parsedHour >= 0 && parsedHour < 24 ? parsedHour : 0;
+                    hourSelect.value = String(safeHour);
+                    timeInput.value = `${String(safeHour).padStart(2, '0')}:00`;
+                } else if (hourSelect.value !== '') {
+                    const currentMinute = (timeInput.value || '00:00').split(':')[1] || '00';
+                    timeInput.value = `${String(Number(hourSelect.value)).padStart(2, '0')}:${currentMinute}`;
+                }
+
+                timeInput.hidden = hourOnly;
+                timeInput.disabled = hourOnly;
+                hourSelect.hidden = !hourOnly;
+                hourSelect.disabled = !hourOnly;
+                if (label) label.htmlFor = hourOnly ? hourId : timeId;
+            });
+
+            const note = document.getElementById('sleep-schedule-capability-note');
+            if (note) note.hidden = !hourOnly;
+        }
+
+        async function exchangeSleepSchedule(packet, timeoutMs = 3000, characteristic = epdCharacteristic) {
+            if (!characteristic || !gattServer || !gattServer.connected)
                 throw new Error(t('Connect the device before changing the sleep schedule.'));
             if (sleepScheduleWaiter)
                 throw new Error(t('Reading sleep schedule...'));
@@ -3545,9 +3861,11 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 sleepScheduleWaiter = finish;
             });
             try {
-                await epdCharacteristic.writeValueWithResponse(packet);
+                await characteristic.writeValueWithResponse(packet);
                 const result = await reply;
-                if (!result) throw new Error(t('This firmware has not confirmed sleep schedule support. Install CE 2.9 v18.4 to use it.'));
+                if (!result) throw new Error(deviceProtocol === PROTOCOL_DA14585
+                    ? 'DA14585 không phản hồi lệnh hẹn giờ. Hãy nạp firmware tương thích có ACK.'
+                    : t('This firmware has not confirmed sleep schedule support. Install CE 2.9 v18.4 to use it.'));
                 return result;
             } catch (error) {
                 finish(null);
@@ -3555,12 +3873,64 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
         }
 
+        function decodeSleepScheduleReply(value) {
+            const data = value instanceof Uint8Array
+                ? value
+                : new Uint8Array(value.buffer, value.byteOffset || 0, value.byteLength);
+            if ((data.length !== 7 && data.length !== 8) ||
+                data[0] !== NRF52_CMD_SET_SLEEP_SCHEDULE || data[1] > 2 ||
+                data[2] > 1 || data[3] >= 24 || data[4] >= 60 ||
+                data[5] >= 24 || data[6] >= 60) return null;
+            return {
+                state: data[1],
+                values: Array.from(data.slice(2, 7)),
+                active: data.length === 8 ? data[7] : null,
+                raw: data
+            };
+        }
+
+        async function exchangeDa14585SleepSchedule(packet, timeoutMs = 2500) {
+            if (!rxtxCharacteristic || !gattServer || !gattServer.connected)
+                throw new Error(t('Connect the device before changing the sleep schedule.'));
+
+            await rxtxCharacteristic.writeValueWithResponse(packet);
+            const deadline = Date.now() + timeoutMs;
+            do {
+                await delay(120);
+                try {
+                    const value = await rxtxCharacteristic.readValue();
+                    const result = decodeSleepScheduleReply(value);
+                    if (result) {
+                        addLog(`> ACK DA14585: ${bytesToHex(result.raw)}`);
+                        return result;
+                    }
+                } catch (readError) {
+                    // A notification may still arrive; retry the readable 1F1F value.
+                }
+            } while (Date.now() < deadline);
+
+            throw new Error('DA14585 không phản hồi lệnh hẹn giờ. Hãy nạp firmware tương thích có ACK đọc lại.');
+        }
+
         async function readSleepSchedule() {
             updateSleepScheduleStatus(t('Reading sleep schedule...'));
             try {
-                await exchangeSleepSchedule(new Uint8Array([NRF52_CMD_SET_SLEEP_SCHEDULE, 0xff]));
+                if (deviceProtocol === PROTOCOL_DA14585) {
+                    addLog('> Đọc lịch DA14585: fbff');
+                    const result = await exchangeDa14585SleepSchedule(
+                        new Uint8Array([NRF52_CMD_SET_SLEEP_SCHEDULE, 0xff]));
+                    setSleepTimeInputs(...result.values.slice(1));
+                    const pad = number => String(number).padStart(2, '0');
+                    const range = `${pad(result.values[1])}:00 → ${pad(result.values[3])}:00`;
+                    updateSleepScheduleStatus(result.values[0]
+                        ? `${t('Sleep schedule is enabled.')} ${range}`
+                        : t('Sleep schedule disabled.'), 'success');
+                } else {
+                    await exchangeSleepSchedule(new Uint8Array([NRF52_CMD_SET_SLEEP_SCHEDULE, 0xff]));
+                }
             } catch (error) {
                 updateSleepScheduleStatus(error.message, 'error');
+                addLog(`> ${error.message}`);
             }
         }
 
@@ -3616,13 +3986,23 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 } else {
                     const pad = value => String(value).padStart(2, '0');
                     const command = `FB${enabled ? '01' : '00'}${pad(start.hour)}${pad(end.hour)}`;
-                    await rxTxSendCommand(hexToBytes(command));
+                    addLog(`> Gửi lịch DA14585: ${command.toLowerCase()}`);
+                    const result = await exchangeDa14585SleepSchedule(hexToBytes(command));
+                    if (result.state !== 0)
+                        throw new Error('Thiết bị từ chối giá trị giờ đã gửi.');
+                    if (result.values[0] !== (enabled ? 1 : 0) ||
+                        result.values[1] !== start.hour || result.values[2] !== 0 ||
+                        result.values[3] !== end.hour || result.values[4] !== 0)
+                        throw new Error('Thiết bị phản hồi lịch khác với giá trị vừa gửi.');
                     if (start.minute !== 0 || end.minute !== 0) {
                         addLog(t('This DA14585 firmware only supports whole hours; minutes were ignored.'));
                     }
                     setSleepTimeInputs(start.hour, 0, end.hour, 0);
-                    updateSleepScheduleStatus(t('DA14585: schedule command sent, but this firmware does not confirm saving.'));
-                    return;
+                    if (enabled) {
+                        addLog(result.active === 1
+                            ? '> Thiết bị xác nhận: lịch đang có hiệu lực, màn hình phải dừng ở lần đổi phút kế tiếp.'
+                            : '> Thiết bị xác nhận: đã lưu lịch nhưng giờ hiện tại nằm ngoài khoảng nghỉ.');
+                    }
                 }
 
                 const message = enabled ? t('Sleep schedule saved.') : t('Sleep schedule disabled.');
@@ -3675,10 +4055,19 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         }
         function setDetectedProtocol(protocol) {
             deviceProtocol = protocol;
+            updateSleepScheduleInputMode();
             const name = protocol === PROTOCOL_NRF52 ? 'nRF52' : 'DA14585';
             const protocolLabel = document.getElementById('device-protocol');
             if (protocolLabel) protocolLabel.textContent = `${t('Device:')} ${name}`;
             addLog(`> ${t('Detected protocol:')} ${name}`);
+            if (protocol === PROTOCOL_DA14585) selectDa14585ImageCanvas();
+        }
+        function selectDa14585ImageCanvas() {
+            const sizeSelect = document.getElementById('screen-size');
+            if (sizeSelect && sizeSelect.value !== 'da14585_2.13_212x104') {
+                sizeSelect.value = 'da14585_2.13_212x104';
+                updateCanvasSize();
+            }
         }
         function selectNrf52CanvasForModel() {
             const sizeSelect = document.getElementById('screen-size');
@@ -3775,11 +4164,15 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 }
                 return;
             }
-            if (data.length === 7 && data[0] === NRF52_CMD_SET_SLEEP_SCHEDULE &&
+            if ((data.length === 7 || data.length === 8) && data[0] === NRF52_CMD_SET_SLEEP_SCHEDULE &&
                 data[1] <= 2 && data[2] <= 1 && data[3] < 24 && data[4] < 60 &&
                 data[5] < 24 && data[6] < 60) {
                 sleepScheduleSupported = true;
-                const result = { state: data[1], values: Array.from(data.slice(2)) };
+                const result = {
+                    state: data[1],
+                    values: Array.from(data.slice(2, 7)),
+                    active: data.length === 8 ? data[7] : null
+                };
                 if (!sleepOperationBusy) {
                     setSleepTimeInputs(...result.values.slice(1));
                     const pad = number => String(number).padStart(2, '0');
@@ -3790,6 +4183,21 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     updateSleepScheduleStatus(status, data[1] === 2 ? 'error' : (data[1] === 0 ? 'success' : ''));
                 }
                 if (sleepScheduleWaiter) sleepScheduleWaiter(result);
+                return;
+            }
+            if (data.length === 5 && data[0] === 0xfc && deviceProtocol === PROTOCOL_DA14585) {
+                const state = data[1];
+                const received = (data[2] << 8) | data[3];
+                const sleepActive = data[4] === 1;
+                if (state === 1) {
+                    addLog('> Thiết bị đã mở vùng nhận ảnh Đồng hồ và ảnh.');
+                } else if (state === 2) {
+                    addLog(`> Thiết bị xác nhận đã nhận đủ ${received} byte và refresh màn hình hoàn tất.`);
+                    resolveDa14585ClockImage({ success: true, received, sleepActive });
+                } else if (state === 3) {
+                    addLog(`> Thiết bị từ chối ảnh tại ${received} byte.`);
+                    resolveDa14585ClockImage({ success: false, received, sleepActive });
+                }
                 return;
             }
             if (data.length === 15 && data[0] === 0xa0) {
@@ -3936,15 +4344,17 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                         addLog('> epdService Available service found');
                         epdCharacteristic = await epdService.getCharacteristic('4b646063-6264-f3a7-8941-e65356ea82fe');
                         addLog('> epdCharacteristic Service connected');
-                        await epdCharacteristic.startNotifications();
-                        epdCharacteristic.addEventListener('characteristicvaluechanged', (event) => {
-                            console.log('epd ret', bytesToHex(event.target.value.buffer));
-                            const count = parseInt('0x' + bytesToHex(event.target.value.buffer));
-                            addLog(`> [From screen]: Received${count} bytedata`);
-                        });
+                        try {
+                            await epdCharacteristic.startNotifications();
+                            epdCharacteristic.addEventListener('characteristicvaluechanged', handleNrf52Notification);
+                        } catch (notifyError) {
+                            addLog('> Không bật được notification; sẽ xác nhận lịch bằng cách đọc lại 1F1F.');
+                        }
+                        await readSleepSchedule();
                     } catch (legacyEpdError) {
                         addLog('> epdService not found, falling back to rxtxService');
                         epdCharacteristic = rxtxCharacteristic;
+                        await readSleepSchedule();
                     }
                 }
                 document.getElementById("connectbutton").textContent = t('Disconnect');
@@ -4329,7 +4739,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 todo: 'Nhập công việc, bấm Thêm công việc, rồi bấm vị trí cần đặt.',
                 schedule: 'Nhập mỗi ô trên một dòng, sau đó bấm Tạo thời khóa biểu.'
             };
-            setClockQuickStatus(clockQuickEditorTool ? messages[clockQuickEditorTool] : 'Chọn công cụ để chỉnh sửa phần ảnh bên phải.');
+            setClockQuickStatus(clockQuickEditorTool ? messages[clockQuickEditorTool] : 'Chọn công cụ để chỉnh sửa phần ảnh.');
         }
 
         function getClockQuickPoint(event) {
