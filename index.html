@@ -2896,6 +2896,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 height: 128,
                 fullWidth: 296,
                 mode: 0x83,
+                mode7Versions: [37],
                 planeBytes: 4736,
                 transfer: 'ssd1680-fullframe',
                 label: 'màn 2.9 model 2',
@@ -2957,6 +2958,13 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             if (!target) return false;
             if (target.transfer === 'da14585-clock-image') return deviceProtocol === PROTOCOL_DA14585;
             return deviceProtocol === PROTOCOL_NRF52 && nrf52FirmwareVersion >= target.minVersion;
+        }
+
+        function getClockImageMode(target) {
+            if (target?.mode7Versions?.includes(nrf52FirmwareVersion)) {
+                return 7;
+            }
+            return target.mode;
         }
 
         function configureClockImageTarget(target) {
@@ -3431,6 +3439,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 setClockImageProgress(0, 'Thiết bị hoặc firmware hiện tại chưa hỗ trợ chế độ Đồng hồ và ảnh.');
                 return;
             }
+            const clockImageMode = getClockImageMode(target);
 
             // Re-apply the detected device geometry at upload time. This also
             // handles a canvas that was previously configured as 250x128.
@@ -3468,7 +3477,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 if (target.transfer === 'clock-image-v54') {
                     // Firmware 7.5 reports READY after its regional clock refresh.
                     const readyPromise = waitForClockImageReady(60000);
-                    await sendNrf52Mode(target.mode);
+                    await sendNrf52Mode(clockImageMode);
                     setClockImageProgress(2, 'Đang chờ màn hình hoàn tất refresh vùng đồng hồ...');
                     const ready = await readyPromise;
                     if (!ready) {
@@ -3484,7 +3493,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
                     await delay(150);
                 } else {
-                    await sendNrf52Mode(target.mode);
+                    await sendNrf52Mode(clockImageMode);
                     setClockImageProgress(2, 'Đang chờ Face 2 bên phải refresh xong...');
                     await delay(12000);
                 }
@@ -3510,7 +3519,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     await sendNrf52ImagePlane(black, true, 5, 46);
                     await sendNrf52ImagePlane(red, false, 46, 87);
                     setClockImageProgress(89, 'Đã gửi ảnh; đang vẽ đồng hồ bên phải và refresh màn hình...');
-                    await sendNrf52Mode(target.mode);
+                    await sendNrf52Mode(clockImageMode);
                     await delay(12000);
                 } else {
                     await sendNrf290ClockImagePlane(black, true, 5, 47);
@@ -3519,7 +3528,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     await sendCommand(new Uint8Array([NRF52_CMD_REFRESH]));
                     await delay(12000);
                 }
-                nrf52DisplayMode = target.mode & 0x7f;
+                nrf52DisplayMode = clockImageMode & 0x7f;
                 setClockImageProgress(100, `Hoàn tất. Đồng hồ bên ${target.clockSide} sẽ tiếp tục cập nhật mỗi phút.`);
                 addLog(`Thiết bị đã xác nhận ảnh Đồng hồ và ảnh ${target.width}x${target.height} bên ${target.imageSide}.`);
             } catch (error) {
