@@ -1161,6 +1161,19 @@
         document.addEventListener('DOMContentLoaded', () => {
             const selector = document.getElementById('language-selector');
             const initialLanguage = getCurrentLanguage();
+            const supportedScreenProfiles = new Set([
+                'da14585_2.13_212x104',
+                'da14585_2.13_250x128',
+                'da14585_4.2_400x300',
+                'nrf52_2.13_250x128',
+                'nrf52_2.9_296x128',
+                'nrf52_4.2_400x300',
+                'nrf52_4.2_400x300_bw1619',
+                'nrf52_7.5_800x480'
+            ]);
+            document.querySelectorAll('#screen-size option').forEach(option => {
+                if (!supportedScreenProfiles.has(option.value)) option.remove();
+            });
             if (selector) {
                 selector.value = initialLanguage;
                 selector.addEventListener('change', event => applyLanguage(event.target.value));
@@ -1490,6 +1503,7 @@
                 <option value="nrf52_4.2_400x300">nRF52 4.2&quot; BWR UC8176 (400x300)</option>
                 <option value="nrf52_4.2_400x300_bw1619">nRF52 4.2&quot; BW SSD1619 (400x300)</option>
                 <option value="nrf52_7.5_800x480">nRF52 7.5&quot; BWR UC8179 (800x480)</option>
+                <option value="da14585_4.2_400x300">DA14585 4.2&quot; BWR (400x300)</option>
                 <option value="4.2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">4.2" Transfer</option>
                 <option value="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">4.2" Calendar Small</option>
                 <option value="7.5ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">7.5" Transfer</option>
@@ -3619,6 +3633,17 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 if (deviceProtocol === PROTOCOL_DA14585) updateClockImageAvailability();
                 return;
             }
+            if (sizeSelect.value === "da14585_4.2_400x300") {
+                canvas.width = 400;
+                canvas.height = 300;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                resetQuickEditorOverlay(true);
+                update_image();
+                addLog('Canvas size updated to: 400x300 (DA14585 BWR)');
+                if (deviceProtocol === PROTOCOL_DA14585) updateClockImageAvailability();
+                return;
+            }
             if (sizeSelect.value === "nrf52_2.9_296x128") {
                 canvas.width = 296;
                 canvas.height = 128;
@@ -3702,12 +3727,14 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         async function upload_image() {
             const canvas = document.getElementById('canvas');
             const startTime = new Date().getTime();
-            const screenValue = document.getElementById('screen-size')?.value;
+            let screenValue = document.getElementById('screen-size')?.value;
             if (deviceProtocol === PROTOCOL_DA14585 &&
                 screenValue !== 'da14585_2.13_212x104' &&
-                screenValue !== 'da14585_2.13_250x128') {
+                screenValue !== 'da14585_2.13_250x128' &&
+                screenValue !== 'da14585_4.2_400x300') {
                 selectDa14585ImageCanvas();
-                addLog('> Đã tự động căn ảnh truyền sang 212x104 cho DA14585.');
+                screenValue = document.getElementById('screen-size')?.value;
+                addLog(`> Đã tự động chọn cấu hình ảnh ${canvas.width}x${canvas.height} cho DA14585.`);
             }
             if (deviceProtocol === PROTOCOL_NRF52) {
                 if (await uploadNrf52Image(canvas)) {
@@ -3715,7 +3742,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 }
                 return;
             }
-            if (deviceProtocol === PROTOCOL_DA14585) {
+            if (deviceProtocol === PROTOCOL_DA14585 && screenValue !== 'da14585_4.2_400x300') {
                 // Tell the new high-resolution firmware how many packed bytes
                 // belong to each column. Older DA14585 builds ignore 0x8F.
                 await sendCommand(new Uint8Array([
@@ -3725,6 +3752,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 ]));
                 await delay(50);
                 addLog(`> Đã báo kích thước ảnh ${canvas.width}x${canvas.height} cho DA14585.`);
+            } else if (deviceProtocol === PROTOCOL_DA14585) {
+                // The original 4.2-inch DA14585 firmware uses the legacy
+                // 03 FF / 03 00 image commands and does not need command 0x8F.
+                addLog('> DA14585 4.2: dùng giao thức truyền ảnh BWR tương thích firmware cũ.');
             }
             if(canvas.width==296){
                 
@@ -4106,6 +4137,26 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             rxtxCharacteristic = await rxtxService.getCharacteristic('00001f1f-0000-1000-8000-00805f9b34fb');
             addLog('> rxtxCharacteristic Serial service connected');
         }
+        function da14585ProfileForDimensions(width, height) {
+            if (width === 400 && height === 300) return 'da14585_4.2_400x300';
+            if (width === 250 && height === 128) return 'da14585_2.13_250x128';
+            if (width === 212 && height === 104) return 'da14585_2.13_212x104';
+            return null;
+        }
+        function selectDetectedDa14585Canvas(width, height) {
+            const detectedValue = da14585ProfileForDimensions(width, height);
+            const sizeSelect = document.getElementById('screen-size');
+            if (!detectedValue || !sizeSelect) return false;
+            if (sizeSelect.value !== detectedValue) {
+                sizeSelect.value = detectedValue;
+                updateCanvasSize();
+            }
+            const protocolLabel = document.getElementById('device-protocol');
+            if (protocolLabel) protocolLabel.textContent = `${t('Device:')} DA14585 ${width}×${height}`;
+            addLog(`> Tự nhận dạng màn DA14585: ${width}x${height}`);
+            updateClockImageAvailability();
+            return true;
+        }
         function setDetectedProtocol(protocol) {
             deviceProtocol = protocol;
             updateSleepScheduleInputMode();
@@ -4117,10 +4168,24 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         }
         function selectDa14585ImageCanvas() {
             const sizeSelect = document.getElementById('screen-size');
-            if (sizeSelect && sizeSelect.value !== 'da14585_2.13_212x104') {
+            if (!sizeSelect) return;
+            const validProfiles = [
+                'da14585_2.13_212x104',
+                'da14585_2.13_250x128',
+                'da14585_4.2_400x300'
+            ];
+            if (validProfiles.includes(sizeSelect.value)) return;
+
+            // Migrate the old mojibake 4.2 option to the stable profile name.
+            const selectedLabel = sizeSelect.selectedOptions[0]?.textContent?.trim();
+            const canvas = document.getElementById('canvas');
+            if ((canvas?.width === 400 && canvas?.height === 300) ||
+                selectedLabel === '4.2" Transfer' || selectedLabel === 'Truyền ảnh 4.2"') {
+                sizeSelect.value = 'da14585_4.2_400x300';
+            } else {
                 sizeSelect.value = 'da14585_2.13_212x104';
-                updateCanvasSize();
             }
+            updateCanvasSize();
         }
         function selectNrf52CanvasForModel() {
             const sizeSelect = document.getElementById('screen-size');
@@ -4238,6 +4303,15 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 if (sleepScheduleWaiter) sleepScheduleWaiter(result);
                 return;
             }
+            if (data.length === 6 && data[0] === 0xfc && data[1] === 4 &&
+                deviceProtocol === PROTOCOL_DA14585) {
+                const panelWidth = (data[2] << 8) | data[3];
+                const panelHeight = (data[4] << 8) | data[5];
+                if (!selectDetectedDa14585Canvas(panelWidth, panelHeight)) {
+                    addLog(`> DA14585 báo kích thước chưa hỗ trợ: ${panelWidth}x${panelHeight}`);
+                }
+                return;
+            }
             if (data.length === 5 && data[0] === 0xfc && deviceProtocol === PROTOCOL_DA14585) {
                 const state = data[1];
                 const received = (data[2] << 8) | data[3];
@@ -4245,22 +4319,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 if (state === 4) {
                     const panelWidth = received;
                     const panelHeight = data[4];
-                    const sizeSelect = document.getElementById('screen-size');
-                    const detectedValue = panelWidth === 250 && panelHeight === 128
-                        ? 'da14585_2.13_250x128'
-                        : (panelWidth === 212 && panelHeight === 104
-                            ? 'da14585_2.13_212x104'
-                            : null);
-                    if (detectedValue && sizeSelect) {
-                        if (sizeSelect.value !== detectedValue) {
-                            sizeSelect.value = detectedValue;
-                            updateCanvasSize();
-                        }
-                        const protocolLabel = document.getElementById('device-protocol');
-                        if (protocolLabel) protocolLabel.textContent = `${t('Device:')} DA14585 ${panelWidth}×${panelHeight}`;
-                        addLog(`> Tự nhận dạng màn DA14585: ${panelWidth}x${panelHeight}`);
-                        updateClockImageAvailability();
-                    } else {
+                    if (!selectDetectedDa14585Canvas(panelWidth, panelHeight)) {
                         addLog(`> DA14585 báo kích thước chưa hỗ trợ: ${panelWidth}x${panelHeight}`);
                     }
                 } else if (state === 1) {
