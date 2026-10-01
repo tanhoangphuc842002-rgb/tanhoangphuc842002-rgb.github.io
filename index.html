@@ -35,8 +35,10 @@
             display: flex;
             background-color: #fff;
             border-radius: 8px 8px 0 0;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
             box-shadow: 0 2px 5px hwb(234 5% 13% / 0.843);
+            scrollbar-width: thin;
         }
 
         .tab-button {
@@ -51,6 +53,7 @@
             cursor: pointer;
             transition: all 0.3s;
             white-space: nowrap;
+            min-width: 150px;
         }
 
         .tab-button:hover {
@@ -835,6 +838,108 @@
             cursor: crosshair;
             touch-action: none;
         }
+
+        #tab-dfu {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .dfu-card {
+            padding: 18px;
+            border: 1px solid #dbe3ec;
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .dfu-card h3 {
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+
+        .dfu-note,
+        .dfu-warning {
+            margin: 12px 0;
+            padding: 11px 13px;
+            border-radius: 9px;
+        }
+
+        .dfu-note {
+            color: #1e3a5f;
+            background: #eaf3ff;
+            border: 1px solid #b9d7ff;
+        }
+
+        .dfu-warning {
+            color: #7c2d12;
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+        }
+
+        .dfu-file-row {
+            display: grid;
+            gap: 8px;
+            margin: 14px 0;
+        }
+
+        #dfu-file {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        #dfu-package-info,
+        #dfu-status {
+            min-height: 24px;
+            overflow-wrap: anywhere;
+        }
+
+        #dfu-progress {
+            width: 100%;
+            height: 20px;
+            margin: 12px 0 5px;
+        }
+
+        #dfu-start-button {
+            width: 100%;
+            min-height: 48px;
+            margin: 5px 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .dfu-secondary-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .dfu-secondary-actions button {
+            width: 100%;
+            min-height: 44px;
+            margin: 0;
+            background: #64748b;
+        }
+
+        @media (max-width: 560px) {
+            .dfu-secondary-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        #dfu-log {
+            width: 100%;
+            min-height: 130px;
+            margin-top: 8px;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            color: #334155;
+            background: #f8fafc;
+            resize: vertical;
+        }
     </style>
 
     <!-- dithering.js not in repo -->
@@ -1203,6 +1308,7 @@
             <button class="tab-button" data-tab="tab-countdown">Countdown Module</button>
             <button class="tab-button" data-tab="tab-image">Image Transfer</button>
             <button id="clock-image-tab-button" class="tab-button" data-tab="tab-clock-image">Đồng hồ và ảnh</button>
+            <button id="dfu-tab-button" class="tab-button" data-tab="tab-dfu">Cập nhật phần mềm</button>
         </div>
     </div>
 
@@ -1502,6 +1608,40 @@
             <button id="clock-image-upload-button" type="button" onclick="uploadClockImage()">Chuyển sang Đồng hồ và ảnh + tải ảnh</button>
             <progress id="clock-image-progress" max="100" value="0" style="width:min(500px,100%);"></progress>
             <span id="clock-image-status">Hỗ trợ DA14585 và các màn nRF52 có chức năng Đồng hồ và ảnh tương thích.</span>
+        </div>
+    </div>
+
+    <div id="tab-dfu" class="tab-content">
+        <div class="dfu-card">
+            <h3>Cập nhật phần mềm nRF52 qua Bluetooth</h3>
+            <p>Chọn đúng gói Nordic Secure DFU <strong>.zip</strong> dành cho màn hình của bạn.</p>
+
+            <div class="dfu-note">
+                Cách cập nhật: chọn file OTA ZIP → bấm nút bắt đầu → chọn đồng hồ. Sau khi đồng hồ chuyển sang DFU, bấm nút lần nữa và chọn DFUTAG để nạp.
+            </div>
+
+            <div class="dfu-warning">
+                Chỉ dùng cho nRF52. Không chọn file full HEX, ZIP mã nguồn hoặc firmware của kích thước màn/CE/no CE khác. Nên để pin trên 40% và không đóng trang trong khi cập nhật.
+            </div>
+
+            <div class="dfu-file-row">
+                <label for="dfu-file"><strong>File OTA Nordic (.zip)</strong></label>
+                <input id="dfu-file" type="file" accept=".zip,application/zip">
+                <div id="dfu-package-info">Chưa chọn gói cập nhật.</div>
+            </div>
+
+            <button id="dfu-start-button" type="button" disabled>Bắt đầu cập nhật</button>
+            <div class="dfu-secondary-actions">
+                <button id="dfu-new-device-button" type="button" disabled>Cập nhật thiết bị khác</button>
+                <button id="dfu-clear-log-button" type="button">Xóa nhật ký</button>
+            </div>
+            <progress id="dfu-progress" max="100" value="0"></progress>
+            <div id="dfu-status" role="status" aria-live="polite">Hãy chọn file OTA ZIP.</div>
+
+            <details style="margin-top:14px;">
+                <summary>Nhật ký cập nhật</summary>
+                <textarea id="dfu-log" readonly></textarea>
+            </details>
         </div>
     </div>
 
@@ -2500,6 +2640,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         const DA14585_DFU_SERVICE_UUID = '0000221f-0000-1000-8000-00805f9b34fb';
         const SUPPORTED_BLE_SERVICES = [
             NRF52_SERVICE_UUID,
+            0xFE59,
             DA14585_RXTX_SERVICE_UUID,
             DA14585_LEGACY_SERVICE_UUID,
             DA14585_DFU_SERVICE_UUID
@@ -5936,6 +6077,276 @@ function toggleSwitch(e) {
 }
 
 
+</script>
+<script src="crc32.min.js"></script>
+<script src="jszip.min.js"></script>
+<script src="secure-dfu-package.js"></script>
+<script src="secure-dfu.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    const fileInput = document.getElementById('dfu-file');
+    const startButton = document.getElementById('dfu-start-button');
+    const newDeviceButton = document.getElementById('dfu-new-device-button');
+    const clearLogButton = document.getElementById('dfu-clear-log-button');
+    const packageInfo = document.getElementById('dfu-package-info');
+    const progress = document.getElementById('dfu-progress');
+    const status = document.getElementById('dfu-status');
+    const log = document.getElementById('dfu-log');
+
+    let selectedPackage = null;
+    let selectedImages = null;
+    let updateBusy = false;
+    let waitingForBootloader = false;
+
+    function setStatus(message, isError) {
+        status.textContent = message;
+        status.style.color = isError ? '#b91c1c' : '#334155';
+    }
+
+    function addDfuLog(message) {
+        const time = new Date().toLocaleTimeString('vi-VN');
+        log.value += `[${time}] ${message}\n`;
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function humanBytes(bytes) {
+        if (bytes < 1024) return `${bytes} byte`;
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+
+    function imageDescription(image) {
+        if (!image) return null;
+        const names = {
+            application: 'ứng dụng',
+            softdevice: 'SoftDevice',
+            bootloader: 'bootloader',
+            softdevice_bootloader: 'SoftDevice + bootloader'
+        };
+        return `${names[image.type] || image.type}: ${image.imageFile} (${humanBytes(image.imageData.byteLength)})`;
+    }
+
+    function formatError(error) {
+        const raw = error && error.message ? error.message : String(error || 'Lỗi không xác định');
+        if (/NotFoundError|User cancelled|User canceled/i.test(raw)) return 'Đã hủy chọn thiết bị Bluetooth.';
+        if (/Unsupported device/i.test(raw)) return 'Thiết bị đã chọn không có Nordic Buttonless/Secure DFU.';
+        if (/Unable to find DFU service/i.test(raw)) return 'Không tìm thấy dịch vụ Nordic Secure DFU trên thiết bị.';
+        if (/firmware version is too low/i.test(raw)) return 'Bootloader từ chối vì phiên bản firmware trong file không cao hơn bản đang dùng.';
+        if (/signature is wrong|signature/i.test(raw)) return 'Bootloader từ chối chữ ký. Hãy dùng đúng OTA ZIP được ký cho thiết bị này.';
+        if (/SoftDevice/i.test(raw)) return 'Firmware không tương thích với SoftDevice đang có trên thiết bị.';
+        return raw;
+    }
+
+    function setBusy(busy) {
+        updateBusy = busy;
+        fileInput.disabled = busy;
+        startButton.disabled = busy || !selectedPackage;
+        newDeviceButton.disabled = busy || !selectedPackage;
+        clearLogButton.disabled = busy;
+    }
+
+    function releaseCurrentDevice() {
+        if (typeof bleDevice !== 'undefined' && bleDevice) {
+            try {
+                bleDevice.removeEventListener('gattserverdisconnected', disconnect);
+            } catch (error) {
+                // The device may already have disconnected after DFU.
+            }
+            try {
+                if (bleDevice.gatt && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
+            } catch (error) {
+                // A disconnected device needs no further cleanup.
+            }
+            bleDevice = null;
+        }
+
+        if (typeof resetVariables === 'function') resetVariables();
+        const connectButton = document.getElementById('connectbutton');
+        if (connectButton) connectButton.textContent = typeof t === 'function' ? t('Scan Devices') : 'Scan Devices';
+    }
+
+    function prepareAnotherDevice() {
+        if (updateBusy) return;
+        releaseCurrentDevice();
+        waitingForBootloader = false;
+        progress.value = 0;
+        startButton.textContent = selectedPackage ? 'Bắt đầu cập nhật thiết bị mới' : 'Bắt đầu cập nhật';
+        setStatus(selectedPackage
+            ? 'Đã bỏ thiết bị cũ. Bấm nút bắt đầu và chọn đồng hồ nRF52 khác.'
+            : 'Hãy chọn file OTA ZIP.');
+        addDfuLog('Đã bỏ thiết bị cũ; sẵn sàng chọn thiết bị khác.');
+        setBusy(false);
+    }
+
+    function clearDfuLog() {
+        if (updateBusy) return;
+        log.value = '';
+        progress.value = 0;
+        setStatus(selectedPackage
+            ? 'Đã xóa nhật ký. Gói OTA vẫn được giữ để tiếp tục cập nhật.'
+            : 'Đã xóa nhật ký. Hãy chọn file OTA ZIP.');
+    }
+
+    function attachDfuEvents(dfu) {
+        dfu.addEventListener('log', function (event) {
+            addDfuLog(event.message);
+        });
+        dfu.addEventListener('progress', function (event) {
+            const total = event.totalBytes || 0;
+            const current = event.currentBytes || 0;
+            progress.value = total ? Math.min(100, current * 100 / total) : 0;
+            const phase = event.object === 'init' ? 'gói khởi tạo' : 'firmware';
+            setStatus(`Đang gửi ${phase}: ${humanBytes(current)} / ${humanBytes(total)}`);
+        });
+    }
+
+    function createDfu(delayMs) {
+        const dfu = new SecureDfu(CRC32.buf, navigator.bluetooth, delayMs || 0);
+        attachDfuEvents(dfu);
+        return dfu;
+    }
+
+    async function loadPackage(file) {
+        selectedPackage = null;
+        selectedImages = null;
+        waitingForBootloader = false;
+        startButton.textContent = 'Bắt đầu cập nhật';
+        progress.value = 0;
+        log.value = '';
+
+        if (!file) {
+            packageInfo.textContent = 'Chưa chọn gói cập nhật.';
+            setStatus('Hãy chọn file OTA ZIP.');
+            setBusy(false);
+            return;
+        }
+
+        if (!/\.zip$/i.test(file.name)) {
+            packageInfo.textContent = 'File không hợp lệ.';
+            setStatus('Chỉ nhận file OTA Nordic có đuôi .zip.', true);
+            setBusy(false);
+            return;
+        }
+
+        setBusy(true);
+        packageInfo.textContent = `Đang kiểm tra ${file.name}...`;
+        setStatus('Đang đọc manifest và dữ liệu firmware...');
+
+        try {
+            const firmwarePackage = new SecureDfuPackage(file);
+            await firmwarePackage.load();
+            const baseImage = await firmwarePackage.getBaseImage();
+            const appImage = await firmwarePackage.getAppImage();
+            if (!baseImage && !appImage) {
+                throw new Error('Không tìm thấy application, SoftDevice hoặc bootloader trong manifest.json.');
+            }
+
+            selectedPackage = firmwarePackage;
+            selectedImages = { baseImage, appImage };
+            const descriptions = [imageDescription(baseImage), imageDescription(appImage)].filter(Boolean);
+            packageInfo.textContent = `${file.name} — ${descriptions.join('; ')}`;
+            setStatus('Gói OTA hợp lệ. Kiểm tra đúng loại màn hình rồi bấm “Bắt đầu cập nhật”.');
+            addDfuLog(`Đã đọc gói: ${file.name}`);
+            descriptions.forEach(function (description) { addDfuLog(description); });
+        } catch (error) {
+            packageInfo.textContent = `${file.name} — không phải gói Nordic Secure DFU hợp lệ.`;
+            setStatus(formatError(error), true);
+            addDfuLog(`Lỗi đọc gói: ${formatError(error)}`);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function sendImage(dfu, device, image) {
+        if (!image) return;
+        progress.value = 0;
+        setStatus(`Đang cập nhật ${imageDescription(image)}...`);
+        addDfuLog(`Bắt đầu gửi ${image.type}: ${image.imageFile}`);
+        await dfu.update(device, image.initData, image.imageData);
+        addDfuLog(`Đã gửi xong ${image.type}.`);
+    }
+
+    async function sendAllImages(dfu, device) {
+        await sendImage(dfu, device, selectedImages.baseImage);
+        await sendImage(dfu, device, selectedImages.appImage);
+    }
+
+    async function selectOrEnterDfu() {
+        if (!selectedPackage || !selectedImages || updateBusy) return;
+        if (!navigator.bluetooth) {
+            setStatus('Trình duyệt này không hỗ trợ Web Bluetooth. Hãy dùng Chrome hoặc Edge.', true);
+            return;
+        }
+
+        setBusy(true);
+        progress.value = 0;
+
+        try {
+            let dfu = createDfu(0);
+            let device = null;
+
+            if (!waitingForBootloader && typeof bleDevice !== 'undefined' && bleDevice &&
+                bleDevice.gatt && bleDevice.gatt.connected) {
+                if (deviceProtocol !== PROTOCOL_NRF52) {
+                    throw new Error('Thiết bị đang kết nối là DA14585. Cập nhật này chỉ hỗ trợ nRF52.');
+                }
+                setStatus('Đang đưa đồng hồ nRF52 sang chế độ DFU...');
+                addDfuLog(`Đưa ${bleDevice.name || 'thiết bị'} sang DFU bằng Buttonless DFU.`);
+                device = await dfu.setDfuMode(bleDevice);
+            } else {
+                setStatus(waitingForBootloader
+                    ? 'Hãy chọn thiết bị bootloader DFU vừa xuất hiện.'
+                    : 'Hãy chọn đồng hồ nRF52 cần cập nhật.');
+                device = await dfu.requestDevice(true);
+            }
+
+            if (!device) {
+                waitingForBootloader = true;
+                startButton.textContent = 'Chọn thiết bị DFU và cập nhật';
+                setStatus('Đồng hồ đã chuyển sang DFU. Bấm nút bên dưới lần nữa và chọn thiết bị bootloader vừa xuất hiện.');
+                addDfuLog('Đã gửi lệnh vào DFU; đang chờ người dùng chọn lại bootloader.');
+                return;
+            }
+
+            waitingForBootloader = false;
+            startButton.textContent = 'Đang cập nhật...';
+            setStatus(`Đã chọn ${device.name || 'thiết bị DFU'}. Đang bắt đầu truyền firmware...`);
+            addDfuLog(`Đã chọn bootloader: ${device.name || '(không có tên)'}.`);
+
+            try {
+                await sendAllImages(dfu, device);
+            } catch (firstError) {
+                const message = formatError(firstError);
+                if (!/GATT|NetworkError|disconnected|write|operation in progress/i.test(message)) throw firstError;
+                addDfuLog(`Đường truyền nhanh bị gián đoạn: ${message}`);
+                addDfuLog('Đang thử tiếp tục với khoảng nghỉ 10 ms giữa các gói...');
+                setStatus('Kết nối bị gián đoạn; đang thử tiếp tục ở tốc độ an toàn hơn...');
+                dfu = createDfu(10);
+                await sendAllImages(dfu, device);
+            }
+
+            progress.value = 100;
+            startButton.textContent = 'Cập nhật hoàn tất';
+            setStatus('Cập nhật hoàn tất. Đồng hồ đang khởi động lại; hãy chờ vài giây rồi kết nối lại.');
+            addDfuLog('Cập nhật hoàn tất; thiết bị đã khởi động lại.');
+        } catch (error) {
+            const message = formatError(error);
+            setStatus(`Cập nhật chưa hoàn tất: ${message}`, true);
+            addDfuLog(`Lỗi: ${message}`);
+            startButton.textContent = waitingForBootloader ? 'Chọn thiết bị DFU và cập nhật' : 'Thử lại';
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    fileInput.addEventListener('change', function (event) {
+        loadPackage(event.target.files[0]);
+    });
+    startButton.addEventListener('click', selectOrEnterDfu);
+    newDeviceButton.addEventListener('click', prepareAnotherDevice);
+    clearLogButton.addEventListener('click', clearDfuLog);
+})();
 </script>
 <script src="countdown-nrf52.js"></script>
 <script src="countdown-da14585.js"></script>
