@@ -2621,6 +2621,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         const PROTOCOL_DA14585 = 'da14585';
         const PROTOCOL_NRF52 = 'nrf52';
         const NRF52_SERVICE_UUID = '62750001-d828-918d-fb46-b6c11c675aec';
+        // Keep service UUIDs as full strings for native Web Bluetooth bridges.
+        const NRF52_DFU_SERVICE_UUID = '0000fe59-0000-1000-8000-00805f9b34fb';
         const NRF52_CHARACTERISTIC_UUID = '62750002-d828-918d-fb46-b6c11c675aec';
         const NRF52_APP_VERSION_UUID = '62750003-d828-918d-fb46-b6c11c675aec';
         const NRF52_CMD_SET_TIME = 0x20;
@@ -2640,7 +2642,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         const DA14585_DFU_SERVICE_UUID = '0000221f-0000-1000-8000-00805f9b34fb';
         const SUPPORTED_BLE_SERVICES = [
             NRF52_SERVICE_UUID,
-            0xFE59,
+            NRF52_DFU_SERVICE_UUID,
             DA14585_RXTX_SERVICE_UUID,
             DA14585_LEGACY_SERVICE_UUID,
             DA14585_DFU_SERVICE_UUID
@@ -4274,6 +4276,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     bleDevice.gatt.disconnect();
                 }
             } else {
+                if (!navigator.bluetooth || typeof navigator.bluetooth.requestDevice !== 'function') {
+                    addLog('Trình duyệt chưa có Web Bluetooth. Trên iPhone hãy mở trang bằng Bluefy; trên máy tính/Android dùng Chrome hoặc Edge.');
+                    return;
+                }
                 try {
                     document.getElementById("connectbutton").textContent = t('Scanning...');
                     bleDevice = await navigator.bluetooth.requestDevice({
@@ -4283,7 +4289,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     bleDevice.addEventListener('gattserverdisconnected', disconnect);
                 } catch (e) {
                     document.getElementById("connectbutton").textContent = t('Scan Devices');
-                    addLog(t('Scan cancelled or failed: ') + e.message);
+                    addLog(t('Scan cancelled or failed: ') + (e.name ? e.name + ': ' : '') + (e.message || String(e)));
                     return;
                 }
                 try {
@@ -6202,6 +6208,10 @@ function toggleSwitch(e) {
     }
 
     function createDfu(delayMs) {
+        // The vendor library defaults to the numeric alias 65113 (0xFE59).
+        // Set it before construction so scanning and getPrimaryService both
+        // use the same full string UUID, including a device already connected.
+        SecureDfu.SERVICE_UUID = NRF52_DFU_SERVICE_UUID;
         const dfu = new SecureDfu(CRC32.buf, navigator.bluetooth, delayMs || 0);
         attachDfuEvents(dfu);
         return dfu;
@@ -6274,8 +6284,8 @@ function toggleSwitch(e) {
 
     async function selectOrEnterDfu() {
         if (!selectedPackage || !selectedImages || updateBusy) return;
-        if (!navigator.bluetooth) {
-            setStatus('Trình duyệt này không hỗ trợ Web Bluetooth. Hãy dùng Chrome hoặc Edge.', true);
+        if (!navigator.bluetooth || typeof navigator.bluetooth.requestDevice !== 'function') {
+            setStatus('Trình duyệt chưa có Web Bluetooth. Trên iPhone hãy dùng Bluefy; trên máy tính/Android dùng Chrome hoặc Edge.', true);
             return;
         }
 
