@@ -3529,7 +3529,18 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
         }
 
-        async function openNrf290ClockImagePlane(blackPlane) {
+        async function openNrf290ClockImagePlane(blackPlane, target = null) {
+            if (target) {
+                const firstRow = target.fullWidth - target.width;
+                const lastRow = target.fullWidth - 1;
+                // INIT supplies the panel-specific X offset. Only change Y;
+                // each complete 128-pixel row wraps X back to that offset.
+                await sendNrf52Register(0x11, [0x03]);
+                await sendNrf52Register(0x45, [firstRow & 0xff, firstRow >> 8, lastRow & 0xff, lastRow >> 8]);
+                await sendNrf52Register(0x4f, [firstRow & 0xff, firstRow >> 8]);
+                await sendNrf52Register(blackPlane ? 0x24 : 0x26);
+                return;
+            }
             // EPD_TOP=8, physical window x=0..127, y=104..295.
             await sendNrf52Register(0x11, [0x03]);
             await sendNrf52Register(0x44, [0x01, 0x10]);
@@ -3552,6 +3563,21 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             await sendNrf52Mode(0);
             await delay(150);
             await initializeNrf52ClockImageTransfer();
+            if (clockImageMode === 0x83) {
+                // WRITE_IMAGE arms the firmware's transfer guard, blocking
+                // SET_TIME's GUI draw until REFRESH. Raw RAM writes in picture
+                // mode let SET_TIME draw the clock and refresh both sides once.
+                setClockImageProgress(5, 'Đang tải ảnh...');
+                await sendNrf290ClockImagePlane(black, true, 5, 46, target);
+                await sendNrf290ClockImagePlane(red, false, 47, 87, target);
+                setClockImageProgress(90, 'Đang hiển thị ảnh và đồng hồ...');
+                await sendNrf52Mode(clockImageMode);
+                // This firmware has no render-complete notification. Allow its
+                // 30-second full-refresh BUSY timeout before enabling controls.
+                await delay(32000);
+                addLog(`> 2.9 CE: ${expectedBytes} byte/lớp, ảnh và đồng hồ refresh cùng nhau; không gửi REFRESH riêng.`);
+                return;
+            }
             // Logical x=0..193 maps to physical rows102..295. Keep INIT's X
             // window/counter so the driver retains CE offset8 or no-CE offset0.
             // A complete plane194*16 bytes wraps X back to its initial value.
@@ -3578,8 +3604,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             addLog(`> 2.9: ${expectedBytes} byte/lớp, vùng ảnh y=${firstRow}..${lastRow}, REFRESH rồi mode 0x${clockImageMode.toString(16)}.`);
         }
 
-        async function sendNrf290ClockImagePlane(data, blackPlane, startPercent, endPercent) {
-            await openNrf290ClockImagePlane(blackPlane);
+        async function sendNrf290ClockImagePlane(data, blackPlane, startPercent, endPercent, target = null) {
+            await openNrf290ClockImagePlane(blackPlane, target);
             const chunkSize = Math.min(nrf52ImageChunkSize, 240);
             const total = Math.ceil(data.length / chunkSize);
             for (let offset = 0, part = 0; offset < data.length; offset += chunkSize, part++) {
