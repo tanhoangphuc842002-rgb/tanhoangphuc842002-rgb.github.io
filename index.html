@@ -1504,6 +1504,15 @@
     <div id="tab-clock-image" class="tab-content">
         <h3 id="clock-image-title">Đồng hồ và ảnh</h3>
         <p id="clock-image-description">Kết nối màn tương thích để trang web tự chọn kích thước và vị trí ảnh.</p>
+        <details id="clock-image-290-options" hidden>
+            <summary>Tùy chọn nâng cao</summary>
+            <label for="clock-image-290-firmware">Firmware:</label>
+            <select id="clock-image-290-firmware" onchange="updateClockImageAvailability()">
+                <option value="auto" selected>Tự động</option>
+                <option value="standard">CE / no CE</option>
+                <option value="lut233">LUT233</option>
+            </select>
+        </details>
         <div class="button-group">
             <input type="file" id="clock-image-file" accept=".png,.jpg,.bmp,.webp,.jpeg" onchange="loadClockImageFile()">
             <button type="button" onclick="clockImageFit(false)">Vừa khung</button>
@@ -2653,6 +2662,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let nrf52ModelDetected = false;
         let nrf52FirmwareVersion = 0;
         let nrf52PanelProfile = null;
+        let nrf52ClockImageNativeMode7 = false;
         let nrf52WeekStartConfirmed = null;
         let nrf52WeekStartLastSent = null;
         let nrf52WeekStartAckWaiter = null;
@@ -2660,6 +2670,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let nrf52ActivationWaiter = null;
         let clockImageResultWaiter = null;
         let clockImageReadyWaiter = null;
+        let clockImageInitWaiter = null;
         let da14585ClockImageWaiter = null;
         let da14585ClockImageBeginWaiter = null;
         let clockImageUploadBusy = false;
@@ -2686,6 +2697,9 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             nrf52ModelDetected = false;
             nrf52FirmwareVersion = 0;
             nrf52PanelProfile = null;
+            nrf52ClockImageNativeMode7 = false;
+            const clock290Firmware = document.getElementById('clock-image-290-firmware');
+            if (clock290Firmware) clock290Firmware.value = 'auto';
             nrf52WeekStartConfirmed = null;
             nrf52WeekStartLastSent = null;
             if (nrf52WeekStartAckWaiter) {
@@ -2701,6 +2715,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
             resolveClockImageReady(false);
             resolveClockImageResult(false);
+            resolveNrf52ClockImageInit(false);
             resolveDa14585ClockImageBegin(false);
             resolveDa14585ClockImage(null);
             clockImageUploadBusy = false;
@@ -3071,12 +3086,11 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 height: 128,
                 fullWidth: 296,
                 mode: 0x83,
-                mode7Versions: [37],
                 planeBytes: 4736,
                 transfer: 'ssd1680-fullframe',
                 label: 'màn 2.9 model 2',
-                title: 'Đồng hồ và ảnh – màn 2.9 inch (Web v58 dùng chung)',
-                description: 'Ảnh 194×128 nằm sát đường chia bên trái; cụm đồng hồ Face 2 bên phải tiếp tục cập nhật mỗi phút.',
+                title: 'Đồng hồ và ảnh – màn 2.9',
+                description: 'Ảnh bên trái, đồng hồ bên phải.',
                 imageSide: 'trái',
                 clockSide: 'phải'
             },
@@ -3120,10 +3134,9 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             if (nrf52ModelId === 7) return CLOCK_IMAGE_TARGETS.model7_750;
             if (nrf52ModelId !== 2) return null;
             if (nrf52PanelProfile === 0x21) return CLOCK_IMAGE_TARGETS.model2_213;
-            // The released 2.9 Clock+Image firmware is v30. Versions 39+
-            // without the 2.13 capability marker are intentionally rejected,
-            // because model id 2 alone cannot distinguish the two panel sizes.
-            if (nrf52FirmwareVersion >= 30 && nrf52FirmwareVersion < 39) {
+            // 2.13 marker takes precedence; include inspected 2.9 builds39/58.
+            if ((nrf52FirmwareVersion >= 30 && nrf52FirmwareVersion <= 39) ||
+                nrf52FirmwareVersion === 58) {
                 return CLOCK_IMAGE_TARGETS.model2_290;
             }
             return null;
@@ -3135,9 +3148,44 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             return deviceProtocol === PROTOCOL_NRF52 && nrf52FirmwareVersion >= target.minVersion;
         }
 
+        function waitForNrf52ClockImageInit(timeoutMs = 45000) {
+            resolveNrf52ClockImageInit(false);
+            return new Promise(resolve => {
+                const timer = setTimeout(() => resolveNrf52ClockImageInit(false), timeoutMs);
+                clockImageInitWaiter = { resolve, timer };
+            });
+        }
+
+        function resolveNrf52ClockImageInit(success) {
+            if (!clockImageInitWaiter) return false;
+            const waiter = clockImageInitWaiter;
+            clockImageInitWaiter = null;
+            clearTimeout(waiter.timer);
+            waiter.resolve(!!success);
+            return true;
+        }
+
+        async function initializeNrf52ClockImageTransfer() {
+            // Before image bytes only. Firmware sends t= after initialization.
+            const ready = waitForNrf52ClockImageInit();
+            try {
+                await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
+                if (!await ready)
+                    throw new Error('Thiết bị chưa sẵn sàng. Hãy kết nối lại và tải ảnh.');
+            } catch (error) {
+                resolveNrf52ClockImageInit(false);
+                throw error;
+            }
+        }
+
         function getClockImageMode(target) {
-            if (target?.mode7Versions?.includes(nrf52FirmwareVersion)) {
-                return 7;
+            if (target === CLOCK_IMAGE_TARGETS.model2_290) {
+                // CE v18.8 (0x25/37) and LUT233 can share the same app version.
+                // Standard CE/no CE uses 0x80 | Face 2; LUT233 uses mode 7.
+                const choice = document.getElementById('clock-image-290-firmware')?.value;
+                if (choice === 'lut233') return 7;
+                if (choice === 'standard') return 0x83;
+                return nrf52ClockImageNativeMode7 ? 7 : 0x83;
             }
             return target.mode;
         }
@@ -3184,13 +3232,19 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const status = document.getElementById('clock-image-status');
             const target = getClockImageTarget();
             const supported = isClockImageTargetSupported(target);
+            const clock290Options = document.getElementById('clock-image-290-options');
+            const clock290Firmware = document.getElementById('clock-image-290-firmware');
+            if (clock290Options) clock290Options.hidden = target !== CLOCK_IMAGE_TARGETS.model2_290;
+            if (clock290Firmware) clock290Firmware.disabled = clockImageUploadBusy || da14585ModeSwitchBusy;
             if (target) configureClockImageTarget(target);
             // Keep the tab visible for both DA14585 and nRF52 devices.
             if (button) button.style.display = '';
             if (uploadButton) uploadButton.disabled = !supported || clockImageUploadBusy || da14585ModeSwitchBusy;
             if (status) {
                 if (supported) {
-                    status.textContent = target.transfer === 'da14585-clock-image'
+                    status.textContent = target === CLOCK_IMAGE_TARGETS.model2_290
+                        ? 'Đã nhận màn 2.9. Chọn ảnh rồi bấm tải.'
+                        : target.transfer === 'da14585-clock-image'
                         ? `Đã nhận ${target.label}. Sẵn sàng chọn ảnh ${target.width}×${target.height} và chuyển sang Đồng hồ và ảnh.`
                         : `Đã nhận ${target.label}, firmware v${nrf52FirmwareVersion}. Sẵn sàng chọn ảnh ${target.width}×${target.height}.`;
                 } else if (deviceProtocol === PROTOCOL_NRF52) {
@@ -3485,6 +3539,45 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             await sendNrf52Register(blackPlane ? 0x24 : 0x26);
         }
 
+        async function uploadNrf290RegionalClockImage(canvas, target, clockImageMode) {
+            const black = canvas2bytes_bw(canvas);
+            const red = canvas2bytes_bw(canvas, 'bwr').map(byte => byte ^ 0xff);
+            const expectedBytes = target.width * target.height / 8;
+            if (canvas.width !== 194 || canvas.height !== 128 ||
+                black.length !== expectedBytes || red.length !== expectedBytes)
+                throw new Error('Kích thước ảnh không đúng. Chọn lại ảnh.');
+
+            // MODE_PICTURE skips queued GUI work in all inspected 2.9 sources.
+            // Also prevents minute ticks changing RAM on unguarded no-CE39.
+            await sendNrf52Mode(0);
+            await delay(150);
+            await initializeNrf52ClockImageTransfer();
+            // Logical x=0..193 maps to physical rows102..295. Keep INIT's X
+            // window/counter so the driver retains CE offset8 or no-CE offset0.
+            // A complete plane194*16 bytes wraps X back to its initial value.
+            const firstRow = target.fullWidth - target.width;
+            const lastRow = target.fullWidth - 1;
+            const openImageRows = async () => {
+                await sendNrf52Register(0x45, [firstRow & 0xff, firstRow >> 8, lastRow & 0xff, lastRow >> 8]);
+                await sendNrf52Register(0x4f, [firstRow & 0xff, firstRow >> 8]);
+            };
+            setClockImageProgress(5, 'Đang tải ảnh...');
+            await openImageRows();
+            await sendNrf52ImagePlane(black, true, 5, 46);
+            setClockImageProgress(47, 'Đang tải ảnh...');
+            await openImageRows();
+            await sendNrf52ImagePlane(red, false, 47, 87);
+            // Refresh exposes uploaded pixels before any subsequent clock
+            // GUI reset; it also releases the CE guard. No post-write INIT.
+            setClockImageProgress(88, 'Đang hiển thị ảnh...');
+            await sendCommand(new Uint8Array([NRF52_CMD_REFRESH]));
+            await delay(12000);
+            setClockImageProgress(94, 'Đang bật đồng hồ...');
+            await sendNrf52Mode(clockImageMode);
+            await delay(12000);
+            addLog(`> 2.9: ${expectedBytes} byte/lớp, vùng ảnh y=${firstRow}..${lastRow}, REFRESH rồi mode 0x${clockImageMode.toString(16)}.`);
+        }
+
         async function sendNrf290ClockImagePlane(data, blackPlane, startPercent, endPercent) {
             await openNrf290ClockImagePlane(blackPlane);
             const chunkSize = Math.min(nrf52ImageChunkSize, 240);
@@ -3639,6 +3732,12 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             updateClockImageAvailability();
             try {
                 setClockImageProgress(1, 'Đang chuyển sang mode Đồng hồ và ảnh...');
+                if (target === CLOCK_IMAGE_TARGETS.model2_290) {
+                    await uploadNrf290RegionalClockImage(canvas, target, clockImageMode);
+                    nrf52DisplayMode = clockImageMode & 0x7f;
+                    setClockImageProgress(100, 'Đã gửi ảnh. Kiểm tra trên đồng hồ.');
+                    return;
+                }
                 if (target.transfer === 'da14585-clock-image') {
                     const result = await uploadDa14585ClockImage(canvas, target);
                     if (result.sleepActive) {
@@ -3662,9 +3761,6 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 } else if (target.transfer === 'ssd1680-fullframe') {
                     // Reset the controller and restore its complete 128x296
                     // RAM window before using the standard image transport.
-                    // Face 2 is selected only after both planes are complete,
-                    // so firmware can draw the clock over the white right side
-                    // and perform the single full refresh that reveals both.
                     setClockImageProgress(2, `Đang khởi tạo bộ nhớ ${target.label}...`);
                     await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
                     await delay(150);
@@ -3710,11 +3806,15 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             } catch (error) {
                 resolveClockImageReady(false);
                 resolveClockImageResult(false);
+                resolveNrf52ClockImageInit(false);
                 setClockImageProgress(0, `Tải ảnh thất bại: ${error.message || error}`);
                 addLog(`Clock-image upload failed: ${error.message || error}`);
             } finally {
+                const final290Status = target === CLOCK_IMAGE_TARGETS.model2_290
+                    ? document.getElementById('clock-image-status')?.textContent : null;
                 clockImageUploadBusy = false;
                 updateClockImageAvailability();
+                if (final290Status) document.getElementById('clock-image-status').textContent = final290Status;
             }
         }
 
@@ -4362,7 +4462,11 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 ? 'nrf52_7.5_800x480'
                 : (nrf52ModelId === 3
                     ? 'nrf52_4.2_400x300'
-                    : (nrf52ModelId === 4 ? 'nrf52_4.2_400x300_bw1619' : sizeSelect.value));
+                    : (nrf52ModelId === 4 ? 'nrf52_4.2_400x300_bw1619'
+                        : (nrf52ModelId === 2 && nrf52PanelProfile === 0x21
+                            ? 'nrf52_2.13_250x128'
+                            : (getClockImageTarget() === CLOCK_IMAGE_TARGETS.model2_290
+                                ? 'nrf52_2.9_296x128' : sizeSelect.value))));
             if (sizeSelect.value !== target) {
                 sizeSelect.value = target;
                 updateCanvasSize();
@@ -4513,6 +4617,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
 
             const message = new TextDecoder().decode(data);
+            if (/^t=\d+\s*$/.test(message) && resolveNrf52ClockImageInit(true)) {
+                addLog('> Màn 2.9 đã trả lời INIT; bộ nhớ màn sẵn sàng.');
+                return;
+            }
             if (message.startsWith('clock_image=')) {
                 if (message.startsWith('clock_image=ready')) {
                     if (resolveClockImageReady(true)) {
@@ -4562,6 +4670,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 if (nrf52ModelId === 2 && data.length > 13 && data[13] === 0x21) {
                     nrf52PanelProfile = data[13];
                 }
+                nrf52ClockImageNativeMode7 = nrf52ModelId === 2 &&
+                    nrf52PanelProfile !== 0x21 && nrf52DisplayMode === 7;
                 if (nrf52WeekStartModelSupported() && data.length > 12) {
                     const selector = document.getElementById('week-start-selector');
                     const deviceWeekStart = data[12] === 1 ? 1 : 0;
