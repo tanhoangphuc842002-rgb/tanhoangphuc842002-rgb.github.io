@@ -3024,9 +3024,19 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 return false;
             }
 
+            const stopClockForPicture = is290 || (is213 && nrf52ModelId === 2);
             setNrf52ImageProgress(0, 'Đang khởi tạo màn hình...');
-            await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
-            await delay(100);
+            if (stopClockForPicture) {
+                // Stop clock-image ticks before INIT resets the transfer guard.
+                await sendNrf52Mode(0);
+                await delay(150);
+            }
+            if (is290) {
+                await initializeNrf52ClockImageTransfer();
+            } else {
+                await sendCommand(new Uint8Array([NRF52_CMD_INIT]));
+                await delay(100);
+            }
 
             // The 2.9"/2.13" firmware stores bytes column-first. The 4.2"
             // and UC8179 7.5" drivers stream one byte per eight horizontal
@@ -3042,7 +3052,15 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 await sendNrf52ImagePlane(red, false, 48, 95);
             }
             setNrf52ImageProgress(97, 'Đã gửi dữ liệu, đang refresh màn hình...');
+            if (is290) {
+                // Both WRITE_IMAGE planes have armed the transfer guard: this
+                // unflagged mode command clears clock-image without drawing.
+                // REFRESH then selects and persists MODE_PICTURE itself. A
+                // second SET_TIME(0) would leave its picture-save branch idle.
+                await sendNrf52Mode(3);
+            }
             await sendCommand(new Uint8Array([NRF52_CMD_REFRESH]));
+            if (stopClockForPicture) await delay(32000);
             nrf52DisplayMode = 0;
             setNrf52ImageProgress(100, 'Đã tải ảnh lên màn hình thành công.');
             addLog(t('nRF52 image uploaded; Picture Mode is now active.'));
