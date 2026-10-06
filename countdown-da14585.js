@@ -26,7 +26,7 @@
             if (reply.length === 10 && reply[0] === 0xd6 && (reply[1] === 3 || reply[1] === 4))
                 failStatus(reply[1]);
         }
-        throw new Error('DA14585 chưa phản hồi đếm ngược. Hãy nạp firmware tương thích và thử lại.');
+        throw new Error('Đồng hồ chưa phản hồi đếm ngược. Hãy kết nối lại và thử.');
     }
     function failStatus(code) {
         if (code === 4) throw new Error('Màn đang refresh hoặc nhận ảnh. Chờ màn hoàn tất rồi thử lại.');

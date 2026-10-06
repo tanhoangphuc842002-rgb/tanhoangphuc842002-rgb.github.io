@@ -24,7 +24,7 @@
             const pending = {opcode: packet[0], resolve, timer: null};
             pending.timer = setTimeout(() => {
                 if (waiter === pending) waiter = null;
-                reject(new Error('Không nhận được xác nhận đếm ngược. Kiểm tra kết nối và firmware hỗ trợ.'));
+                reject(new Error('Đồng hồ chưa xác nhận đếm ngược. Hãy kiểm tra kết nối rồi thử lại.'));
             }, timeout);
             waiter = pending;
             Promise.resolve(sendCommand(packet)).catch(error => {
@@ -84,10 +84,10 @@
                 try {
                     caps = await exchange(new Uint8Array([0xd8, 0xff]), 1800);
                 } catch (_) {
-                    throw new Error('Firmware hiện tại chỉ hỗ trợ 8 ký tự. Hãy nạp firmware mới để dùng tối đa 16 ký tự.');
+                    throw new Error('Đồng hồ hiện chỉ hỗ trợ tên sự kiện tối đa 8 ký tự. Hãy rút ngắn tên rồi thử lại.');
                 }
                 if (labelLength > caps[2])
-                    throw new Error(`Firmware chỉ hỗ trợ tối đa ${caps[2]} ký tự.`);
+                    throw new Error(`Đồng hồ chỉ hỗ trợ tên sự kiện tối đa ${caps[2]} ký tự.`);
             }
             const now = Math.floor(Date.now() / 1000);
             const zone = Math.round(-new Date().getTimezoneOffset() / 60);

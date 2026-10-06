@@ -444,6 +444,23 @@
             margin-bottom: 8px;
             color: #333;
         }
+        .sleep-confirm-overlay[hidden] { display: none; }
+        .sleep-confirm-overlay {
+            position: fixed; inset: 0; z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 18px; background: rgba(15, 23, 42, 0.55);
+        }
+        .sleep-confirm-card {
+            box-sizing: border-box; width: 100%; max-width: 380px;
+            padding: 24px; border-radius: 14px; background: #fff;
+            color: #1f2937; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+        }
+        .sleep-confirm-card h3 { margin: 0 0 16px; }
+        .sleep-confirm-time { display: flex; justify-content: space-between; margin: 12px 0; }
+        .sleep-confirm-time strong { font-size: 24px; font-variant-numeric: tabular-nums; }
+        .sleep-confirm-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .sleep-confirm-actions button { flex: 1; margin: 0; min-height: 44px; }
+        #sleep-confirm-cancel { background: #64748b; }
     </style>
 
 <style>
@@ -990,10 +1007,13 @@
                 "Sleep from": "Bắt đầu nghỉ",
                 "Wake at": "Hoạt động lại",
                 "Save and enable": "Lưu và bật hẹn giờ",
-                "Confirm daily screen schedule?": "Xác nhận hẹn giờ màn hình mỗi ngày?",
-                "Screen stops refreshing at:": "Giờ tắt (ngừng làm mới):",
-                "Screen resumes at:": "Giờ bật (hoạt động lại):",
-                "Choose OK to save, or Cancel to leave the schedule unchanged.": "Bấm OK để lưu, hoặc Huỷ để giữ nguyên hẹn giờ hiện tại.",
+                "Confirm sleep schedule": "Xác nhận hẹn giờ",
+                "Sleep time": "Giờ nghỉ",
+                "Wake time": "Giờ bật lại",
+                "Repeats every day.": "Lặp lại mỗi ngày.",
+                "Wake time is on the following day.": "Giờ bật lại vào ngày hôm sau.",
+                "Confirm": "Xác nhận",
+                "Cancel": "Hủy bỏ",
                 "Disable schedule": "Tắt hẹn giờ",
                 "Sleep schedule has not been read yet.": "Chưa đọc trạng thái hẹn giờ từ thiết bị.",
                 "Connect the device before changing the sleep schedule.": "Hãy kết nối thiết bị trước khi thay đổi hẹn giờ ngủ.",
@@ -1004,15 +1024,15 @@
                 "Sleep schedule error:": "Lỗi hẹn giờ ngủ:",
                 "Reading sleep schedule...": "Đang đọc lịch ngủ từ thiết bị…",
                 "Saving sleep schedule...": "Đang lưu lịch ngủ, vui lòng chờ thiết bị xác nhận…",
-                "This firmware has not confirmed sleep schedule support. Install CE 2.9 v18.4 to use it.": "Firmware chưa xác nhận hỗ trợ hẹn giờ. Với màn CE 2.9, hãy nạp bản v18.4 đi kèm.",
+                "This firmware has not confirmed sleep schedule support. Install CE 2.9 v18.4 to use it.": "Đồng hồ chưa xác nhận hỗ trợ hẹn giờ ngủ. Hãy kết nối lại và thử; nếu vẫn không được, vui lòng liên hệ hỗ trợ.",
                 "The device could not save the schedule. Wait a few seconds and try again.": "Thiết bị chưa lưu được lịch. Chờ vài giây rồi bấm lưu lại.",
                 "Enter both sleep and wake times.": "Bạn hãy nhập đủ giờ bắt đầu ngủ và giờ thức dậy.",
                 "Example: 23:00 to 07:00 pauses the display overnight, every day.": "Ví dụ: 23:00 đến 07:00 là nghỉ qua đêm, lặp lại mỗi ngày.",
                 "Extra settings": "Cài đặt thêm",
                 "The device did not confirm these times. Please reconnect and read the schedule again.": "Thiết bị chưa xác nhận đúng giờ đã chọn. Bạn hãy kết nối lại để đọc lịch.",
-                "DA14585: schedule command sent, but this firmware does not confirm saving.": "DA14585: đã gửi lệnh hẹn giờ; firmware này không có phản hồi xác nhận đã lưu.",
-                "This DA14585 firmware only supports whole hours; minutes were ignored.": "Firmware DA14585 này chỉ hỗ trợ giờ tròn; phần phút đã được bỏ qua.",
-                "This DA14585 device supports whole-hour schedules only. Minutes are fixed at :00.": "Thiết bị DA14585 này chỉ hỗ trợ hẹn giờ theo giờ tròn. Phút được cố định là :00.",
+                "DA14585: schedule command sent, but this firmware does not confirm saving.": "Đã gửi lịch ngủ nhưng đồng hồ chưa xác nhận đã lưu. Hãy kết nối lại để kiểm tra.",
+                "This DA14585 firmware only supports whole hours; minutes were ignored.": "Đồng hồ chỉ hỗ trợ giờ tròn; phần phút không được áp dụng.",
+                "This DA14585 device supports whole-hour schedules only. Minutes are fixed at :00.": "Đồng hồ này chỉ hỗ trợ giờ tròn; phút được cố định là :00.",
                 "2.13\" low-res clock parking sign - Enter number:": "Biển số/đồng hồ 2.13\" độ phân giải thấp - Nhập số:",
                 "Set Number Display": "Cài hiển thị số",
                 "Activate (not needed if display is working):": "Kích hoạt (không cần nếu màn hình đang hoạt động):",
@@ -1313,6 +1333,7 @@
             <button class="tab-button" data-tab="tab-image">Image Transfer</button>
             <button id="clock-image-tab-button" class="tab-button" data-tab="tab-clock-image">Đồng hồ và ảnh</button>
             <button id="dfu-tab-button" class="tab-button" data-tab="tab-dfu">Cập nhật phần mềm</button>
+            <button class="tab-button" data-tab="tab-led-effects">Đèn / hiệu ứng</button>
         </div>
     </div>
 
@@ -1368,6 +1389,20 @@
             </div>
             <div id="sleep-schedule-status" class="sleep-status" role="status" aria-live="polite">Sleep schedule has not been read yet.</div>
         </section>
+        <div id="sleep-confirm-overlay" class="sleep-confirm-overlay" hidden
+             onclick="if (event.target === this) finishSleepConfirmation(false)">
+            <div class="sleep-confirm-card" role="dialog" aria-modal="true"
+                 aria-labelledby="sleep-confirm-title" aria-describedby="sleep-confirm-note">
+                <h3 id="sleep-confirm-title">Confirm sleep schedule</h3>
+                <div class="sleep-confirm-time"><span>Sleep time</span><strong id="sleep-confirm-start"></strong></div>
+                <div class="sleep-confirm-time"><span>Wake time</span><strong id="sleep-confirm-end"></strong></div>
+                <p id="sleep-confirm-note"></p>
+                <div class="sleep-confirm-actions">
+                    <button id="sleep-confirm-accept" type="button" onclick="finishSleepConfirmation(true)">Confirm</button>
+                    <button id="sleep-confirm-cancel" type="button" onclick="finishSleepConfirmation(false)">Cancel</button>
+                </div>
+            </div>
+        </div>
         <!-- <div class="button-group">
             Set LED Color<select id="led_color" title="Set LED Color">
                 <option value='01'>Red</option>
@@ -1508,13 +1543,17 @@
     <div id="tab-clock-image" class="tab-content">
         <h3 id="clock-image-title">Đồng hồ và ảnh</h3>
         <p id="clock-image-description">Kết nối màn tương thích để trang web tự chọn kích thước và vị trí ảnh.</p>
+        <div id="clock-image-device-detection" role="status" aria-live="polite"
+             style="margin:8px 0;padding:9px 12px;border:1px solid #b9c7d8;border-radius:8px;background:#f4f8fc;font-weight:600;">
+            Thiết bị: chưa kết nối.
+        </div>
         <details id="clock-image-290-options" hidden>
-            <summary>Tùy chọn nâng cao</summary>
-            <label for="clock-image-290-firmware">Firmware:</label>
+            <summary>Tùy chọn hiển thị</summary>
+            <label for="clock-image-290-firmware">Cách hiển thị:</label>
             <select id="clock-image-290-firmware" onchange="updateClockImageAvailability()">
                 <option value="auto" selected>Tự động</option>
-                <option value="standard">CE / no CE</option>
-                <option value="lut233">LUT233</option>
+                <option value="standard">Thông thường</option>
+                <option value="lut233">Kiểu khác</option>
             </select>
         </details>
         <div class="button-group">
@@ -1566,7 +1605,7 @@
 
             <div id="clock-quick-text-options" class="quick-tool-options" hidden>
                 <input type="text" id="clock-quick-text-input" placeholder="Nhập chữ" maxlength="100">
-                <label for="clock-quick-font-family">Font:</label>
+                <label for="clock-quick-font-family">Kiểu chữ:</label>
                 <select id="clock-quick-font-family">
                     <option value="Arial">Arial</option>
                     <option value="Times New Roman">Times New Roman</option>
@@ -1620,25 +1659,25 @@
         <div class="button-group">
             <button id="clock-image-upload-button" type="button" onclick="uploadClockImage()">Chuyển sang Đồng hồ và ảnh + tải ảnh</button>
             <progress id="clock-image-progress" max="100" value="0" style="width:min(500px,100%);"></progress>
-            <span id="clock-image-status">Hỗ trợ DA14585 và các màn nRF52 có chức năng Đồng hồ và ảnh tương thích.</span>
+            <span id="clock-image-status">Kết nối đồng hồ để chọn ảnh và tải lên màn hình.</span>
         </div>
     </div>
 
     <div id="tab-dfu" class="tab-content">
         <div class="dfu-card">
-            <h3>Cập nhật phần mềm nRF52 qua Bluetooth</h3>
-            <p>Chọn đúng gói Nordic Secure DFU <strong>.zip</strong> dành cho màn hình của bạn.</p>
+            <h3>Cập nhật phần mềm đồng hồ</h3>
+            <p>Chọn file cập nhật <strong>.zip</strong> được cung cấp cho đồng hồ của bạn.</p>
 
             <div class="dfu-note">
-                Cách cập nhật: chọn file OTA ZIP → bấm nút bắt đầu → chọn đồng hồ. Sau khi đồng hồ chuyển sang DFU, bấm nút lần nữa và chọn DFUTAG để nạp.
+                Cách cập nhật: chọn file .zip → bấm Bắt đầu cập nhật → chọn đồng hồ. Khi được yêu cầu chọn lại, bấm nút lần nữa và chọn DFUTAG để tiếp tục.
             </div>
 
             <div class="dfu-warning">
-                Chỉ dùng cho nRF52. Không chọn file full HEX, ZIP mã nguồn hoặc firmware của kích thước màn/CE/no CE khác. Nên để pin trên 40% và không đóng trang trong khi cập nhật.
+                Chỉ dùng file cập nhật đúng cho đồng hồ của bạn, không chọn file mã nguồn hoặc file của loại đồng hồ khác. Nên để pin trên 40%; không tháo pin, đóng trang hoặc ngắt Bluetooth khi đang cập nhật.
             </div>
 
             <div class="dfu-file-row">
-                <label for="dfu-file"><strong>File OTA Nordic (.zip)</strong></label>
+                <label for="dfu-file"><strong>File cập nhật (.zip)</strong></label>
                 <input id="dfu-file" type="file" accept=".zip,application/zip">
                 <div id="dfu-package-info">Chưa chọn gói cập nhật.</div>
             </div>
@@ -1649,7 +1688,7 @@
                 <button id="dfu-clear-log-button" type="button">Xóa nhật ký</button>
             </div>
             <progress id="dfu-progress" max="100" value="0"></progress>
-            <div id="dfu-status" role="status" aria-live="polite">Hãy chọn file OTA ZIP.</div>
+            <div id="dfu-status" role="status" aria-live="polite">Hãy chọn file cập nhật .zip.</div>
 
             <details style="margin-top:14px;">
                 <summary>Nhật ký cập nhật</summary>
@@ -1660,20 +1699,24 @@
 
     <div id="tab-image" class="tab-content">
         <h3>Upload Image to Screen</h3>
+        <div id="image-device-detection" role="status" aria-live="polite"
+             style="margin:8px 0;padding:9px 12px;border:1px solid #b9c7d8;border-radius:8px;background:#f4f8fc;font-weight:600;">
+            Thiết bị: chưa kết nối.
+        </div>
         <div class="button-group">
             <input type="file" id="image_file" onchange="update_image1()" accept=".png,.jpg,.bmp,.webp,.jpeg">
         </div>
         <div class="button-group">
             Screen Size:
             <select id="screen-size" onchange="updateCanvasSize()">
-                <option value="da14585_2.13_212x104">DA14585 2.13&quot; BW (212x104, mặc định)</option>
-                <option value="da14585_2.13_250x128">DA14585 2.13&quot; BW (250x128)</option>
-                <option value="nrf52_2.13_250x128" selected>nRF52 2.13&quot; BWR/BW (250x128, tự nhận dạng)</option>
-                <option value="nrf52_2.9_296x128">nRF52 2.9&quot; BWR/CE (296x128)</option>
-                <option value="nrf52_4.2_400x300">nRF52 4.2&quot; BWR UC8176 (400x300)</option>
-                <option value="nrf52_4.2_400x300_bw1619">nRF52 4.2&quot; BW SSD1619 (400x300)</option>
-                <option value="nrf52_7.5_800x480">nRF52 7.5&quot; BWR UC8179 (800x480)</option>
-                <option value="da14585_4.2_400x300">DA14585 4.2&quot; BWR (400x300)</option>
+                <option value="da14585_2.13_212x104">2.13&quot; đen trắng (212 × 104)</option>
+                <option value="da14585_2.13_250x128">2.13&quot; đen trắng (250 × 128)</option>
+                <option value="nrf52_2.13_250x128" selected>2.13&quot; đen/trắng/đỏ (tự nhận dạng)</option>
+                <option value="nrf52_2.9_296x128">2.9&quot; đen/trắng/đỏ (tự nhận dạng)</option>
+                <option value="nrf52_4.2_400x300">4.2&quot; đen/trắng/đỏ</option>
+                <option value="nrf52_4.2_400x300_bw1619">4.2&quot; đen trắng</option>
+                <option value="nrf52_7.5_800x480">7.5&quot; đen/trắng/đỏ</option>
+                <option value="da14585_4.2_400x300">4.2&quot; đen/trắng/đỏ (loại khác)</option>
                 <option value="4.2ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">4.2" Transfer</option>
                 <option value="ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">4.2" Calendar Small</option>
                 <option value="7.5ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¾">7.5" Transfer</option>
@@ -1858,8 +1901,120 @@
     </div>
 
    
+    <div id="tab-led-effects" class="tab-content">
+        <style>
+            #tab-led-effects{max-width:800px;margin:0 auto;padding:16px}
+            #tab-led-effects .led-card{background:#fff;border:1px solid #d9e2ee;border-radius:12px;padding:18px;margin:16px 0}
+            #tab-led-effects .led-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+            #tab-led-effects .led-actions button{width:auto;flex:1;min-width:160px;margin:0}
+            #tab-led-effects #led-stop{background:#bc3139}
+            #tab-led-effects button:disabled{opacity:.45;cursor:not-allowed}
+            #tab-led-effects p,#tab-led-effects li{line-height:1.6}
+            #tab-led-effects #led-status{padding:12px;background:#edf4ff;border-radius:8px;margin-top:14px}
+            #tab-led-effects #led-log{white-space:pre-wrap;max-height:160px;overflow:auto;font:13px monospace;background:#f5f7fa;padding:12px}
+            #tab-led-effects select{width:auto;max-width:260px;margin:0}
+            #tab-led-effects .led-colors{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+            #tab-led-effects .led-color{display:flex;align-items:center;gap:8px;border:1px solid #d9e2ee;border-radius:8px;padding:10px;cursor:pointer}
+            #tab-led-effects .led-color input{width:18px;height:18px;margin:0;accent-color:#4279df}
+            #tab-led-effects .led-swatch{display:inline-block;width:15px;height:15px;border-radius:50%}
+            #tab-led-effects .led-fields{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0;align-items:center}
+            #tab-led-effects #led-custom-preview{background:#f1f5fb;padding:10px;border-radius:8px;margin:12px 0}
+            #tab-led-effects #led-custom-b[hidden],#tab-led-effects #led-custom-c[hidden],#tab-led-effects #led-custom-timing[hidden]{display:none}
+        </style>
+        <h2>Đèn báo và hiệu ứng</h2>
+        <p>Kết nối đồng hồ ở thẻ cài đặt, sau đó bấm Kiểm tra hỗ trợ đèn để bắt đầu.</p>
+        <p>Bạn có thể thử từng màu, chọn màu đèn báo và tạo hiệu ứng theo ý thích. Chức năng khả dụng tùy đồng hồ.</p>
+        <div class="led-card">
+            <h3>Đèn báo tự động</h3>
+            <ul>
+                <li><strong>Xanh lá:</strong> nháy 100 ms khi cài giờ, lưu xong lịch ngủ/thức hoặc bộ đếm ngược, và hoàn tất lệnh refresh ảnh.</li>
+                <li><strong>Đỏ:</strong> khi đếm ngược chuyển từ còn ngày sang 0 ngày, nháy 2 lần; lặp mỗi phút, tối đa 5 phút. Nếu hết lúc đang ngủ, chờ thức rồi mới bắt đầu báo.</li>
+                <li><strong>Màu đèn báo:</strong> chọn bên dưới để dùng cho khởi động, kết nối và chuyển mode. Khi hiệu ứng kết thúc, đèn trở về trạng thái bình thường.</li>
+            </ul>
+            <div class="led-actions">
+                <button id="led-probe" type="button">Kiểm tra hỗ trợ đèn</button>
+                <button type="button" data-led-mode="1" disabled>Thử xanh lá thành công</button>
+                <button type="button" data-led-mode="2" disabled>Thử đỏ hết đếm ngược</button>
+            </div>
+        </div>
+        <div class="led-card" id="led-boot-card">
+            <h3>Màu đèn báo</h3>
+            <p>Chọn màu đèn khi khởi động, kết nối Bluetooth và chuyển mode/refresh. Sau khi lưu thành công, tháo pin rồi lắp lại vẫn giữ màu đã chọn. Báo thành công, hết đếm ngược và hiệu ứng A/B/C giữ màu riêng.</p>
+            <div class="led-fields"><label for="led-boot-color">Màu: </label>
+                <select id="led-boot-color" disabled><option value="18" selected>Xanh nước biển</option><option value="17">Xanh lá</option><option value="16">Đỏ</option></select>
+            </div>
+            <div class="led-actions"><button id="led-boot-preview" type="button" disabled>Thử màu</button><button id="led-boot-save" type="button" disabled>Lưu vào đồng hồ</button></div>
+            <p id="led-boot-status" role="status" aria-live="polite">Bấm Kiểm tra hỗ trợ đèn để xem màu đang lưu trên đồng hồ.</p>
+        </div>
+
+        <div class="led-card" id="led-hour-card">
+            <h3>Đèn báo đầu giờ</h3>
+            <p>Nháy 2 lần ngắn khi phút chuyển sang 00. Màu riêng, không đổi màu đèn kết nối/chuyển mode. Không báo trong giờ ngủ hoặc khi có hiệu ứng/truyền ảnh đang chạy.</p>
+            <div class="led-fields">
+                <label><input id="led-hour-enabled" type="checkbox" disabled> Bật đèn báo đầu giờ</label>
+                <label for="led-hour-color">Màu thông báo:</label>
+                <select id="led-hour-color" disabled><option value="18" selected>Xanh nước biển</option><option value="17">Xanh lá</option><option value="16">Đỏ</option></select>
+            </div>
+            <div class="led-actions"><button id="led-hour-save" type="button" disabled>Lưu thiết lập</button></div>
+            <p id="led-hour-status" role="status" aria-live="polite">Bấm Kiểm tra hỗ trợ đèn để xem thiết lập. Chức năng này mặc định tắt.</p>
+        </div>
+
+        <div class="led-card" id="led-custom-card">
+            <h3>Tự chỉnh đèn</h3>
+            <p>Chọn màu theo ý bạn. Một nhóm có thể bật một hoặc nhiều màu cùng lúc. Chọn một nhóm màu hoặc luân phiên A → B → C nếu đồng hồ hỗ trợ.</p>
+            <label for="led-custom-style">Kiểu chạy: </label>
+            <select id="led-custom-style"><option value="blink" selected>Nháy màu đã chọn</option><option value="steady">Sáng trong thời gian giới hạn</option><option value="alternate">Luân phiên A → B</option><option value="triple">Luân phiên A → B → C</option></select>
+            <h4>Nhóm màu A</h4>
+            <div class="led-colors">
+                <label class="led-color"><input id="led-a-red" type="checkbox" data-led-color checked><span class="led-swatch" style="background:#db3b46"></span>Đỏ</label>
+                <label class="led-color"><input id="led-a-green" type="checkbox" data-led-color><span class="led-swatch" style="background:#23944b"></span>Xanh lá</label>
+                <label class="led-color"><input id="led-a-blue" type="checkbox" data-led-color><span class="led-swatch" style="background:#2379df"></span>Xanh nước biển</label>
+            </div>
+            <div id="led-custom-b" hidden>
+                <h4>Nhóm màu B</h4>
+                <div class="led-colors">
+                    <label class="led-color"><input id="led-b-red" type="checkbox" data-led-color><span class="led-swatch" style="background:#db3b46"></span>Đỏ</label>
+                    <label class="led-color"><input id="led-b-green" type="checkbox" data-led-color checked><span class="led-swatch" style="background:#23944b"></span>Xanh lá</label>
+                    <label class="led-color"><input id="led-b-blue" type="checkbox" data-led-color><span class="led-swatch" style="background:#2379df"></span>Xanh nước biển</label>
+                </div>
+            </div>
+            <div id="led-custom-c" hidden>
+                <h4>Nhóm màu C</h4>
+                <div class="led-colors">
+                    <label class="led-color"><input id="led-c-red" type="checkbox" data-led-color><span class="led-swatch" style="background:#db3b46"></span>Đỏ</label>
+                    <label class="led-color"><input id="led-c-green" type="checkbox" data-led-color><span class="led-swatch" style="background:#23944b"></span>Xanh lá</label>
+                    <label class="led-color"><input id="led-c-blue" type="checkbox" data-led-color checked><span class="led-swatch" style="background:#2379df"></span>Xanh nước biển</label>
+                </div>
+                <p>Chạy lần lượt A → B → C → A. Ví dụ: A đỏ, B xanh lá, C xanh nước biển. Chọn “Không nghỉ” để đổi màu liền nhau.</p>
+            </div>
+            <div class="led-fields" id="led-custom-timing">
+                <label>Sáng mỗi lần: <select id="led-custom-on"><option value="2">0,2 giây</option><option value="5" selected>0,5 giây</option><option value="10">1 giây</option><option value="20">2 giây</option></select></label>
+                <label>Nghỉ giữa lần sáng: <select id="led-custom-off"><option value="0">Không nghỉ</option><option value="2">0,2 giây</option><option value="5" selected>0,5 giây</option><option value="10">1 giây</option><option value="20">2 giây</option></select></label>
+            </div>
+            <div class="led-fields"><label>Tự dừng sau: <select id="led-custom-duration"><option value="5">5 giây</option><option value="10" selected>10 giây</option><option value="20">20 giây</option><option value="30">30 giây</option></select></label></div>
+            <div id="led-custom-preview" role="status" aria-live="polite"></div>
+            <div class="led-actions"><button id="led-custom-start" type="button" disabled>Chạy màu đã chọn</button></div>
+            <p>Không đổi màu đèn báo thành công/hết đếm ngược. Tự dừng tối đa 30 giây, khi mất Bluetooth hoặc vào lịch ngủ; dùng nút Dừng bên dưới để kết thúc ngay.</p>
+        </div>
+        <div class="led-card">
+            <h3>Hiệu ứng vui</h3>
+            <p>SOS: đèn đỏ nháy <strong>… — — — …</strong>. Cảnh sát: nháy luân phiên <strong>đỏ / xanh nước biển</strong>. Chỉ là hiệu ứng đèn trang trí trên đồng hồ.</p>
+            <label for="led-duration">Tự dừng sau: </label>
+            <select id="led-duration"><option value="5">5 giây</option><option value="10" selected>10 giây</option><option value="20">20 giây</option><option value="30">30 giây</option></select>
+            <p>Không nhìn sát đèn nháy. Nếu bạn nhạy cảm với ánh sáng nhấp nháy, không bật hiệu ứng. Dùng lâu hoặc bật lặp lại sẽ hao pin hơn.</p>
+            <div class="led-actions">
+                <button type="button" data-led-mode="3" disabled>SOS — đèn đỏ</button>
+                <button type="button" data-led-mode="4" disabled>Cảnh sát — đỏ / xanh</button>
+                <button id="led-stop" type="button" disabled>Dừng hiệu ứng / báo đỏ</button>
+            </div>
+        </div>
+        <div id="led-status" role="status" aria-live="polite">Kết nối đồng hồ rồi bấm Kiểm tra hỗ trợ đèn.</div>
+        <p>Hiệu ứng tự dừng sau tối đa 30 giây, khi mất kết nối hoặc đến giờ ngủ. Chạy hiệu ứng không thay đổi mặt đồng hồ.</p>
+        <details><summary>Nhật ký đèn</summary><pre id="led-log"></pre><button id="led-clear" type="button">Xóa nhật ký đèn</button></details>
+    </div>
+
 <div id="log-box">
-            Log:
+            Nhật ký hoạt động:
             <br>
             <div id="log"></div>
         </div>
@@ -2680,6 +2835,31 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let clockImageUploadBusy = false;
         let da14585ModeSwitchBusy = false;
         let nrf52ImageChunkSize = NRF52_IMAGE_CHUNK_SIZE;
+        function detectedDeviceDescription() {
+            if (deviceProtocol == null) return 'Thiết bị: chưa kết nối.';
+            if (deviceProtocol === PROTOCOL_DA14585)
+                return 'Đã kết nối thiết bị. Hãy chọn đúng kích thước màn hình.';
+            if (!nrf52ModelDetected)
+                return 'Đã kết nối thiết bị; đang nhận diện màn hình…';
+            const modelNames = {
+                1: 'màn hình 2.13 inch',
+                2: nrf52PanelProfile === 0x21 ? 'màn hình 2.13 inch' :
+                    (getClockImageTarget() === CLOCK_IMAGE_TARGETS.model2_290 ? 'màn hình 2.9 inch' : 'màn hình'),
+                3: 'màn hình 4.2 inch',
+                4: 'màn hình 4.2 inch',
+                5: 'màn hình',
+                7: 'màn hình 7.5 inch'
+            };
+            const name = modelNames[nrf52ModelId] || 'màn hình';
+            return `Đã kết nối ${name}.`;
+        }
+        function updateImageDeviceDetection() {
+            const text = detectedDeviceDescription();
+            for (const id of ['image-device-detection', 'clock-image-device-detection']) {
+                const element = document.getElementById(id);
+                if (element) element.textContent = text;
+            }
+        }
         function delay(delayInMs) {
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -2688,6 +2868,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             });
         }
         function resetVariables() {
+            finishSleepConfirmation(false);
+            if (window.LedEffectsUi) window.LedEffectsUi.reset();
             if (sleepScheduleWaiter) sleepScheduleWaiter(null);
             sleepScheduleSupported = false;
             updateSleepScheduleStatus(t('Sleep schedule has not been read yet.'));
@@ -2726,6 +2908,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             da14585ModeSwitchBusy = false;
             const protocolLabel = document.getElementById('device-protocol');
             if (protocolLabel) protocolLabel.textContent = t('Device: not connected');
+            updateImageDeviceDetection();
             updateClockImageAvailability();
             document.getElementById("log").value = '';
         }
@@ -2782,12 +2965,12 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             // 2.13 CE v19.2 reports panel profile 0x21 and app version 0x2B.
             if (nrf52PanelProfile === 0x21) return nrf52FirmwareVersion >= 0x2B;
             // The compatible 2.9 release reports model 2 and app version 0x22.
-            return nrf52FirmwareVersion >= 0x22 && nrf52FirmwareVersion < 39;
+            return (nrf52FirmwareVersion >= 0x22 && nrf52FirmwareVersion < 39) || [61,67].includes(nrf52FirmwareVersion);
         }
         function nrf52WeekStartAckSupported() {
             return nrf52ModelDetected && nrf52ModelId === 2 &&
                 nrf52PanelProfile !== 0x21 &&
-                nrf52FirmwareVersion >= 0x23 && nrf52FirmwareVersion < 39;
+                ((nrf52FirmwareVersion >= 0x23 && nrf52FirmwareVersion < 39) || [61,67].includes(nrf52FirmwareVersion));
         }
         function waitForNrf52WeekStartAck(weekStart, timeoutMs = 8000) {
             if (nrf52WeekStartAckWaiter) {
@@ -2813,7 +2996,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const supported = deviceProtocol === PROTOCOL_NRF52 &&
                 nrf52WeekStartModelSupported();
             if (!supported) {
-                if (!silent) updateWeekStartStatus('Chỉ gửi cho màn nRF52 2.13, 2.9 hoặc 7.5 có firmware tương thích.');
+                if (!silent) updateWeekStartStatus('Đồng hồ đang kết nối chưa hỗ trợ chọn ngày đầu tuần.');
                 return false;
             }
             const weekStart = getSelectedWeekStart();
@@ -2830,7 +3013,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                         await sendCommand(new Uint8Array([NRF52_CMD_SET_WEEK_START, weekStart]));
                         nrf52WeekStartLastSent = weekStart;
                         clearPendingWeekStart(weekStart);
-                        updateWeekStartStatus(`Đã gửi ${label}; firmware này không phản hồi trạng thái lưu FDS.`);
+                        updateWeekStartStatus(`Đã gửi ${label}. Hãy kiểm tra bảng lịch trên đồng hồ.`);
                         if (!silent) addLog(`Đã gửi ngày đầu tuần ${label}; chưa có xác nhận FDS.`);
                         return true;
                     }
@@ -2859,7 +3042,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                         if (!result)
                             throw new Error('Thiết bị chưa xác nhận ghi FDS.');
                         if (result.state === 1) {
-                            updateWeekStartStatus(`Firmware đang ghi ${label} vào FDS...`);
+                            updateWeekStartStatus(`Đang lưu ngày đầu tuần ${label}…`);
                             await delay(400);
                             packet = new Uint8Array([NRF52_CMD_SET_WEEK_START]);
                         }
@@ -2867,14 +3050,14 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     if (result.state === 1)
                         throw new Error('Ghi FDS quá thời gian cho phép.');
                     if (result.state !== 0)
-                        throw new Error('Firmware báo ghi FDS thất bại.');
+                        throw new Error('Đồng hồ chưa lưu được ngày đầu tuần. Chờ vài giây rồi thử lại.');
 
                     nrf52WeekStartConfirmed = weekStart;
                     nrf52WeekStartLastSent = weekStart;
                     storeWeekStart(WEEK_START_STORAGE_KEY, weekStart);
                     clearPendingWeekStart(weekStart);
                     updateWeekStartStatus(`Đã lưu ${label}; hiển thị ở lần full refresh hoặc chuyển mode tiếp theo.`);
-                    if (!silent) addLog(`Firmware đã xác nhận lưu ngày đầu tuần ${label} vào FDS.`);
+                    if (!silent) addLog(`Đã lưu ngày đầu tuần ${label}.`);
                     return true;
                 } catch (error) {
                     if (nrf52WeekStartAckWaiter) {
@@ -3085,8 +3268,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 height: 128,
                 fullWidth: 250,
                 transfer: 'da14585-clock-image',
-                label: 'DA14585 màn 2.13 BW 250×128',
-                title: 'Đồng hồ và ảnh – Face 2 DA14585 250×128',
+                label: 'màn 2.13 inch đen trắng',
+                title: 'Đồng hồ và ảnh – màn 2.13 inch đen trắng',
                 description: 'Ảnh đen trắng 134×128 thay khu vực lịch bên trái của Face 2; toàn bộ phần đồng hồ, ngày, thứ, nhiệt độ, điện áp và pin bên phải được giữ nguyên và tiếp tục cập nhật mỗi phút.',
                 imageSide: 'trái',
                 clockSide: 'phải'
@@ -3096,8 +3279,8 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 width: 126,
                 height: 104,
                 transfer: 'da14585-clock-image',
-                label: 'DA14585 màn 2.13 BW',
-                title: 'Đồng hồ và ảnh – DA14585 2.13 inch BW',
+                label: 'màn 2.13 inch đen trắng',
+                title: 'Đồng hồ và ảnh – màn 2.13 inch đen trắng',
                 description: 'Ảnh đen trắng 126×104 nằm bên trái; đồng hồ, ngày, nhiệt độ và pin nằm bên phải và tiếp tục cập nhật mỗi phút. Màu đỏ sẽ được đổi thành màu đen. Nếu đổi mode hoặc mặt đồng hồ, ảnh sẽ bị xóa và cần tải lại.',
                 imageSide: 'trái',
                 clockSide: 'phải'
@@ -3110,7 +3293,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 mode: 0x83,
                 planeBytes: 4736,
                 transfer: 'ssd1680-fullframe',
-                label: 'màn 2.9 model 2',
+                label: 'màn 2.9 inch',
                 title: 'Đồng hồ và ảnh – màn 2.9',
                 description: 'Ảnh bên trái, đồng hồ bên phải.',
                 imageSide: 'trái',
@@ -3124,9 +3307,9 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 mode: 0x83,
                 planeBytes: 4000,
                 transfer: 'ssd1680-fullframe',
-                label: 'màn 2.13 CE/no CE model 2',
-                title: 'Đồng hồ và ảnh – màn 2.13 CE/no CE (Web v58 dùng chung)',
-                description: 'Ảnh 148×128 nằm bên trái; cụm đồng hồ Face 2 rộng 102 pixel bên phải tiếp tục cập nhật mỗi phút.',
+                label: 'màn 2.13 inch',
+                title: 'Đồng hồ và ảnh – màn 2.13 inch',
+                description: 'Ảnh nằm bên trái; đồng hồ bên phải tiếp tục cập nhật mỗi phút.',
                 imageSide: 'trái',
                 clockSide: 'phải'
             },
@@ -3137,11 +3320,11 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 mode: 4,
                 planeBytes: 24000,
                 transfer: 'clock-image-v54',
-                label: 'màn 7.5 model 7',
+                label: 'màn 7.5 inch',
                 title: 'Đồng hồ và ảnh – màn 7.5 inch (ảnh nửa màn + chỉnh sửa)',
-                description: 'Đồng hồ Face 1 nằm bên trái. Ảnh 400×480 chiếm trọn nửa phải và không bị refresh ở phút 00/30.',
-                imageSide: 'phải',
-                clockSide: 'trái'
+                description: 'Ảnh nằm bên trái; đồng hồ nằm bên phải và tiếp tục cập nhật mỗi phút.',
+                imageSide: 'trái',
+                clockSide: 'phải'
             }
         };
 
@@ -3158,7 +3341,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             if (nrf52PanelProfile === 0x21) return CLOCK_IMAGE_TARGETS.model2_213;
             // 2.13 marker takes precedence; include inspected 2.9 builds39/58.
             if ((nrf52FirmwareVersion >= 30 && nrf52FirmwareVersion <= 39) ||
-                nrf52FirmwareVersion === 58) {
+                [58,60,61,67].includes(nrf52FirmwareVersion)) {
                 return CLOCK_IMAGE_TARGETS.model2_290;
             }
             return null;
@@ -3268,19 +3451,19 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                         ? 'Đã nhận màn 2.9. Chọn ảnh rồi bấm tải.'
                         : target.transfer === 'da14585-clock-image'
                         ? `Đã nhận ${target.label}. Sẵn sàng chọn ảnh ${target.width}×${target.height} và chuyển sang Đồng hồ và ảnh.`
-                        : `Đã nhận ${target.label}, firmware v${nrf52FirmwareVersion}. Sẵn sàng chọn ảnh ${target.width}×${target.height}.`;
+                        : `Đã nhận ${target.label}. Chọn ảnh rồi bấm tải lên đồng hồ.`;
                 } else if (deviceProtocol === PROTOCOL_NRF52) {
                     const requirement = target
-                        ? `${target.label}, firmware v${target.minVersion}+`
-                        : 'màn 2.13 v40+, màn 2.9 v30 hoặc màn 7.5 v53+ có firmware Đồng hồ và ảnh';
-                    status.textContent = `Cần ${requirement} (đang nhận model ${nrf52ModelDetected ? nrf52ModelId : '?'}, v${nrf52FirmwareVersion || '?'}).`;
+                        ? `${target.label} có hỗ trợ đồng hồ và ảnh`
+                        : 'đồng hồ có hỗ trợ chế độ Đồng hồ và ảnh';
+                    status.textContent = `Chức năng này cần ${requirement}. Hãy kiểm tra kết nối hoặc liên hệ hỗ trợ.`;
                 } else if (deviceProtocol == null) {
-                    status.textContent = 'Hãy kết nối DA14585 hoặc màn nRF52 có chức năng Đồng hồ và ảnh tương thích.';
+                    status.textContent = 'Hãy kết nối đồng hồ để sử dụng chế độ Đồng hồ và ảnh.';
                 } else if (deviceProtocol === PROTOCOL_DA14585 &&
                            document.getElementById('screen-size')?.value === 'da14585_2.13_250x128') {
-                    status.textContent = 'Đã chọn DA14585 250×128. Truyền ảnh toàn màn cần firmware 250×128 tương thích; Đồng hồ và ảnh hiện chỉ hỗ trợ cấu hình 212×104.';
+                    status.textContent = 'Đồng hồ này chưa xác nhận hỗ trợ Đồng hồ và ảnh. Bạn vẫn có thể thử mục tải ảnh toàn màn.';
                 } else {
-                    status.textContent = 'Firmware của thiết bị này chưa hỗ trợ Đồng hồ và ảnh.';
+                    status.textContent = 'Đồng hồ này chưa hỗ trợ chế độ Đồng hồ và ảnh.';
                 }
             }
         }
@@ -3714,7 +3897,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const beginPromise = waitForDa14585ClockImageBegin(5000);
             await sendDa14585ClockImagePacket(new Uint8Array([0xfc, 0x00]), 'lệnh bắt đầu');
             if (!await beginPromise) {
-                throw new Error('Thiết bị không xác nhận đã sẵn sàng nhận ảnh. Hãy kiểm tra đúng firmware và thử lại.');
+                throw new Error('Thiết bị không xác nhận đã sẵn sàng nhận ảnh. Hãy kiểm tra kết nối rồi thử lại.');
             }
 
             // Keep the complete GATT write at 20 bytes (4-byte FC header +
@@ -3753,7 +3936,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const target = getClockImageTarget();
             const supported = isClockImageTargetSupported(target);
             if (!supported) {
-                setClockImageProgress(0, 'Thiết bị hoặc firmware hiện tại chưa hỗ trợ chế độ Đồng hồ và ảnh.');
+                setClockImageProgress(0, 'Đồng hồ đang kết nối chưa hỗ trợ chế độ Đồng hồ và ảnh.');
                 return;
             }
             const clockImageMode = getClockImageMode(target);
@@ -4156,6 +4339,46 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         let sleepScheduleWaiter = null;
         let sleepScheduleSupported = false;
         let sleepOperationBusy = false;
+        let sleepConfirmationPending = null;
+
+        function finishSleepConfirmation(accepted) {
+            if (!sleepConfirmationPending) return;
+            const pending = sleepConfirmationPending;
+            sleepConfirmationPending = null;
+            const overlay = document.getElementById('sleep-confirm-overlay');
+            overlay.hidden = true;
+            overlay.removeEventListener('keydown', pending.onKeydown);
+            if (pending.previousFocus && pending.previousFocus.isConnected)
+                pending.previousFocus.focus();
+            pending.resolve(accepted);
+        }
+
+        function confirmSleepSchedule(start, end) {
+            const overlay = document.getElementById('sleep-confirm-overlay');
+            const accept = document.getElementById('sleep-confirm-accept');
+            const cancel = document.getElementById('sleep-confirm-cancel');
+            const format = time => `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}`;
+            document.getElementById('sleep-confirm-start').textContent = format(start);
+            document.getElementById('sleep-confirm-end').textContent = format(end);
+            const overnight = end.hour * 60 + end.minute < start.hour * 60 + start.minute;
+            document.getElementById('sleep-confirm-note').textContent = t('Repeats every day.') +
+                (overnight ? ' ' + t('Wake time is on the following day.') : '');
+            return new Promise(resolve => {
+                const onKeydown = event => {
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        finishSleepConfirmation(false);
+                    } else if (event.key === 'Tab') {
+                        event.preventDefault();
+                        (document.activeElement === accept ? cancel : accept).focus();
+                    }
+                };
+                sleepConfirmationPending = { resolve, onKeydown, previousFocus: document.activeElement };
+                overlay.addEventListener('keydown', onKeydown);
+                overlay.hidden = false;
+                cancel.focus();
+            });
+        }
 
         function updateSleepScheduleStatus(message, state = '') {
             const status = document.getElementById('sleep-schedule-status');
@@ -4260,7 +4483,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 await characteristic.writeValueWithResponse(packet);
                 const result = await reply;
                 if (!result) throw new Error(deviceProtocol === PROTOCOL_DA14585
-                    ? 'DA14585 không phản hồi lệnh hẹn giờ. Hãy nạp firmware tương thích có ACK.'
+                    ? 'Đồng hồ chưa phản hồi lịch ngủ. Hãy kết nối lại và thử.'
                     : t('This firmware has not confirmed sleep schedule support. Install CE 2.9 v18.4 to use it.'));
                 return result;
             } catch (error) {
@@ -4305,7 +4528,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 }
             } while (Date.now() < deadline);
 
-            throw new Error('DA14585 không phản hồi lệnh hẹn giờ. Hãy nạp firmware tương thích có ACK đọc lại.');
+            throw new Error('Đồng hồ chưa xác nhận lịch ngủ. Hãy kết nối lại để kiểm tra.');
         }
 
         async function readSleepSchedule() {
@@ -4331,7 +4554,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         }
 
         async function setSleepSchedule(enabled) {
-            if (sleepOperationBusy) return;
+            if (sleepOperationBusy || sleepConfirmationPending) return;
             if (!deviceProtocol || !gattServer || !gattServer.connected) {
                 const message = t('Connect the device before changing the sleep schedule.');
                 updateSleepScheduleStatus(message, 'error');
@@ -4353,15 +4576,15 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
 
             if (enabled) {
-                const formatTime = time => `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}`;
-                const confirmation = [
-                    t('Confirm daily screen schedule?'),
-                    `${t('Screen stops refreshing at:')} ${formatTime(start)}`,
-                    `${t('Screen resumes at:')} ${formatTime(end)}`,
-                    '',
-                    t('Choose OK to save, or Cancel to leave the schedule unchanged.')
-                ].join('\n');
-                if (!window.confirm(confirmation)) return;
+                const confirmedServer = gattServer;
+                const confirmedProtocol = deviceProtocol;
+                if (!await confirmSleepSchedule(start, end)) return;
+                // Send exactly the times shown, and only to the same connection.
+                if (gattServer !== confirmedServer || deviceProtocol !== confirmedProtocol ||
+                    !gattServer || !gattServer.connected) {
+                    updateSleepScheduleStatus(t('Connect the device before changing the sleep schedule.'), 'error');
+                    return;
+                }
             }
 
             sleepOperationBusy = true;
@@ -4481,6 +4704,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             }
             const protocolLabel = document.getElementById('device-protocol');
             if (protocolLabel) protocolLabel.textContent = `${t('Device:')} DA14585 ${width}×${height}`;
+            for (const id of ['image-device-detection', 'clock-image-device-detection']) {
+                const element = document.getElementById(id);
+                if (element) element.textContent = `Đã kết nối màn hình ${width === 400 ? '4.2' : '2.13'} inch.`;
+            }
             addLog(`> Tự nhận dạng màn DA14585: ${width}x${height}`);
             updateClockImageAvailability();
             return true;
@@ -4491,6 +4718,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
             const name = protocol === PROTOCOL_NRF52 ? 'nRF52' : 'DA14585';
             const protocolLabel = document.getElementById('device-protocol');
             if (protocolLabel) protocolLabel.textContent = `${t('Device:')} ${name}`;
+            updateImageDeviceDetection();
             addLog(`> ${t('Detected protocol:')} ${name}`);
             if (protocol === PROTOCOL_DA14585) selectDa14585ImageCanvas();
             if (window.refreshCountdownPreview) window.refreshCountdownPreview();
@@ -4605,7 +4833,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 const state = data[1];
                 const weekStart = data[2];
                 if (state === 1)
-                    updateWeekStartStatus(`Firmware đang ghi ${weekStart === 0 ? 'Chủ Nhật' : 'Thứ 2'} vào FDS...`);
+                    updateWeekStartStatus(`Đang lưu ngày đầu tuần ${weekStart === 0 ? 'Chủ Nhật' : 'Thứ 2'}…`);
                 if (nrf52WeekStartAckWaiter &&
                     (nrf52WeekStartAckWaiter.weekStart === null ||
                      nrf52WeekStartAckWaiter.weekStart === weekStart)) {
@@ -4720,7 +4948,10 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 return;
             }
 
-            const isConfig = data.length >= 8 && data.length <= 22 &&
+            // Legacy firmware sends 22 bytes. Countdown-capable firmware may
+            // append persistent data, so accept a bounded extension while
+            // keeping the fixed model byte at index 7.
+            const isConfig = data.length >= 8 && data.length <= 64 &&
                 [1, 2, 3, 4, 5, 7].includes(data[7]);
             if (isConfig) {
                 nrf52ModelId = data[7];
@@ -4753,6 +4984,7 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 }
                 const panelLabel = nrf52PanelProfile === 0x21 ? ', panel: 2.13' : '';
                 addLog(`> nRF52 model ${nrf52ModelId}${panelLabel}, current mode: ${nrf52DisplayMode}`);
+                updateImageDeviceDetection();
                 selectNrf52CanvasForModel();
                 updateClockImageAvailability();
                 if (deviceProtocol === PROTOCOL_NRF52)
@@ -4842,7 +5074,26 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
         function setStatus(statusText) {
             document.getElementById("status").innerHTML = statusText;
         }
+        function publicLogText(message) {
+            const text = String(message).trim().replace(/\s*:\s*dd[0-9a-f]+$/i, '');
+            if (/model.*(?:is not|không phải)/i.test(text)) return 'Loại màn đang chọn không khớp với đồng hồ. Hãy chọn đúng kích thước màn hình.';
+            if (/\bmode \d.*command sent/i.test(text)) return 'Đã gửi yêu cầu đổi mặt đồng hồ.';
+            if (/block \d|gói BLE|gói dữ liệu BLE/i.test(text)) return '';
+            if (/firmware version:|model \d|image chunk:|mtu[=:]|response:|ACK .*:|Command:|Sending command:|Activation command:|Starting red calibration:|Number:|LED:|1F1F|rxtxService|rxtxCharacteristic|epdService|epdCharacteristic|No activation response/i.test(text)) return '';
+            if (/Canvas size updated to:/i.test(text)) return '';
+            if (/GATT server found/i.test(text)) return 'Đã kết nối Bluetooth.';
+            if (/GATT|NetworkError|disconnected|operation in progress/i.test(text)) return 'Kết nối Bluetooth bị gián đoạn. Hãy đưa đồng hồ lại gần và kết nối lại.';
+            if (/connected; display/i.test(text)) return 'Đồng hồ đã sẵn sàng.';
+            if (/Detected protocol:|Đã nhận dạng giao thức:/i.test(text)) return 'Đã nhận dạng đồng hồ.';
+            if (/Time set to:|Đã cài giờ|Cài giờ:/i.test(text)) return text.replace(/\s*:\s*dd[0-9a-f]+$/i, '');
+            if (/Gửi lịch .*:|Đọc lịch .*:/i.test(text)) return 'Đang trao đổi lịch ngủ với đồng hồ.';
+            if (/activation/i.test(text)) return /locked|failed|timed out|requires/i.test(text) ? 'Đồng hồ chưa được kích hoạt. Vui lòng liên hệ hỗ trợ.' : 'Đồng hồ đã được kích hoạt.';
+            if (/byte|\bINIT\b|refresh|0x[0-9a-f]+|UC817|SSD1619|FDS|firmware/i.test(text)) return /lỗi|thất bại|failed|không|từ chối/i.test(text) ? 'Thao tác chưa hoàn tất. Hãy kiểm tra kết nối rồi thử lại.' : 'Đang xử lý trên đồng hồ…';
+            return text.replace(/(?:nRF52|DA14585)\s*[:—-]?\s*/gi, '').replace(/^>\s*/, '');
+        }
         function addLog(logTXT) {
+            logTXT = publicLogText(logTXT);
+            if (!logTXT) return;
             const today = new Date();
             const time = ("0" + today.getHours()).slice(-2) + ":" + ("0" + today.getMinutes()).slice(-2) + ":" + ("0" + today.getSeconds()).slice(-2) + " : ";
             const dom = document.getElementById("log");
@@ -6119,6 +6370,52 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                     return;
                 }
 
+                if (deviceProtocol === PROTOCOL_NRF52 && nrf52ModelId === 7) {
+                    previewCanvas.width = 800;
+                    previewCanvas.height = 480;
+                    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 800, 480);
+                    ctx.strokeStyle = '#111'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(15, 45); ctx.lineTo(785, 45);
+                    ctx.moveTo(15, 435); ctx.lineTo(785, 435);
+                    ctx.moveTo(260, 70); ctx.lineTo(260, 420);
+                    ctx.moveTo(410, 70); ctx.lineTo(410, 420); ctx.stroke();
+
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#111'; ctx.font = 'bold 18px Arial';
+                    ctx.fillText(now.toLocaleDateString('vi-VN'), 130, 86);
+                    ctx.font = 'bold 53px monospace';
+                    ctx.fillText(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, 130, 238, 228);
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillText(now.toLocaleDateString('vi-VN', {weekday: 'long'}), 130, 350);
+                    ctx.fillText('Âm lịch', 130, 385);
+
+                    ctx.fillStyle = '#111'; ctx.font = 'bold 17px Arial';
+                    ctx.fillText(now.toLocaleDateString('vi-VN', {month: 'long', year: 'numeric'}), 605, 76);
+                    const labels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+                    for (let i = 0; i < 7; i++) {
+                        ctx.fillStyle = (i === 0 || i === 6) ? '#a51f2b' : '#111';
+                        ctx.fillRect(420 + i * 53, 96, 53, 30);
+                        ctx.fillStyle = '#fff'; ctx.font = 'bold 15px Arial';
+                        ctx.fillText(labels[i], 446 + i * 53, 111);
+                    }
+                    ctx.fillStyle = '#111'; ctx.font = '18px Arial';
+                    for (let d = 1; d <= 31; d++) {
+                        const col = (d - 1) % 7, row = Math.floor((d - 1) / 7);
+                        ctx.fillStyle = (col === 0 || col === 6) ? '#a51f2b' : '#111';
+                        ctx.fillText(String(d), 446 + col * 53, 158 + row * 51);
+                    }
+
+                    ctx.fillStyle = '#a51f2b'; ctx.font = 'bold 36px "Times New Roman"';
+                    ctx.fillText('CÒN', 335, 95);
+                    ctx.font = `bold ${remaining > 999 ? 57 : remaining > 99 ? 72 : 92}px monospace`;
+                    ctx.fillText(String(remaining), 335, 220, 140);
+                    ctx.fillStyle = '#111'; ctx.font = 'bold 36px "Times New Roman"';
+                    ctx.fillText('NGÀY', 335, 315);
+                    ctx.font = 'bold 17px Arial'; ctx.fillText(targetText, 335, 362);
+                    ctx.fillStyle = '#a51f2b'; ctx.fillText(label, 335, 397, 140);
+                    return;
+                }
+
                 previewCanvas.width = 500;
                 previewCanvas.height = 256;
                 ctx.fillStyle = '#fdfdfb';
@@ -6277,14 +6574,23 @@ function toggleSwitch(e) {
     let waitingForBootloader = false;
 
     function setStatus(message, isError) {
-        status.textContent = message;
+        status.textContent = publicDfuText(message);
         status.style.color = isError ? '#b91c1c' : '#334155';
     }
 
     function addDfuLog(message) {
         const time = new Date().toLocaleTimeString('vi-VN');
-        log.value += `[${time}] ${message}\n`;
+        log.value += `[${time}] ${publicDfuText(message)}\n`;
         log.scrollTop = log.scrollHeight;
+    }
+
+    function publicDfuText(message) {
+        const text = String(message);
+        if (/Unable to find manifest|proper DFU package/i.test(text)) return 'File cập nhật không phù hợp. Hãy chọn lại file .zip được cung cấp cho đồng hồ.';
+        if (/GATT|NetworkError|operation in progress|disconnected/i.test(text)) return 'Kết nối bị gián đoạn. Hãy đưa đồng hồ lại gần, giữ trang mở rồi thử lại.';
+        if (/NotAllowedError|SecurityError/i.test(text)) return 'Trình duyệt chưa cho phép kết nối Bluetooth. Hãy cấp quyền và thử lại.';
+        if (/TypeError|InvalidStateError|DOMException/i.test(text)) return 'Chưa thể hoàn tất cập nhật. Hãy kiểm tra kết nối và file đã chọn rồi thử lại.';
+        return text;
     }
 
     function humanBytes(bytes) {
@@ -6295,22 +6601,22 @@ function toggleSwitch(e) {
     function imageDescription(image) {
         if (!image) return null;
         const names = {
-            application: 'ứng dụng',
-            softdevice: 'SoftDevice',
-            bootloader: 'bootloader',
-            softdevice_bootloader: 'SoftDevice + bootloader'
+            application: 'Phần mềm đồng hồ',
+            softdevice: 'Thành phần kết nối',
+            bootloader: 'Thành phần cập nhật',
+            softdevice_bootloader: 'Thành phần hệ thống'
         };
-        return `${names[image.type] || image.type}: ${image.imageFile} (${humanBytes(image.imageData.byteLength)})`;
+        return `${names[image.type] || 'Dữ liệu cập nhật'} (${humanBytes(image.imageData.byteLength)})`;
     }
 
     function formatError(error) {
         const raw = error && error.message ? error.message : String(error || 'Lỗi không xác định');
         if (/NotFoundError|User cancelled|User canceled/i.test(raw)) return 'Đã hủy chọn thiết bị Bluetooth.';
-        if (/Unsupported device/i.test(raw)) return 'Thiết bị đã chọn không có Nordic Buttonless/Secure DFU.';
-        if (/Unable to find DFU service/i.test(raw)) return 'Không tìm thấy dịch vụ Nordic Secure DFU trên thiết bị.';
-        if (/firmware version is too low/i.test(raw)) return 'Bootloader từ chối vì phiên bản firmware trong file không cao hơn bản đang dùng.';
-        if (/signature is wrong|signature/i.test(raw)) return 'Bootloader từ chối chữ ký. Hãy dùng đúng OTA ZIP được ký cho thiết bị này.';
-        if (/SoftDevice/i.test(raw)) return 'Firmware không tương thích với SoftDevice đang có trên thiết bị.';
+        if (/Unsupported device/i.test(raw)) return 'Thiết bị đã chọn không hỗ trợ cập nhật qua Bluetooth.';
+        if (/Unable to find DFU service/i.test(raw)) return 'Không tìm thấy chế độ cập nhật trên đồng hồ. Hãy chọn DFUTAG khi được yêu cầu.';
+        if (/firmware version is too low/i.test(raw)) return 'Đồng hồ không chấp nhận bản cập nhật này vì không mới hơn bản đang dùng. Hãy chọn file mới hơn được cung cấp cho đồng hồ.';
+        if (/signature is wrong|signature/i.test(raw)) return 'File cập nhật không được đồng hồ chấp nhận. Hãy dùng đúng file được cung cấp cho đồng hồ của bạn.';
+        if (/SoftDevice/i.test(raw)) return 'File cập nhật không tương thích với đồng hồ này. Hãy chọn đúng file hoặc liên hệ hỗ trợ.';
         return raw;
     }
 
@@ -6350,7 +6656,7 @@ function toggleSwitch(e) {
         startButton.textContent = selectedPackage ? 'Bắt đầu cập nhật thiết bị mới' : 'Bắt đầu cập nhật';
         setStatus(selectedPackage
             ? 'Đã bỏ thiết bị cũ. Bấm nút bắt đầu và chọn đồng hồ nRF52 khác.'
-            : 'Hãy chọn file OTA ZIP.');
+            : 'Hãy chọn file cập nhật .zip.');
         addDfuLog('Đã bỏ thiết bị cũ; sẵn sàng chọn thiết bị khác.');
         setBusy(false);
     }
@@ -6361,7 +6667,7 @@ function toggleSwitch(e) {
         progress.value = 0;
         setStatus(selectedPackage
             ? 'Đã xóa nhật ký. Gói OTA vẫn được giữ để tiếp tục cập nhật.'
-            : 'Đã xóa nhật ký. Hãy chọn file OTA ZIP.');
+            : 'Đã xóa nhật ký. Hãy chọn file cập nhật .zip.');
     }
 
     function attachDfuEvents(dfu) {
@@ -6372,7 +6678,7 @@ function toggleSwitch(e) {
             const total = event.totalBytes || 0;
             const current = event.currentBytes || 0;
             progress.value = total ? Math.min(100, current * 100 / total) : 0;
-            const phase = event.object === 'init' ? 'gói khởi tạo' : 'firmware';
+            const phase = event.object === 'init' ? 'thông tin cập nhật' : 'phần mềm';
             setStatus(`Đang gửi ${phase}: ${humanBytes(current)} / ${humanBytes(total)}`);
         });
     }
@@ -6397,21 +6703,21 @@ function toggleSwitch(e) {
 
         if (!file) {
             packageInfo.textContent = 'Chưa chọn gói cập nhật.';
-            setStatus('Hãy chọn file OTA ZIP.');
+            setStatus('Hãy chọn file cập nhật .zip.');
             setBusy(false);
             return;
         }
 
         if (!/\.zip$/i.test(file.name)) {
             packageInfo.textContent = 'File không hợp lệ.';
-            setStatus('Chỉ nhận file OTA Nordic có đuôi .zip.', true);
+            setStatus('Hãy chọn file cập nhật có đuôi .zip.', true);
             setBusy(false);
             return;
         }
 
         setBusy(true);
         packageInfo.textContent = `Đang kiểm tra ${file.name}...`;
-        setStatus('Đang đọc manifest và dữ liệu firmware...');
+        setStatus('Đang kiểm tra file cập nhật…');
 
         try {
             const firmwarePackage = new SecureDfuPackage(file);
@@ -6419,18 +6725,18 @@ function toggleSwitch(e) {
             const baseImage = await firmwarePackage.getBaseImage();
             const appImage = await firmwarePackage.getAppImage();
             if (!baseImage && !appImage) {
-                throw new Error('Không tìm thấy application, SoftDevice hoặc bootloader trong manifest.json.');
+                throw new Error('File đã chọn không chứa dữ liệu cập nhật phù hợp. Hãy chọn lại file .zip được cung cấp.');
             }
 
             selectedPackage = firmwarePackage;
             selectedImages = { baseImage, appImage };
             const descriptions = [imageDescription(baseImage), imageDescription(appImage)].filter(Boolean);
             packageInfo.textContent = `${file.name} — ${descriptions.join('; ')}`;
-            setStatus('Gói OTA hợp lệ. Kiểm tra đúng loại màn hình rồi bấm “Bắt đầu cập nhật”.');
+            setStatus('Đã đọc file cập nhật. Kiểm tra file đúng cho đồng hồ của bạn rồi bấm “Bắt đầu cập nhật”.');
             addDfuLog(`Đã đọc gói: ${file.name}`);
             descriptions.forEach(function (description) { addDfuLog(description); });
         } catch (error) {
-            packageInfo.textContent = `${file.name} — không phải gói Nordic Secure DFU hợp lệ.`;
+            packageInfo.textContent = `${file.name} — không phải file cập nhật phù hợp.`;
             setStatus(formatError(error), true);
             addDfuLog(`Lỗi đọc gói: ${formatError(error)}`);
         } finally {
@@ -6471,28 +6777,28 @@ function toggleSwitch(e) {
                 if (deviceProtocol !== PROTOCOL_NRF52) {
                     throw new Error('Thiết bị đang kết nối là DA14585. Cập nhật này chỉ hỗ trợ nRF52.');
                 }
-                setStatus('Đang đưa đồng hồ nRF52 sang chế độ DFU...');
+                setStatus('Đang chuyển đồng hồ sang chế độ cập nhật…');
                 addDfuLog(`Đưa ${bleDevice.name || 'thiết bị'} sang DFU bằng Buttonless DFU.`);
                 device = await dfu.setDfuMode(bleDevice);
             } else {
                 setStatus(waitingForBootloader
-                    ? 'Hãy chọn thiết bị bootloader DFU vừa xuất hiện.'
+                    ? 'Hãy chọn DFUTAG vừa xuất hiện để tiếp tục cập nhật.'
                     : 'Hãy chọn đồng hồ nRF52 cần cập nhật.');
                 device = await dfu.requestDevice(true);
             }
 
             if (!device) {
                 waitingForBootloader = true;
-                startButton.textContent = 'Chọn thiết bị DFU và cập nhật';
-                setStatus('Đồng hồ đã chuyển sang DFU. Bấm nút bên dưới lần nữa và chọn thiết bị bootloader vừa xuất hiện.');
-                addDfuLog('Đã gửi lệnh vào DFU; đang chờ người dùng chọn lại bootloader.');
+                startButton.textContent = 'Chọn DFUTAG và cập nhật';
+                setStatus('Đồng hồ đã sẵn sàng cập nhật. Bấm nút lần nữa và chọn DFUTAG để tiếp tục.');
+                addDfuLog('Đang chờ bạn chọn DFUTAG để tiếp tục.');
                 return;
             }
 
             waitingForBootloader = false;
             startButton.textContent = 'Đang cập nhật...';
-            setStatus(`Đã chọn ${device.name || 'thiết bị DFU'}. Đang bắt đầu truyền firmware...`);
-            addDfuLog(`Đã chọn bootloader: ${device.name || '(không có tên)'}.`);
+            setStatus(`Đã chọn ${device.name || 'đồng hồ'}. Đang bắt đầu cập nhật…`);
+            addDfuLog(`Đã chọn thiết bị cập nhật: ${device.name || '(không có tên)'}.`);
 
             try {
                 await sendAllImages(dfu, device);
@@ -6514,7 +6820,7 @@ function toggleSwitch(e) {
             const message = formatError(error);
             setStatus(`Cập nhật chưa hoàn tất: ${message}`, true);
             addDfuLog(`Lỗi: ${message}`);
-            startButton.textContent = waitingForBootloader ? 'Chọn thiết bị DFU và cập nhật' : 'Thử lại';
+            startButton.textContent = waitingForBootloader ? 'Chọn DFUTAG và cập nhật' : 'Thử lại';
         } finally {
             setBusy(false);
         }
@@ -6530,5 +6836,6 @@ function toggleSwitch(e) {
 </script>
 <script src="countdown-nrf52.js"></script>
 <script src="countdown-da14585.js"></script>
+<script src="led-effects.js"></script>
 </body>
 </html>
