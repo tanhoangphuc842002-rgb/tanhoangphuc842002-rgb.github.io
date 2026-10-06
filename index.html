@@ -990,6 +990,10 @@
                 "Sleep from": "Bắt đầu nghỉ",
                 "Wake at": "Hoạt động lại",
                 "Save and enable": "Lưu và bật hẹn giờ",
+                "Confirm daily screen schedule?": "Xác nhận hẹn giờ màn hình mỗi ngày?",
+                "Screen stops refreshing at:": "Giờ tắt (ngừng làm mới):",
+                "Screen resumes at:": "Giờ bật (hoạt động lại):",
+                "Choose OK to save, or Cancel to leave the schedule unchanged.": "Bấm OK để lưu, hoặc Huỷ để giữ nguyên hẹn giờ hiện tại.",
                 "Disable schedule": "Tắt hẹn giờ",
                 "Sleep schedule has not been read yet.": "Chưa đọc trạng thái hẹn giờ từ thiết bị.",
                 "Connect the device before changing the sleep schedule.": "Hãy kết nối thiết bị trước khi thay đổi hẹn giờ ngủ.",
@@ -4346,6 +4350,18 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                 updateSleepScheduleStatus(message, 'error');
                 addLog(message);
                 return;
+            }
+
+            if (enabled) {
+                const formatTime = time => `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}`;
+                const confirmation = [
+                    t('Confirm daily screen schedule?'),
+                    `${t('Screen stops refreshing at:')} ${formatTime(start)}`,
+                    `${t('Screen resumes at:')} ${formatTime(end)}`,
+                    '',
+                    t('Choose OK to save, or Cancel to leave the schedule unchanged.')
+                ].join('\n');
+                if (!window.confirm(confirmation)) return;
             }
 
             sleepOperationBusy = true;
