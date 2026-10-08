@@ -6405,10 +6405,22 @@ document.querySelectorAll('.tab-button').forEach(function(btn) {
                         ctx.fillText(String(d), 446 + col * 53, 158 + row * 51);
                     }
 
-                    ctx.fillStyle = '#a51f2b'; ctx.font = 'bold 36px "Times New Roman"';
-                    ctx.fillText('CÒN', 335, 95);
+                    // Keep NGÀY fixed and anchor the number above it. Position
+                    // CÒN from the measured number height for each digit count.
+                    ctx.textBaseline = 'alphabetic';
                     ctx.font = `bold ${remaining > 999 ? 57 : remaining > 99 ? 72 : 92}px monospace`;
-                    ctx.fillText(String(remaining), 335, 220, 140);
+                    const numberMetrics = ctx.measureText(String(remaining));
+                    const numberAscent = numberMetrics.actualBoundingBoxAscent;
+                    const numberDescent = numberMetrics.actualBoundingBoxDescent;
+                    const numberBaseline = 279 - numberDescent;
+                    const numberTop = numberBaseline - numberAscent;
+                    ctx.fillStyle = '#111'; ctx.font = 'bold 36px "Times New Roman"';
+                    const headingDescent = ctx.measureText('CÒN').actualBoundingBoxDescent;
+                    ctx.fillText('CÒN', 335, numberTop - 10 - headingDescent);
+                    ctx.fillStyle = '#a51f2b';
+                    ctx.font = `bold ${remaining > 999 ? 57 : remaining > 99 ? 72 : 92}px monospace`;
+                    ctx.fillText(String(remaining), 335, numberBaseline, 140);
+                    ctx.textBaseline = 'middle';
                     ctx.fillStyle = '#111'; ctx.font = 'bold 36px "Times New Roman"';
                     ctx.fillText('NGÀY', 335, 315);
                     ctx.font = 'bold 17px Arial'; ctx.fillText(targetText, 335, 362);
