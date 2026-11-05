@@ -2,7 +2,6 @@
 (() => {
     'use strict';
     const $ = id => document.getElementById(id);
-    const storedVersions = [61,65,66,67,127,128,129,130,131,132,135,136,137,138,139,140,141,142,143,144,145,146,147,148,157,158,167,168,170,171,172,173,176,177,183,184,187,188,191,192,195,196,149,150,151,152,153,154,155,156,159,160,161,162,163,164,165,166,174,175,178,179,180,181,182,185,186,189,190,193,194,232,233,234,235,236,237,238,239,242,243,244,241,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261];
 const identities = {58:0x10,60:0x10,61:0x10,65:0x20,66:0x40,67:0x80,127:0x20,128:0x20,129:0x20,130:0x20,131:0x20,132:0x40,135:0x10,136:0x80,137:0x20,138:0x40,139:0x20,140:0x40,141:0x20,142:0x40,143:0x20,144:0x40,145:0x10,146:0x80,147:0x10,148:0x80,157:0x10,158:0x80,167:0x10,168:0x80,170:0x10,171:0x80,172:0x10,173:0x80,176:0x10,177:0x80,149:0x20,150:0x40,151:0x20,152:0x40,153:0x20,154:0x40,155:0x20,156:0x40,159:0x20,160:0x40,161:0x20,162:0x40,163:0x20,164:0x40,165:0x20,166:0x40,174:0x20,175:0x40,178:0x20,179:0x20,180:0x20,181:0x20,182:0x40,183:0x10,184:0x80,185:0x20,186:0x40,187:0x10,188:0x80,189:0x20,190:0x40,191:0x10,192:0x80,193:0x20,194:0x40,195:0x10,196:0x80,197:0x20,198:0x40,232:0x20,236:0x20,242:0x20,246:0x20,250:0x20,233:0x40,237:0x40,243:0x40,247:0x40,251:0x40,234:0x10,238:0x10,244:0x10,248:0x10,252:0x10,235:0x80,239:0x80,241:0x80,245:0x80,249:0x80,253:0x80};
     const modelNames = {61:'CE 2.9',65:'CE 2.13',66:'no CE 2.13',67:'no CE 2.9'};
     const buttons = Array.from(document.querySelectorAll('[data-led-mode]'));
@@ -15,9 +14,10 @@ const identities = {58:0x10,60:0x10,61:0x10,65:0x20,66:0x40,67:0x80,127:0x20,128
         target.scrollTop = target.scrollHeight;
     }
     function controls() {
-        const bootDisabled = busy || !ready || !(features & 4) || !storedVersions.includes(nrf52FirmwareVersion);
+        // requireDevice and the probe validate identity; feature bits describe supported commands.
+        const bootDisabled = busy || !ready || !(features & 4);
         ['led-boot-color','led-boot-preview','led-boot-save'].forEach(id => {$(id).disabled = bootDisabled;});
-        const hourDisabled = busy || !ready || !(features & 8) || !storedVersions.includes(nrf52FirmwareVersion);
+        const hourDisabled = busy || !ready || !(features & 8);
         ['led-hour-enabled','led-hour-color','led-hour-save'].forEach(id => {$(id).disabled = hourDisabled;});
         $('led-probe').disabled = busy;
         $('led-stop').disabled = busy || !ready;
@@ -121,14 +121,14 @@ const identities = {58:0x10,60:0x10,61:0x10,65:0x20,66:0x40,67:0x80,127:0x20,128
                 (features & 1) ? 'Đồng hồ hỗ trợ tối đa 2 nhóm màu. Chọn một nhóm hoặc luân phiên A → B.' :
                 'Đồng hồ hỗ trợ SOS và cảnh sát; chưa hỗ trợ tự chỉnh màu.');
             log(`Đã kiểm tra đèn; tự chỉnh màu: ${(features & 1) ? 'có' : 'chưa hỗ trợ'}.`);
-            if ((features & 4) && storedVersions.includes(nrf52FirmwareVersion)) {
+            if (features & 4) {
                 try {
                     const saved = await waitForBootSave();
                     $('led-boot-color').value = String(saved.pin);
                     $('led-boot-status').textContent = `Màu đang lưu: ${bootName(saved.pin)}.`;
                 } catch (error) { $('led-boot-status').textContent = error.message; }
             } else $('led-boot-status').textContent = 'Đồng hồ chưa hỗ trợ lưu màu đèn báo. Bạn vẫn có thể dùng các hiệu ứng đang có.';
-            if ((features & 8) && storedVersions.includes(nrf52FirmwareVersion)) {
+            if (features & 8) {
                 try {
                     const saved = await waitForHourSave();
                     $('led-hour-enabled').checked = !!(saved.value & 0x80);
@@ -184,7 +184,7 @@ const identities = {58:0x10,60:0x10,61:0x10,65:0x20,66:0x40,67:0x80,127:0x20,128
         const ownEpoch = epoch;
         busy = true; controls();
         try {
-            if (!ready || !(features & 4) || !storedVersions.includes(nrf52FirmwareVersion))
+            if (!ready || !(features & 4))
                 throw new Error('Hãy kiểm tra hỗ trợ đèn trước. Nếu không hỗ trợ lưu màu, bạn vẫn có thể dùng các hiệu ứng khác.');
             const pin = Number($('led-boot-color').value);
             if (![16,17,18].includes(pin)) throw new Error('Màu không hợp lệ.');
@@ -222,7 +222,7 @@ const identities = {58:0x10,60:0x10,61:0x10,65:0x20,66:0x40,67:0x80,127:0x20,128
         const ownEpoch = epoch;
         busy = true; controls();
         try {
-            if (!ready || !(features & 8) || !storedVersions.includes(nrf52FirmwareVersion))
+            if (!ready || !(features & 8))
                 throw new Error('Hãy kiểm tra hỗ trợ đèn trước. Chức năng báo đầu giờ chỉ dùng được khi đồng hồ hỗ trợ.');
             const pin = Number($('led-hour-color').value);
             if (![16,17,18].includes(pin)) throw new Error('Màu không hợp lệ.');
