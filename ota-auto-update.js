@@ -49,7 +49,7 @@ if(typeof deviceProtocol==='undefined'||deviceProtocol!==PROTOCOL_NRF52||!gattSe
    const matches=cat.products.filter(p=>p.id===identity.id);if(matches.length!==1)throw Error('Chưa có bản tự động cho loại đồng hồ này. Hãy dùng file được cung cấp.');
    const p=matches[0],model={ce213:0x0211,noce213:0x0212,ce290:0x0291,noce290:0x0292}[identity.id];
    if(p.model!==model||p.resource_profile!==identity.profile||!Number.isInteger(p.version)||p.version<1||p.version>4294967295||!/^updates\/[a-zA-Z0-9_.-]+\.zip$/.test(p.url)||!/^[0-9a-f]{64}$/.test(p.sha256))throw Error('Thông tin gói cập nhật không phù hợp.');
-   if(identity.version>=p.version){say('Phần mềm đã có bản mới nhất trong trang này. Nếu đồng hồ hiện NO DATA, bấm Khôi phục đồng hồ bên dưới.');return;}
+   if(identity.version>=p.version){say('Phần mềm đã có bản mới nhất trong trang này (đồng hồ: '+identity.version+'; danh mục: '+p.version+'). Nếu đồng hồ hiện NO DATA, bấm Khôi phục đồng hồ bên dưới.');return;}
    const bytes=await read(new URL(p.url,base)),digest=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
    if([...digest].map(v=>v.toString(16).padStart(2,'0')).join('')!==p.sha256)throw Error('Gói tải xuống chưa đầy đủ hoặc đã bị thay đổi.');
    const now=current();if(!now||now.id!==identity.id||now.device!==identity.device)throw Error('Thiết bị đã đổi. Kết nối lại đúng đồng hồ và kiểm tra lần nữa.');

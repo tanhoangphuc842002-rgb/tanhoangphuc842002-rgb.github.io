@@ -100,7 +100,18 @@ function status(s){$('vn-status').textContent=s;}
 function setupStatus(s){$('vn-setup-status').textContent=s;if(typeof addLog==='function')addLog('Cài đặt đồng hồ: '+s);}
 function progress(value){$(setupWork?'vn-setup-progress':'vn-progress').value=value;if(languageTask&&languagePhase==='write')languageProgress('write',value);progressCallback?.(value);}
 function deviceKey(){return typeof bleDevice!=='undefined'&&bleDevice?.id?bleDevice.id:bound;}
-function connection(){if(!resourceProfile()||!epdCharacteristic||!gattServer?.connected)throw Error('Hãy kết nối đồng hồ hỗ trợ tiếng Việt và việc cần làm. Đồng hồ này hiện chưa hỗ trợ chức năng đó.');
+function connectionDetails(){
+ const v=typeof nrf52FirmwareVersion==='undefined'?'?':nrf52FirmwareVersion;
+ const p=typeof nrf52PanelProfile==='undefined'||nrf52PanelProfile==null?'?':nrf52PanelProfile;
+ const m=typeof nrf52ModelId==='undefined'?'?':nrf52ModelId;
+ const d=typeof nrf52ModelDetected!=='undefined'&&nrf52ModelDetected?1:0;
+ const b=typeof gattServer!=='undefined'&&gattServer?.connected?1:0;
+ const c=typeof epdCharacteristic!=='undefined'&&epdCharacteristic?1:0;
+ const n=typeof deviceProtocol!=='undefined'&&deviceProtocol===PROTOCOL_NRF52?1:0;
+ const r=typeof restoreVerifiedNrf52PanelProfile==='function'?1:0;
+ return 'Chi tiết CD6: v='+v+'; p='+p+'; m='+m+'; d='+d+'; b='+b+'; c='+c+'; n='+n+'; r='+r+'.';
+}
+function connection(){if(!resourceProfile()||!epdCharacteristic||!gattServer?.connected)throw Error('Hãy kết nối đồng hồ hỗ trợ tiếng Việt và việc cần làm. Đồng hồ này hiện chưa hỗ trợ chức năng đó. '+connectionDetails());
  bindTransportDevice();selectFont();
  if(bound!==epdCharacteristic){if(bound)bound.removeEventListener('characteristicvaluechanged',notify);bound=epdCharacteristic;bound.addEventListener('characteristicvaluechanged',notify);cap=null;render();}
  return bound;
