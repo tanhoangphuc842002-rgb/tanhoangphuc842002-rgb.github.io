@@ -6,6 +6,12 @@
  let busy=false,pending=null;
  function current(){
 if(typeof deviceProtocol==='undefined'||deviceProtocol!==PROTOCOL_NRF52||!gattServer?.connected)return null;
+  // The inspected signed OTA245 release is uniquely no CE 2.9 (model 0x0292).
+  // Never override an explicit panel marker or infer a shared/unknown version.
+  if(nrf52FirmwareVersion===245&&nrf52PanelProfile==null){
+   if(typeof nrf52ModelId!=='undefined'&&nrf52ModelId!==2)return null;
+   return {id:'noce290',profile:0x29,device:bleDevice?.id,version:245};
+  }
   let id=null;
   if(nrf52PanelProfile===0x21){
    const ce=[127,128,129,130,131,137,139,141,143,149,151,153,155,159,161,163,165,174,178,179,180,181,185,189,193,197,199,203,205,209,213,217,219,223,227,228,232,236,242,246,250,254,256,257,258,259,260,261],nc=[132,138,140,142,144,150,152,154,156,160,162,164,166,175,182,186,190,194,198,200,204,206,210,214,218,220,224,229,233,237,243,247,251,255,256,257,258,259,260,261];
@@ -18,6 +24,14 @@ if(typeof deviceProtocol==='undefined'||deviceProtocol!==PROTOCOL_NRF52||!gattSe
   return id?{id,profile:nrf52PanelProfile,device:bleDevice?.id,version:nrf52FirmwareVersion}:null;
  }
  const say=s=>{note.textContent=s;};
+ function unrecognizedMessage(){
+  if(typeof deviceProtocol==='undefined'||deviceProtocol!==PROTOCOL_NRF52||!gattServer?.connected)
+   return 'Kết nối đồng hồ 2.13 hoặc 2.9 CE/no CE để kiểm tra. Với 7.5 Original-VI, kết nối trong Đồng hồ 7.5 rồi mở mục cập nhật từ đó. Đồng hồ đời cũ vẫn dùng mục chọn file bên dưới.';
+  const version=typeof nrf52FirmwareVersion==='number'&&Number.isInteger(nrf52FirmwareVersion)&&nrf52FirmwareVersion>0?nrf52FirmwareVersion:'chưa đọc được';
+  const profile=typeof nrf52PanelProfile==='number'&&Number.isInteger(nrf52PanelProfile)?'0x'+nrf52PanelProfile.toString(16).toUpperCase():'chưa nhận được';
+  const panel=nrf52PanelProfile===0x21?'2.13':nrf52PanelProfile===0x29?'2.9':'chưa xác định';
+  return 'Bluetooth đã kết nối nhưng web chưa xác định được đúng gói OTA. Thông tin kiểm tra: firmware '+version+'; màn '+panel+'; mã màn '+profile+'. Hãy gửi nguyên thông báo này cho hỗ trợ. Chưa chọn hoặc gửi firmware; thiết bị đời cũ có thể cần file OTA riêng.';
+ }
  async function read(url){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
   try{const r=await fetch(url,{cache:'no-store',signal:controller.signal});if(!r.ok)throw Error('Không tải được gói cập nhật.');return await r.arrayBuffer();}
@@ -25,7 +39,7 @@ if(typeof deviceProtocol==='undefined'||deviceProtocol!==PROTOCOL_NRF52||!gattSe
  }
  async function prepare(){
   if(busy||window.EpdDfuBusy?.()||window.VNDataBusy?.()||window.countdownOperationBusy)return;
-  const identity=current();if(!identity){if(!gattServer?.connected&&window.Original75Auto?.identity())return window.Original75Auto.prepare();say('Kết nối đồng hồ 2.13 hoặc 2.9 CE/no CE để kiểm tra. Với 7.5 Original-VI, kết nối trong Đồng hồ 7.5 rồi mở mục cập nhật từ đó. Đồng hồ đời cũ vẫn dùng mục chọn file bên dưới.');return;}
+  const identity=current();if(!identity){if(!gattServer?.connected&&window.Original75Auto?.identity())return window.Original75Auto.prepare();say(unrecognizedMessage());return;}
   busy=true;check.disabled=true;pending=null;
   for(const id of ['dfu-file','dfu-start-button','dfu-new-device-button']){const el=document.getElementById(id);if(el)el.disabled=true;}
   try{
