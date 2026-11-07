@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "model": "original-vi-75",
-  "label": "Đồng hồ 7.5 v5.34",
-  "application_version": 43,
-  "app_abi": 102,
+  "label": "Đồng hồ 7.5 v5.35",
+  "application_version": 44,
+  "app_abi": 103,
   "encrypted": true,
   "model_id": 1874,
-  "url": "updates75/EPD75-original-VI-v5.34-encrypted-ota.zip",
-  "sha256": "7f77c023b68f09f1d514daba3c176d4d10bff78b5bca70a5e2a6a566cd9e5afa"
+  "url": "updates75/EPD75-original-VI-v5.35-encrypted-ota.zip",
+  "sha256": "6d7bc64aab15ec25a469114608e645c245a3f505729c2d0c2206cc0f3fbb36f5"
 }
