@@ -25,7 +25,7 @@ function preview(){const n=Number($('calendar-face-select').value),row=rows[n];i
 function refresh(){
  const d=device(),key=d?.key||'preview-only';$('calendar-face-controls').hidden=false;
  if(versionKey!==key){versionKey=key;$('calendar-face-select').replaceChildren();rows.forEach((r,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=r.name;$('calendar-face-select').append(o);});const n=d?rows.findIndex(r=>r.modes[d.big?1:0]===nrf52DisplayMode):0;$('calendar-face-select').value=String(n<0?0:n);$('calendar-face-status').textContent=d?'Chọn mẫu rồi bấm Hiển thị lịch trên đồng hồ.':'Chỉ xem minh họa. Kết nối đồng hồ tương thích để áp dụng.';preview();}
- $('calendar-face-availability').textContent=d?'Đã nhận diện đồng hồ '+(d.big?'2.9':'2.13')+' inch. Ảnh là mẫu minh họa dùng chung; ngày tháng thực tế theo đồng hồ.':typeof gattServer==='undefined'||!gattServer?.connected?'Bạn có thể xem mẫu trước khi kết nối đồng hồ.':'Đồng hồ này vẫn dùng nút Chuyển sang chế độ lịch phía trên. Cập nhật phần mềm có hỗ trợ để chọn trực tiếp.';
+ $('calendar-face-availability').textContent=d?'Đã nhận diện đồng hồ '+(d.big?'2.9':'2.13')+' inch. Ảnh là mẫu minh họa dùng chung; ngày tháng thực tế theo đồng hồ.':typeof gattServer==='undefined'||!gattServer?.connected?'Bạn có thể xem mẫu trước khi kết nối đồng hồ.':'Đồng hồ này vẫn dùng nút Lịch tháng phía trên. Cập nhật phần mềm có hỗ trợ để chọn trực tiếp.';
  $('calendar-face-select').disabled=busy||blocked();$('calendar-face-apply').disabled=!d||busy||blocked();
 }
 async function apply(){

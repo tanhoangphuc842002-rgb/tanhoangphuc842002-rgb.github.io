@@ -121,7 +121,7 @@ window.EpdWebsiteEnglish=Object.assign(window.EpdWebsiteEnglish||{},{
   "Lịch âm": "Lunar calendar",
   "Bảng ngày âm lịch; số tháng lớn màu đen, năm màu đỏ và ngày dương lịch bên dưới.": "Lunar dates with a large black month number, red year and solar date below.",
   "— hình minh họa": "— preview",
-  "Đồng hồ này vẫn dùng nút Chuyển sang chế độ lịch phía trên. Cập nhật phần mềm có hỗ trợ để chọn trực tiếp.": "Use Switch to Calendar Mode above on this clock. Update to supported software for direct selection.",
+  "Đồng hồ này vẫn dùng nút Lịch tháng phía trên. Cập nhật phần mềm có hỗ trợ để chọn trực tiếp.": "Use Monthly calendar above on this clock. Update to supported software for direct selection.",
   "Chọn mẫu rồi bấm Hiển thị lịch trên đồng hồ.": "Choose a face, then press Show calendar on clock.",
   "Đã nhận diện đồng hồ": "Detected a",
   "inch. Ảnh là mẫu minh họa dùng chung; ngày tháng thực tế theo đồng hồ.": "inch clock. Images are shared previews; actual dates follow the clock.",

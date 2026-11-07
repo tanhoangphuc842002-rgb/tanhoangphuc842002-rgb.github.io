@@ -996,13 +996,13 @@
         </select>
     </div>
 
-    <script src="website-en-1.js?v=v62.19"></script>
-    <script src="website-en-2.js?v=v62.19"></script>
-    <script src="website-en-3.js?v=v62.19"></script>
-    <script src="website-en-clock-album.js?v=v62.19"></script>
-    <script src="website-i18n.js?v=v62.19"></script>
-    <script src="clock-image-processing.js?v=v62.19"></script>
-    <script src="shared-battery.js?v=v62.19"></script>
+    <script src="website-en-1.js?v=v62.20"></script>
+    <script src="website-en-2.js?v=v62.20"></script>
+    <script src="website-en-3.js?v=v62.20"></script>
+    <script src="website-en-clock-album.js?v=v62.20"></script>
+    <script src="website-i18n.js?v=v62.20"></script>
+    <script src="clock-image-processing.js?v=v62.20"></script>
+    <script src="shared-battery.js?v=v62.20"></script>
     <script>
         const APP_TRANSLATIONS = {
             vi: {
@@ -1026,7 +1026,7 @@
                 "Device: not connected": "Thiết bị: chưa kết nối",
                 "Set Time:": "Cài giờ:",
                 "Switch to Clock Mode": "Chuyển sang chế độ đồng hồ",
-                "Switch to Calendar Mode": "Chuyển sang chế độ lịch",
+                "Monthly calendar": "Lịch tháng",
                 "Toggle Clock Color": "Đổi màu đồng hồ",
                 "Set Image Mode": "Chuyển sang chế độ ảnh",
                 "Toggle B&W Color Inversion": "Đảo màu đen/trắng",
@@ -1210,7 +1210,7 @@
                 "Apply Template & Go to Transfer": "Áp dụng mẫu & sang phần truyền ảnh",
                 "Log:": "Nhật ký:",
                 "Click again to toggle clock faces on nRF52": "Bấm lại để đổi mặt đồng hồ trên nRF52",
-                "Click to switch to calendar mode": "Bấm để chuyển sang chế độ lịch",
+                "Click to switch to calendar mode": "Hiển thị lịch tháng",
                 "Click to toggle clock color": "Bấm để đổi màu đồng hồ",
                 "DA14585 restores image mode; nRF52 opens Image Transfer for a new upload": "DA14585 khôi phục chế độ ảnh; nRF52 mở phần truyền ảnh để tải ảnh mới",
                 "Click to set inverse color mode": "Bấm để bật/tắt chế độ đảo màu",
@@ -1350,7 +1350,7 @@
 
         <div class="button-group">
             <button type="button" onclick="switchDisplayMode(2)" title="Click again to toggle clock faces on nRF52">Switch to Clock Mode</button>
-            <button type="button" onclick="switchDisplayMode(1)" title="Click to switch to calendar mode">Switch to Calendar Mode</button>
+            <button type="button" onclick="switchDisplayMode(1)" title="Click to switch to calendar mode">Monthly calendar</button>
         </div>
 
         <section id="clock-face-panel" style="padding:16px;border:1px solid #d6dfd7;border-radius:10px;margin:16px 0" aria-labelledby="clock-face-title">
@@ -1402,7 +1402,7 @@
       <style>#daily-quote-controls label{display:block;margin:10px 0 4px}#daily-quote-controls input[type=checkbox]{min-height:0;display:inline-block}#daily-quote-controls button{margin:5px 0}.quote-source-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}.quote-source-choices button[aria-pressed=true]{outline:3px solid #235c32;outline-offset:1px}.quote-source-choices button:disabled{background:#c5cbd0;color:#42494d;cursor:not-allowed}#daily-quote-editor{padding:12px;border:1px solid #d4dfd9;border-radius:8px;background:#f6faf7}</style>
 
         <p>Bạn vẫn có thể bấm Chế độ đồng hồ để chuyển lần lượt các giao diện.</p>
-        <p>Bấm Chế độ lịch lần nữa để chuyển sang mặt lịch tiếp theo.</p>
+        <p>Bấm Lịch tháng lần nữa để chuyển sang mặt lịch tiếp theo.</p>
         <section class="sleep-panel" aria-labelledby="sleep-panel-title">
             <h3 id="sleep-panel-title">Screen sleep schedule</h3>
             <p>The clock keeps running, but the display stops refreshing during this period.</p>
@@ -7030,39 +7030,39 @@ function toggleSwitch(e) {
 
 
 </script>
-<script src="crc32.min.js?v=v62.19"></script>
-<script src="jszip.min.js?v=v62.19"></script>
-<script src="secure-dfu-package.js?v=v62.19"></script>
-<script src="secure-dfu.js?v=v62.19"></script>
-<script src="ota-verifier.js?v=v62.19"></script>
-<script src="ota-dual-update.js?v=v62.19"></script>
-<script src="update-entry.js?v=v62.19"></script>
-<script src="ota-original75.js?v=v62.19"></script>
-<script src="ota-auto-update.js?v=v62.19"></script>
-<script src="countdown-nrf52.js?v=v62.19"></script>
-<script src="countdown-da14585.js?v=v62.19"></script>
-<script src="led-effects.js?v=v62.19"></script>
-<script src="ble-write-queue.js?v=v62.19"></script>
-<script src="vn-font-data.js?v=v62.19"></script>
-<script src="face5-font-data.js?v=v62.19"></script>
-    <script src="face5-sans-centered-data.js?v=v62.19"></script>
-    <script src="face23-sans22-data.js?v=v62.19"></script>
-    <script src="face4-sans36-data.js?v=v62.19"></script><script src="face6-flip-data.js?v=v62.19"></script><script src="face6-dark-top-data.js?v=v62.19"></script><script src="face6-freesans-white-data.js?v=v62.19"></script><script src="face6-white-213-data.js?v=v62.19"></script><script src="face1-retro-213-data.js?v=v62.19"></script><script src="face1-retro-290-data.js?v=v62.19"></script><script src="face6-white-290-data.js?v=v62.19"></script><script src="face6-290-data.js?v=v62.19"></script>
-    <script src="sans290-data.js?v=v62.19"></script><script src="sans290-classic-data.js?v=v62.19"></script><script src="sans290-bold42-data.js?v=v62.19"></script>
-    <script src="language-290-resources-data.js?v=v62.19"></script>
-<script src="language-resources-data.js?v=v62.19"></script>
-<script src="rounded-clock-font-data.js?v=v62.19"></script><script src="art-clock-font-data.js?v=v62.19"></script>
-<script src="vn-operation.js?v=v62.19"></script><script src="todo-schedule-codec.js?v=v62.19"></script><script src="cartoon-clock-font-data.js?v=v62.19"></script><script src="portrait-clock-font-data.js?v=v62.19"></script><script src="personal-clock-font-data.js?v=v62.19"></script><script src="reminder-portrait-font-data.js?v=v62.19"></script><script src="big-clock-portrait-font-data.js?v=v62.19"></script><script src="portrait-calendar-font-data.js?v=v62.19"></script><script src="portrait-reference-font-data.js?v=v62.19"></script><script src="portrait-inner-border-font-data.js?v=v62.19"></script><script src="four-portrait-calendar-font-data.js?v=v62.19"></script><script src="vn-todo.js?v=v62.19"></script><script src="date-marks.js?v=v62.19"></script><script src="daily-quotes-data.js?v=v62.19"></script><script src="calendar-month-213-data.js?v=v62.19"></script><script src="calendar-month-290-data.js?v=v62.19"></script><script src="outline-213-data.js?v=v62.19"></script><script src="outline-290-data.js?v=v62.19"></script><script src="serif-213-data.js?v=v62.19"></script><script src="serif-290-data.js?v=v62.19"></script><script src="daily-quotes.js?v=v62.19"></script><script src="daily-quote-panel.js?v=v62.19"></script>
-<script src="photo-album.js?v=v62.19"></script>
-<script src="clock-image-album.js?v=v62.19"></script>
-<script src="art-clock.js?v=v62.19"></script>
-<script src="art-clock-name.js?v=v62.19"></script>
-<script src="clock-face-picker.js?v=v62.19"></script>
-<script src="calendar-face-picker.js?v=v62.19"></script>
-<script src="event-clock-data.js?v=v62.19"></script>
-<script src="event-clock-290-data.js?v=v62.19"></script>
+<script src="crc32.min.js?v=v62.20"></script>
+<script src="jszip.min.js?v=v62.20"></script>
+<script src="secure-dfu-package.js?v=v62.20"></script>
+<script src="secure-dfu.js?v=v62.20"></script>
+<script src="ota-verifier.js?v=v62.20"></script>
+<script src="ota-dual-update.js?v=v62.20"></script>
+<script src="update-entry.js?v=v62.20"></script>
+<script src="ota-original75.js?v=v62.20"></script>
+<script src="ota-auto-update.js?v=v62.20"></script>
+<script src="countdown-nrf52.js?v=v62.20"></script>
+<script src="countdown-da14585.js?v=v62.20"></script>
+<script src="led-effects.js?v=v62.20"></script>
+<script src="ble-write-queue.js?v=v62.20"></script>
+<script src="vn-font-data.js?v=v62.20"></script>
+<script src="face5-font-data.js?v=v62.20"></script>
+    <script src="face5-sans-centered-data.js?v=v62.20"></script>
+    <script src="face23-sans22-data.js?v=v62.20"></script>
+    <script src="face4-sans36-data.js?v=v62.20"></script><script src="face6-flip-data.js?v=v62.20"></script><script src="face6-dark-top-data.js?v=v62.20"></script><script src="face6-freesans-white-data.js?v=v62.20"></script><script src="face6-white-213-data.js?v=v62.20"></script><script src="face1-retro-213-data.js?v=v62.20"></script><script src="face1-retro-290-data.js?v=v62.20"></script><script src="face6-white-290-data.js?v=v62.20"></script><script src="face6-290-data.js?v=v62.20"></script>
+    <script src="sans290-data.js?v=v62.20"></script><script src="sans290-classic-data.js?v=v62.20"></script><script src="sans290-bold42-data.js?v=v62.20"></script>
+    <script src="language-290-resources-data.js?v=v62.20"></script>
+<script src="language-resources-data.js?v=v62.20"></script>
+<script src="rounded-clock-font-data.js?v=v62.20"></script><script src="art-clock-font-data.js?v=v62.20"></script>
+<script src="vn-operation.js?v=v62.20"></script><script src="todo-schedule-codec.js?v=v62.20"></script><script src="cartoon-clock-font-data.js?v=v62.20"></script><script src="portrait-clock-font-data.js?v=v62.20"></script><script src="personal-clock-font-data.js?v=v62.20"></script><script src="reminder-portrait-font-data.js?v=v62.20"></script><script src="big-clock-portrait-font-data.js?v=v62.20"></script><script src="portrait-calendar-font-data.js?v=v62.20"></script><script src="portrait-reference-font-data.js?v=v62.20"></script><script src="portrait-inner-border-font-data.js?v=v62.20"></script><script src="four-portrait-calendar-font-data.js?v=v62.20"></script><script src="vn-todo.js?v=v62.20"></script><script src="date-marks.js?v=v62.20"></script><script src="daily-quotes-data.js?v=v62.20"></script><script src="calendar-month-213-data.js?v=v62.20"></script><script src="calendar-month-290-data.js?v=v62.20"></script><script src="outline-213-data.js?v=v62.20"></script><script src="outline-290-data.js?v=v62.20"></script><script src="serif-213-data.js?v=v62.20"></script><script src="serif-290-data.js?v=v62.20"></script><script src="daily-quotes.js?v=v62.20"></script><script src="daily-quote-panel.js?v=v62.20"></script>
+<script src="photo-album.js?v=v62.20"></script>
+<script src="clock-image-album.js?v=v62.20"></script>
+<script src="art-clock.js?v=v62.20"></script>
+<script src="art-clock-name.js?v=v62.20"></script>
+<script src="clock-face-picker.js?v=v62.20"></script>
+<script src="calendar-face-picker.js?v=v62.20"></script>
+<script src="event-clock-data.js?v=v62.20"></script>
+<script src="event-clock-290-data.js?v=v62.20"></script>
 <!-- Unified clock setup is part of the normal settings panel. -->
 
-<script src="personal-calendar-ui.js?v=v62.19"></script>
+<script src="personal-calendar-ui.js?v=v62.20"></script>
 </body>
 </html>

@@ -40,7 +40,7 @@ window.EpdWebsiteEnglish=Object.assign(window.EpdWebsiteEnglish||{},{
   "Dừng lưu": "Stop saving",
   "Chọn nội dung muốn hiển thị.": "Choose what to display.",
   "Bạn vẫn có thể bấm Chế độ đồng hồ để chuyển lần lượt các giao diện.": "You can also press Clock Mode to cycle through the faces.",
-  "Bấm Chế độ lịch lần nữa để chuyển sang mặt lịch tiếp theo.": "Press Calendar Mode again to switch to the next calendar face.",
+  "Bấm Lịch tháng lần nữa để chuyển sang mặt lịch tiếp theo.": "Select Monthly calendar again to switch to the next calendar face.",
   "Bộ đếm ngược": "Countdown",
   "Ngày đích": "Target date",
   "Nội dung hiển thị": "Display content",

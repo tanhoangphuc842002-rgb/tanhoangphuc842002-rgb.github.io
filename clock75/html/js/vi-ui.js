@@ -979,7 +979,7 @@ Unicode 索引越界|Chỉ mục Unicode vượt giới hạn
 周四|Thứ Năm
 周五|Thứ Sáu
 周六|Thứ Bảy
-日历模式|Chế độ lịch
+日历模式|Lịch tháng
 全屏待办|Việc cần làm toàn màn
 全屏时钟|Đồng hồ toàn màn
 清除屏幕|Xóa màn hình

@@ -38,7 +38,7 @@
  }
  if(node){module.exports={verify,digest,proto};return;}
  const base=new URL('.',document.currentScript.src),$=id=>document.getElementById(id);let busy=false;
- function identity(){try{const h=JSON.parse(sessionStorage.getItem('epd_dfu_page_handoff')||'null');return h?.original75===true&&[0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67].includes(h.appVersion)&&/\/clock75\/html\/index\.html$/.test(h.fromUrl)&&Date.now()-h.createdAt>=-60000&&Date.now()-h.createdAt<1800000?h:null;}catch(_){return null;}}
+ function identity(){try{const h=JSON.parse(sessionStorage.getItem('epd_dfu_page_handoff')||'null');return h?.original75===true&&[0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67,0x68].includes(h.appVersion)&&/\/clock75\/html\/index\.html$/.test(h.fromUrl)&&Date.now()-h.createdAt>=-60000&&Date.now()-h.createdAt<1800000?h:null;}catch(_){return null;}}
  async function read(url){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);try{const r=await fetch(url,{cache:'no-store',signal:controller.signal});if(!r.ok)throw Error('Không tải được bản cập nhật.');return await r.arrayBuffer();}finally{clearTimeout(timer);}}
  async function prepare(){
   const h=identity();if(!h||busy||root.EpdDfuBusy?.()||root.VNDataBusy?.()||root.countdownOperationBusy)return false;
@@ -47,7 +47,7 @@
   try{
    say('Đang kiểm tra cập nhật cho đồng hồ 7.5…');
    const p=JSON.parse(new TextDecoder().decode(await read(new URL('update-catalog-75.json',base))));
-   if(p.schema!==1||p.model!=='original-vi-75'||!Number.isInteger(p.application_version)||p.application_version<1||p.application_version>0xffffffff||p.app_abi!==0x67||p.encrypted!==true||p.model_id!==0x0752||!/^updates75\/[a-zA-Z0-9_.-]+\.zip$/.test(p.url)||!/^[0-9a-f]{64}$/.test(p.sha256))throw Error('Thông tin cập nhật 7.5 không hợp lệ.');
+   if(p.schema!==1||p.model!=='original-vi-75'||!Number.isInteger(p.application_version)||p.application_version<1||p.application_version>0xffffffff||p.app_abi!==0x68||p.encrypted!==true||p.model_id!==0x0752||!/^updates75\/[a-zA-Z0-9_.-]+\.zip$/.test(p.url)||!/^[0-9a-f]{64}$/.test(p.sha256))throw Error('Thông tin cập nhật 7.5 không hợp lệ.');
    if(h.appVersion<0x5F){say('Bản phần mềm mới cần nạp full HEX bằng dây một lần. Sau đó đồng hồ có thể cập nhật OTA trên web.');return true;}
    if(h.appVersion===p.app_abi){say('Đồng hồ 7.5 đã có bản mới nhất trong trang này.');return true;}
    const bytes=await read(new URL(p.url,base));if(await digest(bytes)!==p.sha256)throw Error('File tải thiếu hoặc đã bị thay đổi.');await verify(bytes,p);
