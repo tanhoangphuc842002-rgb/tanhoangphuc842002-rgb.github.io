@@ -11,6 +11,11 @@
 	<link rel="stylesheet" href="css/main.css?v=dd1e17c9edad">
 	<link rel="stylesheet" href="css/photo-clock.css?v=c93d1131ddf5">
 	<link rel="stylesheet" href="css/album75.css?v=787bbd590473">
+    <style>
+      #sleep75Panel .external-resource-actions label {display:flex;align-items:center;gap:8px;}
+      #sleep75Panel input[type="time"] {font:inherit;min-height:42px;min-width:125px;padding:8px 10px;border:1px solid #dbe4f0;border-radius:8px;background:transparent;color:inherit;}
+      #sleep75Panel input:disabled {opacity:.6;}
+    </style>
 </head>
 
 <body>
@@ -495,6 +500,23 @@
 				<button id="externalResourceInstall" type="button" class="primary" onclick="ClockSetup.install()" disabled>Cài đặt đồng hồ</button>
 			</div>
 			<p class="dfu-hint">Chỉ cần cài lần đầu, hoặc khi muốn cập nhật dữ liệu và đổi kiểu chữ. Giữ kết nối và không tháo pin trong lúc cài.</p>
+
+            <div id="sleep75Panel" class="resource-panel" aria-labelledby="sleep75Heading">
+                <h3 id="sleep75Heading">Hẹn giờ ngủ</h3>
+                <p>Đặt khoảng giờ nghỉ hằng ngày. Màn hình giữ nguyên hình và ngừng tự làm mới; đến giờ thức, đồng hồ tự cập nhật lại. Giờ vẫn chạy và bạn vẫn có thể kết nối để điều khiển.</p>
+                <div class="external-resource-actions">
+                    <label for="sleep75Start">Ngủ từ <input id="sleep75Start" data-sleep75 type="time" step="60" value="23:00" disabled></label>
+                    <label for="sleep75End">Thức lúc <input id="sleep75End" data-sleep75 type="time" step="60" value="07:00" disabled></label>
+                </div>
+                <div class="external-resource-actions">
+                    <button id="sleep75Save" data-sleep75 type="button" class="primary" onclick="Sleep75.save(true)" disabled>Lưu và bật hẹn giờ</button>
+                    <button id="sleep75Disable" data-sleep75 type="button" class="secondary" onclick="Sleep75.save(false)" disabled>Tắt hẹn giờ</button>
+                    <button id="sleep75Read" data-sleep75 type="button" class="secondary" onclick="Sleep75.read()" disabled>Đọc hẹn giờ</button>
+                </div>
+                <p id="sleep75Status" role="status" aria-live="polite">Kết nối đồng hồ để đọc hẹn giờ đã lưu.</p>
+                <p id="sleep75Compatibility" class="section-note" hidden>Đồng hồ này cần cập nhật phần mềm để dùng hẹn giờ ngủ tại đây. Với dòng 7.5 đời cũ, dùng mục hẹn giờ ở trang chính.</p>
+                <p class="section-note">Hẹn giờ được lưu trong đồng hồ, không cần mở web mỗi ngày. Sau khi tháo pin, kết nối và đồng bộ giờ để lịch tiếp tục chạy đúng.</p>
+            </div>
 			<div id="software75Panel" class="resource-panel"><h3>Cập nhật phần mềm</h3><p>Kiểm tra bản mới, sau đó bấm Bắt đầu cập nhật. Khi đồng hồ chuyển sang chế độ cập nhật, chọn DfuTarg nếu trình duyệt yêu cầu.</p><div class="external-resource-actions"><button id="software75Check" type="button" class="primary" onclick="Software75.prepare()">Kiểm tra bản cập nhật</button><label class="secondary">Chọn tệp OTA riêng<input id="dfu-file" type="file" accept=".zip"></label></div><p id="software75Status" role="status">Kết nối đồng hồ để kiểm tra bản cập nhật.</p><p id="dfu-package-info">Chưa chọn gói cập nhật.</p><div class="external-resource-actions"><button id="dfu-start-button" type="button" class="primary" disabled>Bắt đầu cập nhật</button><button id="dfu-new-device-button" type="button" class="secondary" disabled>Chọn lại thiết bị</button><button id="dfu-clear-log-button" type="button" class="secondary">Xóa nhật ký cập nhật</button></div><progress id="dfu-progress" max="100" value="0" style="width:100%" aria-label="Tiến độ cập nhật phần mềm"></progress><p id="dfu-status" role="status"></p><details class="help-details"><summary>Nhật ký cập nhật</summary><textarea id="dfu-log" rows="8" readonly style="width:100%" aria-label="Nhật ký cập nhật"></textarea></details></div><details class="help-details"><summary>Sao lưu và hỗ trợ</summary>
 			<div class="external-resource-actions">
 				<label for="externalResourceFolder" class="external-resource-picker debug">Chọn thư mục dữ liệu<input id="externalResourceFolder" class="picker-input" type="file" accept=".ers" multiple webkitdirectory directory aria-label="Chọn thư mục dữ liệu "></label>
@@ -586,36 +608,36 @@
 	<script type="text/javascript" src="js/crop.js?v=c7bf55c8fe4d"></script>
 	<script type="text/javascript" src="js/ble_transfer.js?v=55dd6d40f70b"></script>
 	<script type="text/javascript" src="js/calendar_annotations.js?v=c9ec29c682a2"></script>
-	<script type="text/javascript" src="js/resource_store.js?v=34bd2c9f8fde"></script>
+	<script type="text/javascript" src="js/resource_store.js?v=d8c9bb41f8db"></script>
 	<script src="js/resource_archive.js?v=6c310d2889bf"></script>
 	<script type="text/javascript" src="js/resource_builder.js?v=e19aff783028"></script>
 	<script src="js/font_builder.js?v=95774db94378"></script>
 	<script src="js/font_sync.js?v=f2b1295e655e"></script>
 	<script src="js/todo_sync.js?v=200c4a7c1713"></script>
-	<script src="resources/bundled-projects.js?v=d4d0620f221a"></script>
+	<script src="resources/bundled-projects.js?v=f42b36a9657b"></script>
 	<script type="text/javascript" src="js/resource_installer.js?v=0d2626416351"></script>
 	<script src="js/todo_calendar.js?v=b464f53c57cb"></script>
 	<script type="text/javascript" src="js/resource_editor.js?v=205a65f1c5c7"></script>
-	<script src="js/clock_setup.js?v=03ce9674236d"></script>
+	<script src="js/clock_setup.js?v=03b4d463b792"></script>
 	<script src="js/countdown75.js?v=d04312ca801c"></script>
 	<script src="../../clock-image-processing.js?v=1dfa6f2e44a1"></script>
 	<script src="js/photo_editor.js?v=e08b354a8925"></script>
-	<script src="js/photo_clock.js?v=9d929f3a3ff4"></script>
+	<script src="js/photo_clock.js?v=ed2d93eaca87"></script>
 	<script type="text/javascript" src="js/console_ui.js?v=736a352dffbb"></script>
 	<script src="js/image_transfer_ui.js?v=148125bf18a5"></script>
-	<script type="text/javascript" src="js/main.js?v=69d1a7c0501a"></script>
+	<script type="text/javascript" src="js/main.js?v=229ced996ae5"></script>
 	<script src="js/image75_editor.js?v=4f915dac6a6d"></script>
 	<script src="js/photo_codec75.js?v=a729513a0d74"></script>
-	<script src="js/album75.js?v=786425523dde"></script>
-	<script src="js/year_calendar75.js?v=85f78441424e"></script>
-<script src="js/quote75.js?v=a9bf2be422fd"></script>
+	<script src="js/album75.js?v=b35fdc15e921"></script>
+	<script src="js/year_calendar75.js?v=a92e5b995f5e"></script>
+<script src="js/quote75.js?v=0ea781d08666"></script>
 <script src="resources/art-landscape-data.js?v=6870b321714a"></script>
 <script src="resources/art-gallery-data.js?v=63323e8bc229"></script>
-<script src="js/art_clock75.js?v=66a3e19c5258"></script>
+<script src="js/art_clock75.js?v=28fd29b56b22"></script>
  <script src="js/art_upload75.js?v=1274d04dff64"></script>
 <script src="resources/season-data.js?v=139d1a25f48d"></script>
-<script src="js/season75.js?v=67c135f25be9"></script><script src="js/season_upload75.js?v=8fc3d11cdf10"></script><script src="js/annotation_layout75.js?v=314d380acc8f"></script>
-<script src="js/rounded_clock75.js?v=9be3066121c4"></script>
-<script src="../../jszip.min.js?v=c17474cafc2b"></script><script src="../../crc32.min.js?v=a47784be3d27"></script><script src="../../secure-dfu.js?v=ca26e53fc1b0"></script><script src="../../secure-dfu-package.js?v=9cf2ec0abc62"></script><script src="../../ota-verifier.js?v=edc0b39eb891"></script><script src="../../ota-dual-update.js?v=2220215b8c9c"></script><script src="../../ota-original75.js?v=17cd7b8b085d"></script><script src="js/software75.js?v=1100439a4bd2"></script></body>
+<script src="js/season75.js?v=344afaf48ac5"></script><script src="js/season_upload75.js?v=8fc3d11cdf10"></script><script src="js/annotation_layout75.js?v=314d380acc8f"></script>
+<script src="js/rounded_clock75.js?v=592e785ab415"></script>
+<script src="../../jszip.min.js?v=c17474cafc2b"></script><script src="../../crc32.min.js?v=a47784be3d27"></script><script src="../../secure-dfu.js?v=ca26e53fc1b0"></script><script src="../../secure-dfu-package.js?v=9cf2ec0abc62"></script><script src="../../ota-verifier.js?v=edc0b39eb891"></script><script src="../../ota-dual-update.js?v=2220215b8c9c"></script><script src="../../ota-original75.js?v=6b238535346d"></script><script src="js/software75.js?v=83e9c5913034"></script></body>
 
 </html>

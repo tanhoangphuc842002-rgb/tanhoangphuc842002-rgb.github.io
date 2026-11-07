@@ -49,7 +49,7 @@
   function validateTarget(pack, partitions) {
     const p = pack.id === 1 ? { id: 1, type: 1, offset: 0, size: 4096 } : partitions.find(p => p.id === pack.id);
     if (!p) throw new Error('设备分区表中不存在目标分区，请先安装分区表');
-    if (p.type === 8 || p.id === 4) throw new Error('更新状态区和保留区不可上传');
+    if ((p.type === 8 && !(p.id===8 && p.offset===0x7c000 && p.size===0x4000 && pack.payload.length>=3860 && pack.payload.length<=16352 && [73,67,66,49,1,0,32,3,224,1,2,0,0,0,0,0].every((v,i)=>pack.payload[i]===v))) || p.id === 4) throw new Error('更新状态区和保留区不可上传');
     if (pack.payload.length > p.size - 32) throw new Error('资源包超出目标分区容量（含 32 字节包头）');
     if (pack.id === 1) parseTable(pack);
     return p;

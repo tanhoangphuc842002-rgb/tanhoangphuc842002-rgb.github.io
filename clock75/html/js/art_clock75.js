@@ -92,9 +92,31 @@
    records.push(row);
   }return {schema:1,web:'61.76',status,partitions:parts,records};
  }
- const api={asset,layout,ensure,hasSavedArtwork,keepOrInstall,diagnose,collectReport};if(node){module.exports=api;return;}
+ async function installIntegrated(){
+  if(typeof appVersion==='undefined'||appVersion!==0x65)throw Error('Hãy cập nhật phần mềm đồng hồ trước.');
+  const bytes=Uint8Array.from(atob(root.IntegratedClockData),c=>c.charCodeAt(0)),pack=store.parsePackage(bytes);
+  return root.ExternalResourceInstaller.countdownOperation(async(client,check,write)=>{
+   const parts=await client.partitions();check();const bank=parts.find(p=>p.id===8);
+   if(!bank||bank.offset!==0x7c000||bank.size!==0x4000)throw Error('Bấm Cài đặt đồng hồ để chuẩn bị dữ liệu trước.');
+   const info=await client.inspect(8);check();
+   if(!info.code&&info.length===pack.payload.length&&info.crc===pack.crc)return true;
+   if(info.code&&![1,3,4].includes(info.code))throw Error('Chưa đọc được tranh. Hãy kết nối lại.');
+   let entered=false;
+   try{
+    say('Đang lưu tranh cho đồng hồ lớn…');
+    for(let attempt=0;;attempt++){
+     check();try{await client.request(6,Uint8Array.of(77,73,71,49));entered=true;break;}
+     catch(e){if(e.code!==2||attempt>=59)throw e;await new Promise(resolve=>setTimeout(resolve,1000));}
+    }
+    check();write();await client.upload(bytes,(n,total,durable)=>{check();$('externalResourceProgress').value=(durable===undefined?n:durable)/total;},parts);check();
+    const actual=await client.inspect(8);check();if(actual.code||actual.length!==pack.payload.length||actual.crc!==pack.crc)throw Error('Chưa xác nhận được tranh đã lưu. Kết nối lại rồi thử lại.');
+    await client.leave();entered=false;check();say('Đồng hồ lớn đã sẵn sàng.');return true;
+   }finally{if(entered&&!client.closed){try{await client.request(5);await client.leave();}catch(_){}}}
+  });
+ }
+ const api={installIntegrated,asset,layout,ensure,hasSavedArtwork,keepOrInstall,diagnose,collectReport};if(node){module.exports=api;return;}
  const $=id=>document.getElementById(id);let busy=false,galleryPage=0,pickedId=null;const pageSize=6;
- function supported(){return typeof appVersion!=='undefined'&&[0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63].includes(appVersion)&&typeof gattServer!=='undefined'&&!!gattServer?.connected;}
+ function supported(){return typeof appVersion!=='undefined'&&[0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65].includes(appVersion)&&typeof gattServer!=='undefined'&&!!gattServer?.connected;}
  function controls(force=false){const locked=force||busy||!!root.DeviceOperations?.current,disabled=locked||!supported();$('art75Mode').disabled=disabled;if($('art75Report'))$('art75Report').disabled=disabled;
   for(const id of ['art75Save','art75Open','art75Place','art75SavePlace','art75ReadPlace'])if($(id))$(id).disabled=disabled;
   root.ArtUpload75?.controls(locked,!supported());
@@ -167,5 +189,5 @@
    const url=URL.createObjectURL(new Blob([JSON.stringify(report)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='epd75-font-check.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);say('Đã tạo epd75-font-check.json. Tệp chỉ có dữ liệu kiểm tra và font, không chứa nội dung công việc hoặc ngày đã đánh dấu.');
   }catch(e){say('Chưa đọc được tệp kiểm tra: '+e.message);}finally{busy=false;controls();}
  }
- root.ArtClock75={...api,installDefault,open,controls,downloadReport,saveSelected:()=>savePicture(selected()),saveCustom:bytes=>savePicture({label:'của bạn',bytes}),previous:()=>changePage(-1),next:()=>changePage(1),readLocation:()=>placeAction(false),saveLocation:()=>placeAction(true),stop};initGallery();controls();
+ root.ArtClock75={installIntegrated,...api,installDefault,open,controls,downloadReport,saveSelected:()=>savePicture(selected()),saveCustom:bytes=>savePicture({label:'của bạn',bytes}),previous:()=>changePage(-1),next:()=>changePage(1),readLocation:()=>placeAction(false),saveLocation:()=>placeAction(true),stop};initGallery();controls();
 })(globalThis);

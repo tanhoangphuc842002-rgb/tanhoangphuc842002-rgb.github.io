@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta name="epd-web-release" content="62.14">
+    <meta name="epd-web-release" content="62.17">
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1306,7 +1306,7 @@
             <button id="clock-image-tab-button" class="tab-button" data-tab="tab-clock-image">Đồng hồ và ảnh</button>
             <button class="tab-button" data-tab="tab-vn-todo">Việc cần làm</button>
             <button class="tab-button" data-tab="tab-date-marks" style="min-width:200px">Đánh dấu ngày tháng</button>
-            <a id="clock75-original-button" class="tab-button clock75-direct-link" href="clock75/html/index.html?v=62.14">Đồng hồ 7.5</a>
+            <a id="clock75-original-button" class="tab-button clock75-direct-link" href="clock75/html/index.html?v=62.17">Đồng hồ 7.5</a>
             <button id="dfu-tab-button" class="tab-button" data-tab="tab-dfu">Settings</button>
             <button class="tab-button" data-tab="tab-led-effects">Đèn / hiệu ứng</button>
         </div>
@@ -5749,7 +5749,9 @@ document.querySelectorAll('.tab-button[data-tab]').forEach(function(btn) {
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.save();
-            ctx.translate(canvas.width / 2 + imageOffsetX, canvas.height / 2 + imageOffsetY);
+            // Keep the source on whole pixels; repeated previews must not
+            // resample an odd-sized image at different half-pixel boundaries.
+            ctx.translate(Math.round(canvas.width / 2 + imageOffsetX), Math.round(canvas.height / 2 + imageOffsetY));
             ctx.rotate(currentRotation * Math.PI / 180);
             ctx.scale(currentScale, currentScale);
             ctx.scale(currentScaleX, currentScaleY);
@@ -5757,7 +5759,7 @@ document.querySelectorAll('.tab-button[data-tab]').forEach(function(btn) {
             const height = image.height;
             ctx.drawImage(
                 image,
-                -width / 2, -height / 2,
+                -Math.floor(width / 2), -Math.floor(height / 2),
                 width, height
             );
             ctx.restore();
@@ -7035,7 +7037,7 @@ function toggleSwitch(e) {
 <script src="ota-verifier.js?v=edc0b39eb891"></script>
 <script src="ota-dual-update.js?v=2220215b8c9c"></script>
 <script src="update-entry.js?v=1058523975ae"></script>
-<script src="ota-original75.js?v=17cd7b8b085d"></script>
+<script src="ota-original75.js?v=6b238535346d"></script>
 <script src="ota-auto-update.js?v=622258177257"></script>
 <script src="countdown-nrf52.js?v=1e5999659209"></script>
 <script src="countdown-da14585.js?v=5c1af8154783"></script>

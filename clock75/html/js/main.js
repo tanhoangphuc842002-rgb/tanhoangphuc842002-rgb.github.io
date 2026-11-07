@@ -238,6 +238,7 @@ function resetVariables() {
     window.CalendarAnnotations.cancelCommitWait();
     if (window.CalendarAnnotations.cancelLoad) window.CalendarAnnotations.cancelLoad();
   }
+  window.Sleep75?.reset();
   connectionGeneration++;
   gattWriteTail = Promise.resolve();
   gattServer = null;
@@ -521,6 +522,11 @@ async function syncTime(mode) {
 
 // 全屏时钟 (MODE_CLOCK=3，仅适用于 UC8179 7.5 寸)
 async function syncTimeLegacy() {
+  if(appVersion===0x65){
+    try{await window.ArtClock75.installIntegrated();await sendTimeCommand(3,'Đồng hồ lớn');}
+    catch(e){addLog('Đồng hồ lớn: '+e.message);window.ConsoleUI?.openLog();}
+    return;
+  }
   if (!confirm('确认切换到全屏时钟？\n\n⚠️ 警告：分钟刷新会加速屏幕老化导致损坏！\n• 请勿长时间使用\n• 此模式仅适用于UC8179 7.5寸屏幕\n• 费电')) return;
 
   await sendTimeCommand(3, '全屏时钟');
@@ -840,6 +846,7 @@ function downloadDataArray() {
 }
 
 function updateButtonStatus(forceDisabled = false) {
+  window.Sleep75?.controls(forceDisabled);
   const connected = !!(gattServer != null && gattServer.connected);
   const status = forceDisabled || DeviceOperations.current ? 'disabled' : (connected ? null : 'disabled');
   const reconnect = document.getElementById('reconnectbutton');
@@ -850,7 +857,7 @@ function updateButtonStatus(forceDisabled = false) {
     if (button) button.disabled = !!status;
   }
   const clock = document.getElementById('legacyclockbutton');
-  if (clock) clock.disabled = !!status;
+  if (clock) {clock.disabled = !!status;clock.textContent=appVersion===0x65?'Đồng hồ lớn':'Đồng hồ toàn màn';}
   const dfu = document.getElementById('openDfuPageButton');
   if (dfu) dfu.disabled = !!(forceDisabled || isConnecting || DeviceOperations.current);
   for (const button of document.querySelectorAll('[data-device-operation]')) button.disabled = !!status;
@@ -859,7 +866,7 @@ function updateButtonStatus(forceDisabled = false) {
     if (todo) todo.disabled = !!status || !Number.isInteger(appVersion) || appVersion < minimum;
   }
   const photoClockButton=document.getElementById('photoclockmodebutton');
-  if(photoClockButton)photoClockButton.disabled=!!status||![0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63].includes(appVersion);
+  if(photoClockButton)photoClockButton.disabled=!!status||![0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65].includes(appVersion);
   if(window.PhotoClock?.controls)window.PhotoClock.controls(forceDisabled);
   if(window.Album75?.controls)window.Album75.controls(forceDisabled);
   if(window.Quote75?.controls)window.Quote75.controls(forceDisabled);
@@ -928,7 +935,7 @@ async function openDfuPage() {
   }
   const handoff = {
     source: 'index',
-    original75: [0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63].includes(appVersion),
+    original75: [0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65].includes(appVersion),
     appVersion: appVersion,
     fromUrl: window.location.pathname,
     createdAt: Date.now(),
@@ -1227,6 +1234,7 @@ async function reConnect() {
 function handleNotify(value) {
   const data = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
 
+  if (window.Sleep75?.notification(data)) return;
   if (window.ExternalResourceInstaller && window.ExternalResourceInstaller.notification(data)) return;
 
   if (data.length === 17 && data[0] === 0xA9) {
@@ -1598,6 +1606,7 @@ async function connect() {
     isConnecting = false;
     if (setupOperation) DeviceOperations.end(setupOperation);
     updateButtonStatus();
+    if (gattServer?.connected && [0x64,0x65].includes(appVersion)) void window.Sleep75?.read();
   }
 }
 
@@ -2110,3 +2119,117 @@ document.body.onload = () => {
     window.ConsoleUI.init();
   }
 }
+
+/* Sleep75 module */
+/* Daily screen pause; the device owns the schedule after a durable ACK.
+ * Does not use the main page's BLE session or its legacy sleep controls. */
+(function (root) {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  let busy = false, waiter = null;
+  const connected = () => !!gattServer?.connected && !!epdCharacteristic;
+  const supported = () => connected() && [0x64,0x65].includes(appVersion);
+  function say(text) {
+    $('sleep75Status').textContent = text;
+    addLog('Hẹn giờ ngủ: ' + text);
+  }
+  function controls(disabled = false) {
+    const locked = disabled || busy || !supported() || !!root.DeviceOperations?.current;
+    document.querySelectorAll('[data-sleep75]').forEach(el => { el.disabled = locked; });
+    $('sleep75Compatibility').hidden = !connected() || supported();
+  }
+  function reset() {
+    if (waiter) waiter.finish(null, Error('Đã mất kết nối. Kết nối lại để kiểm tra lịch đã lưu.'));
+    $('sleep75Status').textContent = 'Kết nối đồng hồ để đọc hẹn giờ đã lưu.';
+  }
+  function notification(data) {
+    if (data[0] !== 0xFB || data.length !== 8) return false;
+    if (!waiter || waiter.generation !== connectionGeneration) return true;
+    if (data[1] > 2 || data[2] > 1 || data[3] > 23 || data[4] > 59 ||
+        data[5] > 23 || data[6] > 59 || data[7] > 1) {
+      waiter.finish(null, Error('Phản hồi hẹn giờ không hợp lệ.')); return true;
+    }
+    waiter.finish({state: data[1], values: Array.from(data.slice(2, 7)), active: !!data[7]});
+    return true;
+  }
+  async function exchange(packet, owner) {
+    DeviceOperations.assert(owner);
+    let pending;
+    const reply = new Promise((resolve, reject) => {
+      const timer = setTimeout(() => pending.finish(null, Error('Đồng hồ chưa phản hồi. Kết nối lại rồi thử Đọc hẹn giờ.')), 20000);
+      pending = {generation: connectionGeneration, finish(value, error) {
+        if (waiter !== pending) return;
+        waiter = null; clearTimeout(timer); error ? reject(error) : resolve(value);
+      }};
+      waiter = pending;
+    });
+    // Observe a rejected notification promise even if the GATT write is slow.
+    reply.catch(() => {});
+    try {
+      if (!await write(0xFB, packet, true, false, true, owner)) throw Error('Chưa gửi được yêu cầu. Hãy kiểm tra kết nối.');
+      const result = await reply;
+      DeviceOperations.assert(owner);
+      return result;
+    } finally {
+      if (waiter === pending) pending.finish(null, Error('Thao tác đã dừng.'));
+    }
+  }
+  const time = (h, m) => String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  function show(result) {
+    const [enabled, sh, sm, eh, em] = result.values;
+    $('sleep75Start').value = time(sh, sm);
+    $('sleep75End').value = time(eh, em);
+    say(enabled ? `Đang bật: ${time(sh, sm)}–${time(eh, em)} mỗi ngày. ` +
+      (result.active ? 'Đồng hồ đang trong giờ ngủ.' : 'Đồng hồ đang ngoài giờ ngủ.') :
+      'Hẹn giờ ngủ đang tắt.');
+  }
+  async function run(action) {
+    if (busy || DeviceOperations.current) return;
+    if (!supported()) { say('Cập nhật phần mềm đồng hồ để dùng hẹn giờ ngủ tại đây.'); return; }
+    const owner = DeviceOperations.begin('sleep-schedule');
+    busy = true; controls();
+    try { await action(owner); }
+    catch (error) { say('Chưa hoàn tất: ' + error.message); }
+    finally { busy = false; DeviceOperations.end(owner); controls(); }
+  }
+  function read() {
+    return run(async owner => {
+      say('Đang đọc hẹn giờ từ đồng hồ…');
+      let result = await exchange([0xFF], owner);
+      for (let i = 0; result.state === 1 && i < 20; i++) {
+        await new Promise(r => setTimeout(r, 300));
+        result = await exchange([0xFF], owner);
+      }
+      if (result.state) throw Error('Lần lưu trước chưa được xác nhận. Hãy đọc lại rồi lưu lại nếu cần.');
+      show(result);
+    });
+  }
+  function parse(id) {
+    const match = /^(\d{2}):(\d{2})$/.exec($(id).value);
+    if (!match || +match[1] > 23 || +match[2] > 59) throw Error('Nhập đủ giờ ngủ và giờ thức.');
+    return [+match[1], +match[2]];
+  }
+  async function save(enabled) {
+    if (busy || DeviceOperations.current || !supported()) return;
+    let start, end;
+    try {
+      start = parse('sleep75Start'); end = parse('sleep75End');
+      if (enabled && time(...start) === time(...end)) throw Error('Giờ ngủ và giờ thức phải khác nhau.');
+    } catch (error) { say(error.message); return; }
+    if (!root.confirm(enabled ? `Ngừng tự làm mới màn hình từ ${time(...start)} đến ${time(...end)} mỗi ngày? Đồng hồ giữ nguyên hình và tự cập nhật khi đến giờ thức.` : 'Tắt hẹn giờ ngủ để đồng hồ hoạt động bình thường?')) return;
+    return run(async owner => {
+      say('Đang lưu hẹn giờ. Giữ kết nối đến khi hoàn tất…');
+      const values = [enabled ? 1 : 0, ...start, ...end];
+      let result = await exchange(values, owner);
+      for (let i = 0; result.state === 1 && i < 30; i++) {
+        await new Promise(r => setTimeout(r, 300));
+        result = await exchange([0xFF], owner);
+      }
+      if (result.state || !result.values.every((v, i) => v === values[i]))
+        throw Error('Chưa xác nhận lưu thành công. Bấm Đọc hẹn giờ để kiểm tra.');
+      show(result);
+    });
+  }
+  root.Sleep75 = {controls, reset, notification, read, save};
+  controls();
+})(globalThis);
