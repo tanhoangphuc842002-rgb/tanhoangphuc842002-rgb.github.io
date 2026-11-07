@@ -2,15 +2,15 @@
 <html lang="vi">
 
 <head>
-	<script src="js/vi-ui.js?v=f04eae3c3b82"></script>
+	<script src="js/vi-ui.js?v=v62.18"></script>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Bộ điều khiển đồng hồ 7.5</title>
 	<link rel="shortcut icon" type="image/png" href="favicon.png">
 	<meta name="theme-color" content="#2563eb">
-	<link rel="stylesheet" href="css/main.css?v=dd1e17c9edad">
-	<link rel="stylesheet" href="css/photo-clock.css?v=c93d1131ddf5">
-	<link rel="stylesheet" href="css/album75.css?v=787bbd590473">
+	<link rel="stylesheet" href="css/main.css?v=v62.18">
+	<link rel="stylesheet" href="css/photo-clock.css?v=v62.18">
+	<link rel="stylesheet" href="css/album75.css?v=v62.18">
     <style>
       #sleep75Panel .external-resource-actions label {display:flex;align-items:center;gap:8px;}
       #sleep75Panel input[type="time"] {font:inherit;min-height:42px;min-width:125px;padding:8px 10px;border:1px solid #dbe4f0;border-radius:8px;background:transparent;color:inherit;}
@@ -121,6 +121,7 @@
 					<button id="todofullmodebutton" type="button" class="primary" onclick="syncTime(5)" disabled>Việc cần làm toàn màn</button>
 					<button id="legacyclockbutton" type="button" class="primary" onclick="syncTimeLegacy()"
 						style="display:none;">Đồng hồ toàn màn</button>
+                    <button id="segmentclockmodebutton" type="button" class="primary" onclick="showSegmentClock()" hidden disabled>Đồng hồ lớn toàn màn</button>
 					<button id="clearscreenbutton" type="button" class="secondary" onclick="clearScreen()">Xóa màn hình</button>
 				</div>
 				<div class="flex-group right debug">
@@ -602,42 +603,42 @@
 		</div>
 	</div>
 	<div id="toast" class="toast-message" role="status" aria-live="polite" style="display:none;"></div>
-	<script type="text/javascript" src="js/dithering.js?v=39ead2bbcfc8"></script>
-	<script type="text/javascript" src="js/paint.js?v=5cc6c5cf2f28"></script>
-	<script src="js/paint_schedule.js?v=1b8fcb3caf9f"></script>
-	<script type="text/javascript" src="js/crop.js?v=c7bf55c8fe4d"></script>
-	<script type="text/javascript" src="js/ble_transfer.js?v=55dd6d40f70b"></script>
-	<script type="text/javascript" src="js/calendar_annotations.js?v=c9ec29c682a2"></script>
-	<script type="text/javascript" src="js/resource_store.js?v=d8c9bb41f8db"></script>
-	<script src="js/resource_archive.js?v=6c310d2889bf"></script>
-	<script type="text/javascript" src="js/resource_builder.js?v=e19aff783028"></script>
-	<script src="js/font_builder.js?v=95774db94378"></script>
-	<script src="js/font_sync.js?v=f2b1295e655e"></script>
-	<script src="js/todo_sync.js?v=200c4a7c1713"></script>
-	<script src="resources/bundled-projects.js?v=f42b36a9657b"></script>
-	<script type="text/javascript" src="js/resource_installer.js?v=0d2626416351"></script>
-	<script src="js/todo_calendar.js?v=b464f53c57cb"></script>
-	<script type="text/javascript" src="js/resource_editor.js?v=205a65f1c5c7"></script>
-	<script src="js/clock_setup.js?v=03b4d463b792"></script>
-	<script src="js/countdown75.js?v=d04312ca801c"></script>
-	<script src="../../clock-image-processing.js?v=1dfa6f2e44a1"></script>
-	<script src="js/photo_editor.js?v=e08b354a8925"></script>
-	<script src="js/photo_clock.js?v=ed2d93eaca87"></script>
-	<script type="text/javascript" src="js/console_ui.js?v=736a352dffbb"></script>
-	<script src="js/image_transfer_ui.js?v=148125bf18a5"></script>
-	<script type="text/javascript" src="js/main.js?v=229ced996ae5"></script>
-	<script src="js/image75_editor.js?v=4f915dac6a6d"></script>
-	<script src="js/photo_codec75.js?v=a729513a0d74"></script>
-	<script src="js/album75.js?v=b35fdc15e921"></script>
-	<script src="js/year_calendar75.js?v=a92e5b995f5e"></script>
-<script src="js/quote75.js?v=0ea781d08666"></script>
-<script src="resources/art-landscape-data.js?v=6870b321714a"></script>
-<script src="resources/art-gallery-data.js?v=63323e8bc229"></script>
-<script src="js/art_clock75.js?v=28fd29b56b22"></script>
- <script src="js/art_upload75.js?v=1274d04dff64"></script>
-<script src="resources/season-data.js?v=139d1a25f48d"></script>
-<script src="js/season75.js?v=344afaf48ac5"></script><script src="js/season_upload75.js?v=8fc3d11cdf10"></script><script src="js/annotation_layout75.js?v=314d380acc8f"></script>
-<script src="js/rounded_clock75.js?v=592e785ab415"></script>
-<script src="../../jszip.min.js?v=c17474cafc2b"></script><script src="../../crc32.min.js?v=a47784be3d27"></script><script src="../../secure-dfu.js?v=ca26e53fc1b0"></script><script src="../../secure-dfu-package.js?v=9cf2ec0abc62"></script><script src="../../ota-verifier.js?v=edc0b39eb891"></script><script src="../../ota-dual-update.js?v=2220215b8c9c"></script><script src="../../ota-original75.js?v=6b238535346d"></script><script src="js/software75.js?v=83e9c5913034"></script></body>
+	<script type="text/javascript" src="js/dithering.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/paint.js?v=v62.18"></script>
+	<script src="js/paint_schedule.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/crop.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/ble_transfer.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/calendar_annotations.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/resource_store.js?v=v62.18"></script>
+	<script src="js/resource_archive.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/resource_builder.js?v=v62.18"></script>
+	<script src="js/font_builder.js?v=v62.18"></script>
+	<script src="js/font_sync.js?v=v62.18"></script>
+	<script src="js/todo_sync.js?v=v62.18"></script>
+	<script src="resources/bundled-projects.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/resource_installer.js?v=v62.18"></script>
+	<script src="js/todo_calendar.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/resource_editor.js?v=v62.18"></script>
+	<script src="js/clock_setup.js?v=v62.18"></script>
+	<script src="js/countdown75.js?v=v62.18"></script>
+	<script src="../../clock-image-processing.js?v=v62.18"></script>
+	<script src="js/photo_editor.js?v=v62.18"></script>
+	<script src="js/photo_clock.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/console_ui.js?v=v62.18"></script>
+	<script src="js/image_transfer_ui.js?v=v62.18"></script>
+	<script type="text/javascript" src="js/main.js?v=v62.18"></script>
+	<script src="js/image75_editor.js?v=v62.18"></script>
+	<script src="js/photo_codec75.js?v=v62.18"></script>
+	<script src="js/album75.js?v=v62.18"></script>
+	<script src="js/year_calendar75.js?v=v62.18"></script>
+<script src="js/quote75.js?v=v62.18"></script>
+<script src="resources/art-landscape-data.js?v=v62.18"></script>
+<script src="resources/art-gallery-data.js?v=v62.18"></script>
+<script src="js/art_clock75.js?v=v62.18"></script>
+ <script src="js/art_upload75.js?v=v62.18"></script>
+<script src="resources/season-data.js?v=v62.18"></script>
+<script src="js/season75.js?v=v62.18"></script><script src="js/season_upload75.js?v=v62.18"></script><script src="js/annotation_layout75.js?v=v62.18"></script>
+<script src="js/rounded_clock75.js?v=v62.18"></script>
+<script src="../../jszip.min.js?v=v62.18"></script><script src="../../crc32.min.js?v=v62.18"></script><script src="../../secure-dfu.js?v=v62.18"></script><script src="../../secure-dfu-package.js?v=v62.18"></script><script src="../../ota-verifier.js?v=v62.18"></script><script src="../../ota-dual-update.js?v=v62.18"></script><script src="../../ota-original75.js?v=v62.18"></script><script src="js/software75.js?v=v62.18"></script></body>
 
 </html>

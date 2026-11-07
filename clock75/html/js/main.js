@@ -520,9 +520,17 @@ async function syncTime(mode) {
   return await sendTimeCommand(mode, modeName);
 }
 
+async function showSegmentClock() {
+  if (appVersion !== 0x66 || !gattServer?.connected) {
+    addLog('Đồng hồ lớn toàn màn: Hãy kết nối và cập nhật phần mềm đồng hồ trước.');
+    return false;
+  }
+  return sendTimeCommand(15, 'Đồng hồ lớn toàn màn');
+}
+
 // 全屏时钟 (MODE_CLOCK=3，仅适用于 UC8179 7.5 寸)
 async function syncTimeLegacy() {
-  if(appVersion===0x65){
+  if([0x65,0x66].includes(appVersion)){
     try{await window.ArtClock75.installIntegrated();await sendTimeCommand(3,'Đồng hồ lớn');}
     catch(e){addLog('Đồng hồ lớn: '+e.message);window.ConsoleUI?.openLog();}
     return;
@@ -856,8 +864,10 @@ function updateButtonStatus(forceDisabled = false) {
     const button = document.getElementById(id);
     if (button) button.disabled = !!status;
   }
+  const segment = document.getElementById('segmentclockmodebutton');
+  if (segment) { segment.hidden = appVersion !== 0x66 || !connected; segment.disabled = !!status || appVersion !== 0x66; }
   const clock = document.getElementById('legacyclockbutton');
-  if (clock) {clock.disabled = !!status;clock.textContent=appVersion===0x65?'Đồng hồ lớn':'Đồng hồ toàn màn';}
+  if (clock) {clock.disabled = !!status;clock.textContent=[0x65,0x66].includes(appVersion)?'Đồng hồ lớn':'Đồng hồ toàn màn';}
   const dfu = document.getElementById('openDfuPageButton');
   if (dfu) dfu.disabled = !!(forceDisabled || isConnecting || DeviceOperations.current);
   for (const button of document.querySelectorAll('[data-device-operation]')) button.disabled = !!status;
@@ -866,7 +876,7 @@ function updateButtonStatus(forceDisabled = false) {
     if (todo) todo.disabled = !!status || !Number.isInteger(appVersion) || appVersion < minimum;
   }
   const photoClockButton=document.getElementById('photoclockmodebutton');
-  if(photoClockButton)photoClockButton.disabled=!!status||![0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65].includes(appVersion);
+  if(photoClockButton)photoClockButton.disabled=!!status||![0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65,0x66].includes(appVersion);
   if(window.PhotoClock?.controls)window.PhotoClock.controls(forceDisabled);
   if(window.Album75?.controls)window.Album75.controls(forceDisabled);
   if(window.Quote75?.controls)window.Quote75.controls(forceDisabled);
@@ -935,7 +945,7 @@ async function openDfuPage() {
   }
   const handoff = {
     source: 'index',
-    original75: [0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65].includes(appVersion),
+    original75: [0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65,0x66].includes(appVersion),
     appVersion: appVersion,
     fromUrl: window.location.pathname,
     createdAt: Date.now(),
@@ -1606,7 +1616,7 @@ async function connect() {
     isConnecting = false;
     if (setupOperation) DeviceOperations.end(setupOperation);
     updateButtonStatus();
-    if (gattServer?.connected && [0x64,0x65].includes(appVersion)) void window.Sleep75?.read();
+    if (gattServer?.connected && [0x64,0x65,0x66].includes(appVersion)) void window.Sleep75?.read();
   }
 }
 
@@ -2128,7 +2138,7 @@ document.body.onload = () => {
   const $ = id => document.getElementById(id);
   let busy = false, waiter = null;
   const connected = () => !!gattServer?.connected && !!epdCharacteristic;
-  const supported = () => connected() && [0x64,0x65].includes(appVersion);
+  const supported = () => connected() && [0x64,0x65,0x66].includes(appVersion);
   function say(text) {
     $('sleep75Status').textContent = text;
     addLog('Hẹn giờ ngủ: ' + text);

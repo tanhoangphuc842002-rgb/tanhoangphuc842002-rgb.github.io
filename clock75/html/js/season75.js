@@ -134,7 +134,7 @@
  }
  const api={asset,unpack,replacement,replace,layout,plan,ensure,readSelection,saveSelection};if(node){module.exports=api;return;}
  const $=id=>document.getElementById(id);let busy=false;
- const supported=()=>typeof appVersion!=='undefined'&&[0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65].includes(appVersion)&&typeof gattServer!=='undefined'&&!!gattServer?.connected;
+ const supported=()=>typeof appVersion!=='undefined'&&[0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65,0x66].includes(appVersion)&&typeof gattServer!=='undefined'&&!!gattServer?.connected;
  function controls(force=false){for(const id of ['season75Mode','season75Install'])$(id).disabled=force||busy||!supported()||!!root.DeviceOperations?.current;for(const id of ['season75Choice','season75Apply','season75Read'])$(id).disabled=force||busy||!supported()||typeof appVersion==='undefined'||appVersion<0x50||!!root.DeviceOperations?.current;$('season75Stop').disabled=!busy;root.SeasonUpload75?.controls(force||busy||!!root.DeviceOperations?.current,!supported());}
  function say(text){$('season75Status').textContent=text;root.addLog?.('Đồng hồ bốn mùa: '+text);}
  function png(image,width){
