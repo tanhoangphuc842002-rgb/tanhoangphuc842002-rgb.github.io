@@ -79,7 +79,7 @@ async function removePhotos(slots){
    stop=stop||([5,6].includes(r[8])&&!!(selected&(1<<scheduleBytes[4])));
   }
   if(stop){
-   scheduleBytes[1]=0;say(tr('Đang tắt tự đổi ảnh trước khi xóa…'));
+   scheduleBytes=stoppedSchedule(scheduleBytes);say(tr('Đang tắt tự đổi ảnh trước khi xóa…'));
    await upload(20,[...u32(0xc0decafe),...u32(T.crc32(scheduleBytes))],scheduleBytes);guard();
    r=await caps(false);guard();const base=new DataView(r.buffer,r.byteOffset).getUint32(12,true);
    if(r[8]!==0||![geometry().schedule,geometry().schedule+0x1000].includes(base))throw Error(tr('Chưa xác nhận tắt tự đổi ảnh. Chưa xóa ảnh.'));
@@ -98,6 +98,18 @@ async function removePhotos(slots){
   await caps(true);guard();
   say(tr(all?'Đã xóa toàn bộ ảnh trong album.':'Đã xóa ảnh đã chọn khỏi bộ nhớ.')+(stop?' '+tr('Tự đổi ảnh đã tắt.'):'')+' '+tr('Ảnh đang hiện trên màn có thể vẫn được giữ đến khi chọn ảnh hoặc chế độ khác.'));
  });}finally{deleting=false;deleteControls();}
+}
+function stoppedSchedule(saved){
+ // Hold modes store a slot index in byte 4, not a minute-of-day. Once mode
+ // becomes zero, firmware validates all eight minute fields, so reset them.
+ const b=new Uint8Array(20);b.fill(255,4);b[0]=1;
+ const interval=saved[2]|saved[3]<<8;
+ b[2]=(interval>=1&&interval<=1440?interval:30)&255;
+ b[3]=(interval>=1&&interval<=1440?interval:30)>>8;
+ // A picture clock may also store its time corner in byte 19. Its range is
+ // valid in a stopped schedule; preserve that preference without the slot.
+ if((saved[1]===6||saved[1]===7)&&saved[19]<=3)b[19]=saved[19];
+ return b;
 }
 async function permitWrite(){
  assertConnection();
@@ -189,6 +201,6 @@ window.PhotoAlbumBeforeDirectUpload=async()=>{
 };
 window.PhotoAlbumShared={action,caps,geometry,permitWrite,upload,verify,planes,say,u32,busy:()=>busy,get mask(){return mask;}};
 window.PhotoAlbumTrial={planes,schedule,get mask(){return mask;}};
-window.PhotoAlbumDelete={supported:deleteSupported,busy:()=>deleting};
+window.PhotoAlbumDelete={supported:deleteSupported,busy:()=>deleting,stoppedSchedule};
 setInterval(deleteControls,500);deleteControls();
 })();
