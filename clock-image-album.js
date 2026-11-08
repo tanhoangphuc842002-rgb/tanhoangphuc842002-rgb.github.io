@@ -10,7 +10,7 @@
   $('clock-image-retry').disabled=reconnecting||ownRunning||!!A.busy()||!!T.busy()||clockImageUploadBusy||!!root.EpdDfuBusy?.()||!pending;
  }
  const supported=()=>typeof deviceProtocol!=='undefined'&&deviceProtocol===PROTOCOL_NRF52&&nrf52ModelDetected&&nrf52ModelId===2&&
-  ((nrf52PanelProfile===0x21&&[242,243,246,247,250,251,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion))||(nrf52PanelProfile===0x29&&[244,245,248,249,252,253,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion)))&&!!gattServer?.connected;
+  ((nrf52PanelProfile===0x21&&[242,243,246,247,250,251,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion))||(nrf52PanelProfile===0x29&&[244,245,248,249,252,253,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion)))&&!!gattServer?.connected;
  function controls(value=false){locked=!!value||!!A.busy()||!!T.busy();for(const e of root.document.querySelectorAll('#clock-album-controls button,#clock-album-controls input,#clock-album-controls select'))e.disabled=locked||!supported();root.ArtClock?.controls();recoveryControls();}
  function status(s){A.say(s);$('clock-image-status').textContent=root.ArtClock?.text(s)||s;}
  function progress(n){$('clock-album-progress').value=n;if(root.ArtClock?.selected())$('clock-image-progress').value=n;}

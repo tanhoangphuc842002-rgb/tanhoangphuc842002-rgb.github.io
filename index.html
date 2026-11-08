@@ -996,13 +996,13 @@
         </select>
     </div>
 
-    <script src="website-en-1.js?v=v62.22"></script>
-    <script src="website-en-2.js?v=v62.22"></script>
-    <script src="website-en-3.js?v=v62.22"></script>
-    <script src="website-en-clock-album.js?v=v62.22"></script>
-    <script src="website-i18n.js?v=v62.22"></script>
-    <script src="clock-image-processing.js?v=v62.22"></script>
-    <script src="shared-battery.js?v=v62.22"></script>
+    <script src="website-en-1.js?v=v62.23"></script>
+    <script src="website-en-2.js?v=v62.23"></script>
+    <script src="website-en-3.js?v=v62.23"></script>
+    <script src="website-en-clock-album.js?v=v62.23"></script>
+    <script src="website-i18n.js?v=v62.23"></script>
+    <script src="clock-image-processing.js?v=v62.23"></script>
+    <script src="shared-battery.js?v=v62.23"></script>
     <script>
         const APP_TRANSLATIONS = {
             vi: {
@@ -3284,7 +3284,7 @@ document.querySelectorAll('.tab-button[data-tab]').forEach(function(btn) {
             // Shared version numbers and explicit panel markers are never inferred.
             if (deviceProtocol !== PROTOCOL_NRF52 || !gattServer?.connected ||
                 nrf52ModelId !== 2 || nrf52PanelProfile != null ||
-                ![245, 288].includes(nrf52FirmwareVersion)) return false;
+                ![245, 288,292].includes(nrf52FirmwareVersion)) return false;
             nrf52PanelProfile = 0x29;
             nrf52ModelDetected = true;
             return true;
@@ -3555,16 +3555,16 @@ document.querySelectorAll('.tab-button[data-tab]').forEach(function(btn) {
         function nrf52NativeFaceSelectionSupported() {
             if (!nrf52ModelDetected || nrf52ModelId !== 2) return false;
             const recent = nrf52PanelProfile === 0x21
-                ? [266,268,270,272,274,276,278,279,282,285,286].includes(nrf52FirmwareVersion)
-                : nrf52PanelProfile === 0x29 && [280,281,283,284,287,288].includes(nrf52FirmwareVersion);
+                ? [266,268,270,272,274,276,278,279,282,285,286,289,290].includes(nrf52FirmwareVersion)
+                : nrf52PanelProfile === 0x29 && [280,281,283,284,287,288,291,292].includes(nrf52FirmwareVersion);
             return recent || (([141,142,143,144,149,150,151,152,153,154,155,156,159,160,161,162,163,164,165,166,174,175,178,179,180,181,182,185,186,189,190,193,194,197,198,199,200,203,204,205,206,209,210,213,214,217,218,219,220,223,224,227,228,229,232,233,236,237,242,243,246,247,250,251,254,255,256,257,258,259,260,261,262,263,264].includes(nrf52FirmwareVersion) && nrf52PanelProfile === 0x21) || ([145,146,147,148,157,158,167,168,170,171,172,173,176,177,183,184,187,188,191,192,195,196,207,208,211,212,215,216,221,222,225,226,230,231,234,235,238,239,244,241,245,248,249,252,253,254,255,256,257,258,259,260,261,262,263,264].includes(nrf52FirmwareVersion) && nrf52PanelProfile === 0x29));
         }
         function nrf52RecentClockCycle() {
             if (nrf52PanelProfile === 0x21) {
-                if ([270,272,274,276,278,279,282,285,286].includes(nrf52FirmwareVersion)) return [2,3,4,5,10,12,13];
+                if ([270,272,274,276,278,279,282,285,286,289,290].includes(nrf52FirmwareVersion)) return [2,3,4,5,10,12,13];
                 if ([266,268].includes(nrf52FirmwareVersion)) return [2,3,4,5,10,12];
             }
-            if (nrf52PanelProfile === 0x29 && [280,281,283,284,287,288].includes(nrf52FirmwareVersion)) return [2,3,4,10,11,13,7];
+            if (nrf52PanelProfile === 0x29 && [280,281,283,284,287,288,291,292].includes(nrf52FirmwareVersion)) return [2,3,4,10,11,13,7];
             return null;
         }
         async function sendNrf52Mode(mode) {
@@ -7117,40 +7117,40 @@ function toggleSwitch(e) {
 
 
 </script>
-<script src="crc32.min.js?v=v62.22"></script>
-<script src="jszip.min.js?v=v62.22"></script>
-<script src="secure-dfu-package.js?v=v62.22"></script>
-<script src="secure-dfu.js?v=v62.22"></script>
-<script src="ota-verifier.js?v=v62.22"></script>
-<script src="ota-dual-update.js?v=v62.22"></script>
-<script src="update-entry.js?v=v62.22"></script>
-<script src="ota-original75.js?v=v62.22"></script>
-<script src="ota-auto-update.js?v=v62.22"></script>
-<script src="countdown-nrf52.js?v=v62.22"></script>
-<script src="countdown-da14585.js?v=v62.22"></script>
-<script src="led-effects.js?v=v62.22"></script>
-<script src="ble-write-queue.js?v=v62.22"></script>
-<script src="vn-font-data.js?v=v62.22"></script>
-<script src="face5-font-data.js?v=v62.22"></script>
-    <script src="face5-sans-centered-data.js?v=v62.22"></script>
-    <script src="face23-sans22-data.js?v=v62.22"></script>
-    <script src="face4-sans36-data.js?v=v62.22"></script><script src="face6-flip-data.js?v=v62.22"></script><script src="face6-dark-top-data.js?v=v62.22"></script><script src="face6-freesans-white-data.js?v=v62.22"></script><script src="face6-white-213-data.js?v=v62.22"></script><script src="face1-retro-213-data.js?v=v62.22"></script><script src="face1-retro-290-data.js?v=v62.22"></script><script src="face6-white-290-data.js?v=v62.22"></script><script src="face6-290-data.js?v=v62.22"></script>
-    <script src="sans290-data.js?v=v62.22"></script><script src="sans290-classic-data.js?v=v62.22"></script><script src="sans290-bold42-data.js?v=v62.22"></script>
-    <script src="language-290-resources-data.js?v=v62.22"></script>
-<script src="language-resources-data.js?v=v62.22"></script>
-<script src="rounded-clock-font-data.js?v=v62.22"></script><script src="art-clock-font-data.js?v=v62.22"></script>
-<script src="vn-operation.js?v=v62.22"></script><script src="todo-schedule-codec.js?v=v62.22"></script><script src="cartoon-clock-font-data.js?v=v62.22"></script><script src="portrait-clock-font-data.js?v=v62.22"></script><script src="personal-clock-font-data.js?v=v62.22"></script><script src="reminder-portrait-font-data.js?v=v62.22"></script><script src="big-clock-portrait-font-data.js?v=v62.22"></script><script src="portrait-calendar-font-data.js?v=v62.22"></script><script src="portrait-reference-font-data.js?v=v62.22"></script><script src="portrait-inner-border-font-data.js?v=v62.22"></script><script src="four-portrait-calendar-font-data.js?v=v62.22"></script><script src="vn-todo.js?v=v62.22"></script><script src="date-marks.js?v=v62.22"></script><script src="daily-quotes-data.js?v=v62.22"></script><script src="calendar-month-213-data.js?v=v62.22"></script><script src="calendar-month-290-data.js?v=v62.22"></script><script src="outline-213-data.js?v=v62.22"></script><script src="outline-290-data.js?v=v62.22"></script><script src="serif-213-data.js?v=v62.22"></script><script src="serif-290-data.js?v=v62.22"></script><script src="daily-quotes.js?v=v62.22"></script><script src="daily-quote-panel.js?v=v62.22"></script>
-<script src="photo-album.js?v=v62.22"></script>
-<script src="clock-image-album.js?v=v62.22"></script>
-<script src="art-clock.js?v=v62.22"></script>
-<script src="art-clock-name.js?v=v62.22"></script>
-<script src="clock-face-picker.js?v=v62.22"></script>
-<script src="calendar-face-picker.js?v=v62.22"></script>
-<script src="event-clock-data.js?v=v62.22"></script>
-<script src="event-clock-290-data.js?v=v62.22"></script>
+<script src="crc32.min.js?v=v62.23"></script>
+<script src="jszip.min.js?v=v62.23"></script>
+<script src="secure-dfu-package.js?v=v62.23"></script>
+<script src="secure-dfu.js?v=v62.23"></script>
+<script src="ota-verifier.js?v=v62.23"></script>
+<script src="ota-dual-update.js?v=v62.23"></script>
+<script src="update-entry.js?v=v62.23"></script>
+<script src="ota-original75.js?v=v62.23"></script>
+<script src="ota-auto-update.js?v=v62.23"></script>
+<script src="countdown-nrf52.js?v=v62.23"></script>
+<script src="countdown-da14585.js?v=v62.23"></script>
+<script src="led-effects.js?v=v62.23"></script>
+<script src="ble-write-queue.js?v=v62.23"></script>
+<script src="vn-font-data.js?v=v62.23"></script>
+<script src="face5-font-data.js?v=v62.23"></script>
+    <script src="face5-sans-centered-data.js?v=v62.23"></script>
+    <script src="face23-sans22-data.js?v=v62.23"></script>
+    <script src="face4-sans36-data.js?v=v62.23"></script><script src="face6-flip-data.js?v=v62.23"></script><script src="face6-dark-top-data.js?v=v62.23"></script><script src="face6-freesans-white-data.js?v=v62.23"></script><script src="face6-white-213-data.js?v=v62.23"></script><script src="face1-retro-213-data.js?v=v62.23"></script><script src="face1-retro-290-data.js?v=v62.23"></script><script src="face6-white-290-data.js?v=v62.23"></script><script src="face6-290-data.js?v=v62.23"></script>
+    <script src="sans290-data.js?v=v62.23"></script><script src="sans290-classic-data.js?v=v62.23"></script><script src="sans290-bold42-data.js?v=v62.23"></script>
+    <script src="language-290-resources-data.js?v=v62.23"></script>
+<script src="language-resources-data.js?v=v62.23"></script>
+<script src="rounded-clock-font-data.js?v=v62.23"></script><script src="art-clock-font-data.js?v=v62.23"></script>
+<script src="vn-operation.js?v=v62.23"></script><script src="todo-schedule-codec.js?v=v62.23"></script><script src="cartoon-clock-font-data.js?v=v62.23"></script><script src="portrait-clock-font-data.js?v=v62.23"></script><script src="personal-clock-font-data.js?v=v62.23"></script><script src="reminder-portrait-font-data.js?v=v62.23"></script><script src="big-clock-portrait-font-data.js?v=v62.23"></script><script src="portrait-calendar-font-data.js?v=v62.23"></script><script src="portrait-reference-font-data.js?v=v62.23"></script><script src="portrait-inner-border-font-data.js?v=v62.23"></script><script src="four-portrait-calendar-font-data.js?v=v62.23"></script><script src="vn-todo.js?v=v62.23"></script><script src="date-marks.js?v=v62.23"></script><script src="daily-quotes-data.js?v=v62.23"></script><script src="calendar-month-213-data.js?v=v62.23"></script><script src="calendar-month-290-data.js?v=v62.23"></script><script src="outline-213-data.js?v=v62.23"></script><script src="outline-290-data.js?v=v62.23"></script><script src="serif-213-data.js?v=v62.23"></script><script src="serif-290-data.js?v=v62.23"></script><script src="daily-quotes.js?v=v62.23"></script><script src="daily-quote-panel.js?v=v62.23"></script>
+<script src="photo-album.js?v=v62.23"></script>
+<script src="clock-image-album.js?v=v62.23"></script>
+<script src="art-clock.js?v=v62.23"></script>
+<script src="art-clock-name.js?v=v62.23"></script>
+<script src="clock-face-picker.js?v=v62.23"></script>
+<script src="calendar-face-picker.js?v=v62.23"></script>
+<script src="event-clock-data.js?v=v62.23"></script>
+<script src="event-clock-290-data.js?v=v62.23"></script>
 <!-- Unified clock setup is part of the normal settings panel. -->
 
-<script src="personal-calendar-ui.js?v=v62.22"></script>
+<script src="personal-calendar-ui.js?v=v62.23"></script>
 <!-- Price tags: self-contained bundle; no extra public asset files. -->
 <script>
 /* Price-tag composer. The web renders pixels; no new firmware or flash schema. */

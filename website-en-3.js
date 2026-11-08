@@ -380,3 +380,31 @@ window.EpdWebsiteEnglish=Object.assign(window.EpdWebsiteEnglish||{},{
   "Xóa sản phẩm đã chọn khỏi danh sách trên máy này?": "Delete the selected product from this browser's list?",
   "Đã xóa sản phẩm khỏi danh sách trên máy này.": "Product deleted from this browser's list."
 });
+
+window.EpdWebsiteEnglish=Object.assign(window.EpdWebsiteEnglish||{},{
+  "Xóa ảnh": "Delete image",
+  "Xóa ảnh trong ô": "Delete image in slot",
+  "Xóa toàn bộ ảnh trong album": "Delete all album images",
+  "Dừng xóa": "Stop deletion",
+  "Ảnh trong album dùng chung với Đồng hồ và ảnh. Xóa ảnh không xóa bộ chữ hoặc nội dung cá nhân.": "Album images are shared with Clock and image. Deleting images does not delete fonts or personal content.",
+  "Kết nối đồng hồ và cập nhật phần mềm để sử dụng chức năng xóa ảnh.": "Connect your clock and update its software to delete saved images.",
+  "Kết nối đã đổi. Kết nối lại rồi kiểm tra album trước khi xóa tiếp.": "The connection has changed. Reconnect and check the album before deleting more images.",
+  "Đồng hồ chưa sẵn sàng xóa ảnh. Cập nhật phần mềm hoặc kết nối lại rồi thử lại.": "The clock is not ready to delete images. Update its software or reconnect and try again.",
+  "Xóa toàn bộ ảnh đã lưu trong album?": "Delete all images saved in the album?",
+  "Xóa ảnh đã lưu trong ô đã chọn?": "Delete the image saved in the selected slot?",
+  "Ô ảnh:": "Image slot:",
+  "Ảnh này cũng bị xóa khỏi Đồng hồ và ảnh. Bộ chữ và nội dung cá nhân được giữ nguyên.": "This also removes the image from Clock and image. Fonts and personal content are preserved.",
+  "Đã hủy xóa ảnh.": "Image deletion cancelled.",
+  "Chưa đọc được lịch đổi ảnh. Kết nối lại rồi thử lại.": "The image schedule could not be read. Reconnect and try again.",
+  "Đang tắt tự đổi ảnh trước khi xóa…": "Turning off image rotation before deletion…",
+  "Chưa xác nhận tắt tự đổi ảnh. Chưa xóa ảnh.": "Could not confirm that rotation is off. No images have been deleted.",
+  "Đang xóa ảnh trong ô:": "Deleting image in slot:",
+  "Giữ kết nối và không tháo pin.": "Stay connected and keep the battery in place.",
+  "Chưa xác nhận xóa hết ảnh. Kết nối lại và xóa lại ô này.": "Could not confirm complete deletion. Reconnect and delete this slot again.",
+  "Ô ảnh vẫn còn dữ liệu. Kết nối lại rồi kiểm tra album.": "The slot still contains image data. Reconnect and check the album.",
+  "Đã xóa toàn bộ ảnh trong album.": "All album images have been deleted.",
+  "Đã xóa ảnh đã chọn khỏi bộ nhớ.": "The selected image has been deleted from storage.",
+  "Tự đổi ảnh đã tắt.": "Image rotation is off.",
+  "Ảnh đang hiện trên màn có thể vẫn được giữ đến khi chọn ảnh hoặc chế độ khác.": "The current screen may remain visible until another image or mode is selected.",
+  "Ảnh đã lưu:": "Saved images:"
+});

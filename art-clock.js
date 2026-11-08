@@ -3,10 +3,10 @@
  'use strict';
  const $=id=>document.getElementById(id),T=root.VNTransport,A=root.PhotoAlbumShared;
  const known=()=>typeof deviceProtocol!=='undefined'&&deviceProtocol===PROTOCOL_NRF52&&nrf52ModelDetected&&nrf52ModelId===2&&!!gattServer?.connected&&
-  (nrf52PanelProfile===33?[246,247,250,251,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion):nrf52PanelProfile===41&&[248,249,252,253,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion));
- const full=()=>known()&&[250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion);
- const stacked=()=>known()&&[262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion);
- const movable=()=>!stacked()&&known()&&[256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion);
+  (nrf52PanelProfile===33?[246,247,250,251,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion):nrf52PanelProfile===41&&[248,249,252,253,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion));
+ const full=()=>known()&&[250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion);
+ const stacked=()=>known()&&[262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion);
+ const movable=()=>!stacked()&&known()&&[256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion);
  const position=()=>{const n=Number($('art-clock-position').value);return Number.isInteger(n)&&n>=0&&n<4?n:1;};
  const corner=()=>{
   if(stacked())return {x:0,y:0,width:nrf52PanelProfile===41?80:72,height:128};

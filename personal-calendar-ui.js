@@ -10,11 +10,11 @@ function select(which){part=which;tasks.hidden=which!=='tasks';dates.hidden=whic
 a.onclick=()=>select('tasks');b.onclick=()=>select('dates');
 dateNav.addEventListener('click',()=>{if(active){taskNav.click();select('dates');}});
 function refresh(){
- const modern=typeof nrf52FirmwareVersion!=='undefined'&&([279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion)||nrf52PanelProfile===33)&&[266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion)&&gattServer?.connected;
+ const modern=typeof nrf52FirmwareVersion!=='undefined'&&([279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion)||nrf52PanelProfile===33)&&[266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion)&&gattServer?.connected;
  const k=modern+'|'+(typeof nrf52FirmwareVersion==='undefined'?'':nrf52FirmwareVersion)+'|'+en();if(key===k)return;key=k;active=modern;
  switcher.hidden=!modern;switcher.style.display=modern?'flex':'none';dateNav.hidden=modern;
  if(!modern){dateTab.append(dates);tasks.hidden=dates.hidden=false;taskNav.textContent=oldNav;$('vn-layout').options[0].textContent=oldLayout;$('date-mark-open').textContent=oldOpen;for(const [p,t]of [...oldHelp,...dateHelp])p.textContent=t;return;}
- if([268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288].includes(nrf52FirmwareVersion)){
+ if([268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion)){
   dateTab.append(dates);dates.hidden=true;tasks.hidden=false;switcher.style.display='none';
   taskNav.textContent=en()?'Tasks':'Việc cần làm';
   $('vn-layout').options[0].textContent=en()?'Tasks + month calendar':'Việc cần làm + lịch tháng';
