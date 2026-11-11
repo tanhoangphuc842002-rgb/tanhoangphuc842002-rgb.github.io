@@ -32,6 +32,7 @@
     const device = api.snapshot(), busy = !!active;
     $('q-start').disabled = busy || !navigator.bluetooth?.requestDevice;
     $('q-connect').disabled = busy || device.connected || !navigator.bluetooth?.requestDevice;
+    $('q-reconnect').disabled = busy || !device.reconnectAvailable;
     $('q-install').disabled = busy || !device.supported;
     $('q-sync').disabled = busy || !device.supported;
     $('q-disconnect').disabled = busy || !device.connected;
@@ -53,11 +54,11 @@
     if (active !== run || run.cancelled) throw Error('Đã dừng. Kết nối lại để tiếp tục cài đặt.');
     if (run.device && api.snapshot().id !== run.device.id) throw Error('Thiết bị đã thay đổi. Hãy chạy lại.');
   }
-  async function connect(run) {
+  async function connect(run, reconnect = false) {
     run.step = 'connect'; step('connect', 'active', 'Đang nhận diện');
-    status('Đang kết nối', 'Chọn đồng hồ trong cửa sổ Bluetooth.');
+    status(reconnect ? 'Đang kết nối lại' : 'Đang kết nối', reconnect ? 'Đang nối lại đồng hồ vừa chọn.' : 'Chọn đồng hồ trong cửa sổ Bluetooth.');
     $('q-progress').removeAttribute('value');
-    const device = await api.connect();
+    const device = await (reconnect ? api.reconnect() : api.connect());
     if (run.cancelled) { await api.disconnect(device.id); guard(run); }
     guard(run); run.device = device;
     step('connect', 'done', device.panel);
@@ -125,7 +126,7 @@
     const session = {id: ++sequence, started: Date.now(), cancelled: false, device: null, step: 'connect'};
     active = session; resetSteps(); controls();
     try {
-      if (kind === 'quick' || kind === 'connect') await connect(session);
+      if (kind === 'quick' || kind === 'connect' || kind === 'reconnect') await connect(session, kind === 'reconnect');
       else {
         const device = api.snapshot();
         if (!device.connected) throw Error('Hãy kết nối đồng hồ trước.');
@@ -140,7 +141,7 @@
         addHistory(session);
         status('Hoàn tất', session.device.name + ' · Đã kiểm tra tài nguyên, gửi giờ và ngắt kết nối.');
       } else {
-        status('Hoàn tất thao tác', ({connect: 'Đã kết nối đồng hồ.', resources: 'Đã kiểm tra tài nguyên đã lưu.', time: 'Đã gửi ngày giờ hiện tại.', disconnect: 'Đã ngắt kết nối.'})[kind]);
+        status('Hoàn tất thao tác', ({connect: 'Đã kết nối đồng hồ.', reconnect: 'Đã kết nối lại đồng hồ vừa chọn.', resources: 'Đã kiểm tra tài nguyên đã lưu.', time: 'Đã gửi ngày giờ hiện tại.', disconnect: 'Đã ngắt kết nối.'})[kind]);
       }
       log($('q-detail').textContent);
       $('q-progress').value = 100;
@@ -157,6 +158,7 @@
   }
   $('q-start').onclick = () => run('quick');
   $('q-connect').onclick = () => run('connect');
+  $('q-reconnect').onclick = () => run('reconnect');
   $('q-install').onclick = () => run('resources');
   $('q-sync').onclick = () => run('time');
   $('q-disconnect').onclick = () => run('disconnect');

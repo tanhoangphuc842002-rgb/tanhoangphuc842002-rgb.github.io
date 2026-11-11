@@ -78,4 +78,5 @@ html, body { margin: 0 !important; padding: 0 !important; background: #f5f7f8 !i
   #quick-app #q-count { width: 100%; margin: 0; }
   #quick-app .q-manual { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
   #quick-app .q-manual button { min-width: 0; padding: 8px; }
+  #quick-app #q-disconnect { grid-column: 1 / -1; }
 }

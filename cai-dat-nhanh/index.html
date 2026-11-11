@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <script>window.DHQuickSetupMode=true;</script>
-<link rel="stylesheet" href="quick.css">
+<link rel="stylesheet" href="quick.css?v=1.1.0">
     <meta name="epd-web-release" content="62.17">
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
@@ -7430,7 +7430,7 @@ fill(SAMPLES.basic);refreshLibrary();setInterval(refresh,500);
 <main id="quick-app">
   <header class="q-header">
     <div class="q-brand"><i data-lucide="panels-top-left" aria-hidden="true"></i><strong>DH EPD</strong><span>Cài đặt nhanh</span></div>
-    <span class="q-version">Bản riêng 1.0</span>
+    <span class="q-version">Bản riêng 1.1</span>
   </header>
   <div class="q-workspace">
     <section class="q-heading"><h1>Cài đặt thiết bị</h1><span id="q-connection" class="q-badge">Chưa kết nối</span></section>
@@ -7457,6 +7457,7 @@ fill(SAMPLES.basic);refreshLibrary();setInterval(refresh,500);
     </div>
     <div class="q-manual" aria-label="Thao tác riêng">
       <button id="q-connect" type="button"><i data-lucide="bluetooth" aria-hidden="true"></i>Kết nối</button>
+      <button id="q-reconnect" type="button" disabled title="Kết nối lại đồng hồ vừa chọn trong phiên này"><i data-lucide="rotate-cw" aria-hidden="true"></i>Kết nối lại</button>
       <button id="q-install" type="button" disabled><i data-lucide="package" aria-hidden="true"></i>Cài tài nguyên</button>
       <button id="q-sync" type="button" disabled><i data-lucide="clock-arrow-up" aria-hidden="true"></i>Đồng bộ giờ</button>
       <button id="q-disconnect" type="button" disabled><i data-lucide="unplug" aria-hidden="true"></i>Ngắt kết nối</button>
@@ -7470,7 +7471,7 @@ fill(SAMPLES.basic);refreshLibrary();setInterval(refresh,500);
 </main>
 
 <script src="lucide.min.js"></script>
-<script src="quick-adapter.js"></script>
-<script src="quick.js"></script>
+<script src="quick-adapter.js?v=1.1.0"></script>
+<script src="quick.js?v=1.1.0"></script>
 </body>
 </html>

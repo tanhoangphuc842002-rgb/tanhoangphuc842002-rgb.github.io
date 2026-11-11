@@ -10,7 +10,8 @@
     const connected = !!gattServer?.connected && !!bleDevice?.gatt?.connected;
     const profile = window.VNTrial?.resourceProfile() || 0;
     return {
-      connected, supported: connected && !!profile && !!epdCharacteristic,
+      connected, reconnectAvailable: !!bleDevice?.gatt,
+      supported: connected && !!profile && !!epdCharacteristic,
       id: bleDevice?.id || '', name: bleDevice?.name || 'Chưa kết nối',
       profile, firmware: nrf52FirmwareVersion,
       panel: profile === 33 ? '2.13 inch' : profile === 41 ? '2.9 inch' : 'Chưa nhận diện',
@@ -24,6 +25,20 @@
     if (expected && value.id !== expected) throw Error('Thiết bị đã thay đổi. Hãy chạy lại từ đầu.');
     return value;
   }
+  async function finishConnection(expected) {
+    if (expected && bleDevice !== expected) throw Error('Thiết bị đã thay đổi. Hãy kết nối lại.');
+    if (!snapshot().connected) {
+      // The legacy error handler resets its references but can leave radio connected.
+      if (bleDevice?.gatt?.connected) bleDevice.gatt.disconnect();
+      throw Error(lastError || 'Chưa kết nối được đồng hồ. Bạn có thể bấm kết nối lại.');
+    }
+    const device = bleDevice, start = Date.now();
+    while (!snapshot().supported && Date.now() - start < 5000) {
+      if (bleDevice !== device || !device.gatt.connected) throw Error('Mất kết nối khi nhận diện đồng hồ.');
+      await sleep(100);
+    }
+    return requireDevice();
+  }
   window.DHQuickDevice = {
     snapshot,
     async connect() {
@@ -33,18 +48,15 @@
         document.getElementById('ble-scan-filter').value = 'nrf';
         await preConnect();
       }
-      if (!snapshot().connected) {
-        // The legacy error handler resets its references but can leave radio connected.
-        if (bleDevice?.gatt?.connected) bleDevice.gatt.disconnect();
-        throw Error(lastError || 'Chưa kết nối được đồng hồ. Bạn có thể bấm quét lại.');
-      }
+      return finishConnection();
+    },
+    async reconnect() {
+      lastError = '';
       const device = bleDevice;
-      const start = Date.now();
-      while (!snapshot().supported && Date.now() - start < 5000) {
-        if (bleDevice !== device || !device.gatt.connected) throw Error('Mất kết nối khi nhận diện đồng hồ.');
-        await sleep(100);
-      }
-      return requireDevice();
+      if (!device?.gatt) throw Error('Hãy bấm Kết nối và chọn đồng hồ trước.');
+      if (window.VNTransport?.busy()) throw Error('Đang cài tài nguyên. Chờ hoàn tất hoặc dừng trước khi kết nối lại.');
+      await reConnect();
+      return finishConnection(device);
     },
     async install(onProgress, expected) {
       requireDevice(expected);
