@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "products": [
+    {
+      "id": "ce213",
+      "label": "CE 2.13 v20.41",
+      "model": 529,
+      "version": 289,
+      "release": "v20.41",
+      "url": "updates/DH_CE_213_v20.41_ALBUM_DELETE_OTA289_encrypted.zip",
+      "sha256": "98892279dac75352bbccbe427a69af509f1e9488e5f7de0d69f19b62a00818db",
+      "resource_profile": 33
+    },
+    {
+      "id": "noce213",
+      "label": "no CE 2.13 v19.25",
+      "model": 530,
+      "version": 290,
+      "release": "v19.25",
+      "url": "updates/DH_no_CE_213_v19.25_ALBUM_DELETE_OTA290_encrypted.zip",
+      "sha256": "a69650626124197adaa1506b1b5c682f2d912ce78ce548e72f4c734c3b7190c3",
+      "resource_profile": 33
+    },
+    {
+      "id": "ce290",
+      "label": "CE 2.9 v19.24",
+      "model": 657,
+      "version": 291,
+      "release": "v19.24",
+      "url": "updates/DH_290_CE_v19.24_ALBUM_DELETE_OTA291_encrypted.zip",
+      "sha256": "1c3f0a15e71a296528b4a12206e42f7afaaabf70b32a2788c6a0e75fb78325d5",
+      "resource_profile": 41
+    },
+    {
+      "id": "noce290",
+      "label": "no CE 2.9 v7.25",
+      "model": 658,
+      "version": 292,
+      "release": "v7.25",
+      "url": "updates/DH_290_no_CE_v7.25_ALBUM_DELETE_OTA292_encrypted.zip",
+      "sha256": "a6259fd4c15d8089361974f3a52655ef52d4acc523b8e59776e5d32f186bf415",
+      "resource_profile": 41
+    }
+  ]
+}

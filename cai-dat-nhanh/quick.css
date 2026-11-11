@@ -1,0 +1,81 @@
+/* Keep the tested legacy DOM for its transport modules; expose only this tool. */
+body > :not(#quick-app) { display: none !important; }
+html, body { margin: 0 !important; padding: 0 !important; background: #f5f7f8 !important; }
+#quick-app { display: block !important; max-width: none; margin: 0; color: #202829; font: 14px/1.5 Arial, sans-serif; letter-spacing: 0; text-align: left; }
+#quick-app *, #quick-app *::before, #quick-app *::after { box-sizing: border-box; letter-spacing: 0; }
+#quick-app [hidden] { display: none !important; }
+#quick-app h1, #quick-app h2, #quick-app p, #quick-app ol, #quick-app ul { margin: 0; padding: 0; }
+#quick-app h1 { font-size: 23px; line-height: 1.3; font-weight: 700; color: #202829; }
+#quick-app h2 { font-size: 15px; line-height: 1.5; color: #202829; }
+#quick-app button { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 8px; width: auto; min-height: 40px; padding: 9px 13px; margin: 0; border: 1px solid #ccd6d8; border-radius: 5px; background: #fff; color: #293538; font: 600 14px/1.4 Arial, sans-serif; cursor: pointer; box-shadow: none; transition: background .12s; white-space: normal; }
+#quick-app button:hover:not(:disabled) { background: #eff4f5; transform: none; }
+#quick-app button:disabled { opacity: .45; cursor: not-allowed; }
+#quick-app button:focus-visible, #quick-app summary:focus-visible { outline: 3px solid #91c1ed; outline-offset: 3px; }
+#quick-app svg { width: 18px; height: 18px; flex-shrink: 0; }
+#quick-app .q-header { background: #fff; border-bottom: 1px solid #dce3e5; padding: 18px max(22px, calc((100% - 960px)/2)); display: flex; gap: 16px; align-items: center; justify-content: space-between; }
+#quick-app .q-brand { display: flex; align-items: center; gap: 12px; }
+#quick-app .q-brand > svg { color: #196c54; width: 23px; height: 23px; }
+#quick-app .q-brand strong { font-size: 17px; }
+#quick-app .q-brand span { color: #647276; border-left: 1px solid #dce3e5; padding-left: 12px; }
+#quick-app .q-version { font-size: 12px; color: #778387; white-space: nowrap; }
+#quick-app .q-workspace { max-width: 960px; margin: 0 auto; padding: 30px 22px; }
+#quick-app .q-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
+#quick-app .q-badge { padding: 4px 9px; border-radius: 4px; background: #e7ecee; color: #59676b; font-size: 12px; white-space: nowrap; }
+#quick-app .q-badge.connected { background: #e1f1e9; color: #1c694c; }
+#quick-app .q-device { display: flex; align-items: center; gap: 14px; padding: 18px 0 24px; border-bottom: 1px solid #d7e0e2; }
+#quick-app .q-device-icon { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; background: #e8eef0; border-radius: 6px; color: #4f656b; }
+#quick-app .q-device-details { min-width: 0; flex: 1; }
+#quick-app #q-name { overflow-wrap: anywhere; font-size: 18px; }
+#quick-app #q-model { color: #68777a; margin-top: 3px; font-size: 13px; }
+#quick-app .q-computer-time { text-align: right; font-variant-numeric: tabular-nums; }
+#quick-app .q-computer-time span { display: block; color: #798589; font-size: 12px; }
+#quick-app #q-clock { display: block; white-space: nowrap; font-size: 13px; margin-top: 4px; }
+#quick-app .q-steps { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); list-style: none; gap: 8px; padding: 24px 0; }
+#quick-app .q-steps li { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+#quick-app .q-steps li > span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #e3e9eb; color: #64767b; flex-shrink: 0; font-size: 12px; font-weight: 700; }
+#quick-app .q-steps li > div { font-weight: 600; }
+#quick-app .q-steps small { display: block; margin-top: 3px; color: #78878b; font-weight: 400; font-size: 12px; }
+#quick-app .q-steps .active > span { background: #196e58; color: #fff; }
+#quick-app .q-steps .done > span { background: #dceee5; color: #207249; }
+#quick-app .q-steps .error > span { background: #f7e0df; color: #ab3434; }
+#quick-app .q-status-area { min-height: 122px; background: #fff; border: 1px solid #d8e1e3; border-radius: 6px; padding: 18px; }
+#quick-app .q-status-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+#quick-app #q-elapsed { color: #7b888c; font-variant-numeric: tabular-nums; font-size: 12px; }
+#quick-app #q-progress { display: block; height: 6px; width: 100%; margin: 15px 0 10px; accent-color: #217d62; border: 0; border-radius: 3px; background: #e9eeef; }
+#quick-app progress::-webkit-progress-bar { background: #e9eeef; border-radius: 3px; }
+#quick-app progress::-webkit-progress-value { background: #217d62; border-radius: 3px; }
+#quick-app #q-detail { color: #6d7b7f; font-size: 13px; overflow-wrap: anywhere; }
+#quick-app .q-primary-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 20px 0 16px; }
+#quick-app .q-primary { background: #176b54; border-color: #176b54; color: #fff; min-width: 190px; }
+#quick-app .q-primary:hover:not(:disabled) { background: #105b47; }
+#quick-app .q-danger { color: #a23b35; border-color: #d6b7b5; }
+#quick-app #q-count { margin-left: auto; font-size: 12px; color: #738287; }
+#quick-app .q-manual { display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #d7e0e2; padding-bottom: 24px; }
+#quick-app .q-manual button { font-size: 13px; min-height: 36px; padding: 7px 12px; }
+#quick-app .q-history { padding: 20px 0; }
+#quick-app .q-section-title { display: flex; align-items: center; justify-content: space-between; }
+#quick-app .q-icon-button { width: 32px; min-height: 32px; height: 32px; padding: 6px; background: transparent; }
+#quick-app #q-empty { color: #7a888b; font-size: 13px; padding-top: 10px; }
+#quick-app #q-history-list { list-style: none; }
+#quick-app #q-history-list li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #e3e8e9; padding: 11px 0; }
+#quick-app #q-history-list strong { overflow-wrap: anywhere; }
+#quick-app #q-history-list small { display: block; color: #7b888c; font-size: 12px; }
+#quick-app .q-result { color: #25724f; font-size: 12px; text-align: right; white-space: nowrap; }
+#quick-app .q-logs { border-top: 1px solid #d7e0e2; padding-top: 14px; }
+#quick-app summary { color: #607377; cursor: pointer; width: fit-content; font-size: 13px; }
+#quick-app #q-log { margin: 12px 0 0; padding: 12px; border: 1px solid #dce3e5; border-radius: 4px; background: #fff; color: #586b71; font: 12px/1.7 Consolas, monospace; min-height: 80px; max-height: 240px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+#quick-app footer { padding-top: 24px; font-size: 11px; color: #8b979a; text-align: center; }
+#quick-app[data-error="true"] #q-status { color: #a43737; }
+@media(max-width:600px) {
+  #quick-app .q-header { padding: 14px 16px; }
+  #quick-app .q-workspace { padding: 24px 16px; }
+  #quick-app .q-version { display: none; }
+  #quick-app .q-device { flex-wrap: wrap; }
+  #quick-app .q-computer-time { width: 100%; text-align: left; display: flex; align-items: center; gap: 8px; padding-left: 58px; }
+  #quick-app #q-clock { margin: 0; }
+  #quick-app .q-steps { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 8px; }
+  #quick-app .q-primary { flex: 1; }
+  #quick-app #q-count { width: 100%; margin: 0; }
+  #quick-app .q-manual { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #quick-app .q-manual button { min-width: 0; padding: 8px; }
+}
