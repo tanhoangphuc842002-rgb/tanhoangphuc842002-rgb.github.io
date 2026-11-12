@@ -82,10 +82,12 @@
       if (row[0] <= previousDay) fail('Ngày sự kiện phải tăng dần, không trùng');
       previousDay = row[0]; textBytes(row[1], 28, 'event name');
     });
-    const result = new Uint8Array(272 + parts.reduce((n, b) => n + b.length, 0) + (events.length ? 8 + events.length * 32 : 0)), v = view(result);
+    const holiday = model.holiday_font ? Uint8Array.from(list(model.holiday_font, null, 'holiday_font')) : new Uint8Array();
+    const result = new Uint8Array(272 + holiday.length + parts.reduce((n, b) => n + b.length, 0) + (events.length ? 8 + events.length * 32 : 0)), v = view(result);
     v.setUint32(0, 0x314c4143, true);
     [1, 16, min, max, model.holiday_year, 0].forEach((n, i) => v.setUint16(4 + i * 2, n, true));
     let offset = 272;
+    result.set(holiday,offset);offset+=holiday.length;
     parts.forEach((bytes, i) => {
       const at = 16 + i * 16, size = sections[i][1];
       [i + 1, size, bytes.length / size, 0].forEach((n, j) => v.setUint16(at + j * 2, n, true));
@@ -105,6 +107,7 @@
         v.getUint16(6, true) !== 16 || v.getUint16(14, true)) fail('不支持的 CAL1 资源');
     const model = { year_min: v.getUint16(8, true), year_max: v.getUint16(10, true), holiday_year: v.getUint16(12, true) };
     let end = 272;
+    const first=v.getUint32(24,true);if(first>272)model.holiday_font=Array.from(bytes.slice(272,first));
     sections.forEach(([name, expectedSize, , type], i) => {
       const at = 16 + i * 16, count = v.getUint16(at + 4, true), offset = v.getUint32(at + 8, true);
       const size = v.getUint16(at + 2, true);
@@ -180,8 +183,8 @@
   }
   function validateFaceAssets(bytes){
     if(!(bytes instanceof Uint8Array)||bytes.length<64)fail('Dữ liệu mặt đồng hồ chưa đầy đủ');const v=view(bytes);
-    if(v.getUint32(0,true)!==0x31534146||v.getUint16(4,true)!==1||![4,6,9,10].includes(v.getUint16(6,true))||v.getUint32(8,true)!==bytes.length||v.getUint32(12,true))fail('Dữ liệu mặt đồng hồ không hợp lệ');
-    const count=v.getUint16(6,true);let end=16+count*12;for(let i=0;i<count;i++){const p=16+i*12,at=v.getUint32(p+4,true),n=v.getUint32(p+8,true);if(v.getUint16(p,true)!==i+1||v.getUint16(p+2,true)||at!==end||n<8||at+n>bytes.length)fail('Chỉ mục tài nguyên mặt đồng hồ bị lỗi');const b=bytes.subarray(at,at+n);end=at+n;
+    if(v.getUint32(0,true)!==0x31534146||v.getUint16(4,true)!==1||![4,6,9,10,11].includes(v.getUint16(6,true))||v.getUint32(8,true)!==bytes.length||v.getUint32(12,true))fail('Dữ liệu mặt đồng hồ không hợp lệ');
+    const count=v.getUint16(6,true);let end=16+count*12;for(let i=0;i<count;i++){const p=16+i*12,at=v.getUint32(p+4,true),n=v.getUint32(p+8,true);if(i===10){if(v.getUint32(p,true)!==11||at!==0x80000110||n<23||n>8192)fail('Font ngày lễ không hợp lệ');continue;}if(v.getUint16(p,true)!==i+1||v.getUint16(p+2,true)||at!==end||n<8||at+n>bytes.length)fail('Chỉ mục tài nguyên mặt đồng hồ bị lỗi');const b=bytes.subarray(at,at+n);end=at+n;
       if(i<2)timeFontGeometry(b,i+1);
       else if(i===2||i>=4){if(n<23||!b[0]||b[0]===255||b[9]>64||b[10]>64||b.slice(2,9).some(x=>x<1||x>8))fail('Font thứ không hợp lệ');}
       else if(new DataView(b.buffer,b.byteOffset,b.byteLength).getUint32(0,true)!==0x314b4251||b[4]!==1||b[5]!==100||b[6]||b[7])fail('Kho danh ngôn không hợp lệ');

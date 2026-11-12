@@ -1,7 +1,7 @@
 (function(root){
  'use strict';
  const $=id=>document.getElementById(id);let busy=false;
- function supported(digital=false){return typeof appVersion!=='undefined'&&[0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67,0x68].includes(appVersion)&&(!digital||[0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67,0x68].includes(appVersion))&&typeof gattServer!=='undefined'&&!!gattServer?.connected;}
+ function supported(digital=false){return typeof appVersion!=='undefined'&&[0x57,0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67,0x68,0x69,0x6A,0x6B].includes(appVersion)&&(!digital||[0x5E,0x5F,0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67,0x68,0x69,0x6A,0x6B].includes(appVersion))&&typeof gattServer!=='undefined'&&!!gattServer?.connected;}
  function controls(force=false){for(const e of document.querySelectorAll('[data-dashboard75]'))e.disabled=force||busy||!!root.DeviceOperations?.current||!dashboard()||!supported();const b=$('digital75Mode');if(b)b.textContent=typeof appVersion!=='undefined'&&appVersion===0x5E?'Đồng hồ lịch 3':'Đồng hồ chung';for(const [id,digital] of [['rounded75Mode',false],['digital75Mode',true]]){const b=$(id);if(b)b.disabled=force||busy||!!root.DeviceOperations?.current||!supported(digital);}}
  const dashboard=()=>typeof appVersion!=='undefined'&&appVersion>=0x5F;
  let digital=false;function say(text){const el=$(digital?'digital75Status':'rounded75Status');if(el)el.textContent=text;root.addLog?.((digital?(dashboard()?'Đồng hồ chung: ':'Đồng hồ lịch 3: '):'Đồng hồ lịch 2: ')+text);}
