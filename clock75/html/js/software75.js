@@ -10,10 +10,10 @@
   if(preparing||occupied()||root.EpdDfuBusy?.())return;
   preparing=true;$('software75Check').disabled=true;
   try{
-   root.EpdDfu.unload();if(typeof bleDevice==='undefined'||!bleDevice?.gatt?.connected||typeof appVersion==='undefined'||appVersion<0x40||appVersion>0x6B)throw Error('Kết nối đúng đồng hồ 7.5 trước khi kiểm tra.');
+   root.EpdDfu.unload();if(typeof bleDevice==='undefined'||!bleDevice?.gatt?.connected||typeof appVersion==='undefined'||appVersion<0x40||appVersion>0x6C)throw Error('Kết nối đúng đồng hồ 7.5 trước khi kiểm tra.');
    const id=bleDevice.id,version=appVersion;say('Đang kiểm tra bản mới cho đồng hồ 7.5…');
    const p=JSON.parse(new TextDecoder().decode(await read(new URL('update-catalog-75.json',base))));
-   if(p.schema!==1||p.model!=='original-vi-75'||p.model_id!==0x0752||p.encrypted!==true||p.app_abi!==0x6B||!Number.isInteger(p.application_version)||p.application_version<1||!/^updates75\/[A-Za-z0-9_.-]+\.zip$/.test(p.url)||!/^[0-9a-f]{64}$/.test(p.sha256))throw Error('Thông tin cập nhật không hợp lệ.');
+   if(p.schema!==1||p.model!=='original-vi-75'||p.model_id!==0x0752||p.encrypted!==true||p.app_abi!==0x6C||!Number.isInteger(p.application_version)||p.application_version<1||!/^updates75\/[A-Za-z0-9_.-]+\.zip$/.test(p.url)||!/^[0-9a-f]{64}$/.test(p.sha256))throw Error('Thông tin cập nhật không hợp lệ.');
    if(version<0x5F){say('Bản phần mềm mới cần nạp full HEX bằng dây một lần. Sau đó có thể cập nhật OTA ngay tại đây.');return;}
    if(version>=p.app_abi){say('Đồng hồ đã có bản mới nhất.');return;}
    const bytes=await read(new URL(p.url,base));if(await root.Original75Auto.digest(bytes)!==p.sha256)throw Error('Tệp tải thiếu hoặc đã thay đổi.');await root.Original75Auto.verify(bytes,p);
