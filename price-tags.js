@@ -4,7 +4,9 @@
 'use strict';
 const RED='#ff0000',BLACK='#000000',WHITE='#ffffff',MAX_PRODUCTS=100;
 const SIZES={213:{width:250,height:122,transportHeight:128},290:{width:296,height:128,transportHeight:128}};
+const NOTICE_PRESETS={"break": {"noticeTitle": "TẠM NGHỈ", "noticeBody": "Tôi sẽ quay lại ngay.\nXin cảm ơn!", "noticeContact": "090 123 4567"}, "hours": {"noticeTitle": "GIỜ MỞ CỬA", "noticeBody": "08:00 – 21:00\nTất cả các ngày", "noticeContact": ""}, "call": {"noticeTitle": "VUI LÒNG GỌI", "noticeBody": "Khi cần hỗ trợ\nxin liên hệ", "noticeContact": "090 123 4567"}, "no-touch": {"noticeTitle": "VUI LÒNG KHÔNG CHẠM", "noticeBody": "Hàng trưng bày\nXin cảm ơn!", "noticeContact": ""}, "reserved": {"noticeTitle": "HÀNG ĐẶT TRƯỚC", "noticeBody": "Vui lòng liên hệ\nđể được tư vấn", "noticeContact": "090 123 4567"}};
 const SAMPLES={
+ notice:{template:"notice",noticePreset:"break",...NOTICE_PRESETS.break},
  parking:{template:'parking',phone:'090 123 4567',message:'Xin gọi khi cần di chuyển xe',numberColor:'black'},
  basic:{template:'basic',name:'CÀ PHÊ SỮA HÒA TAN',price:'59000',unit:'hộp',customUnit:'',spec:'Hộp 20 gói × 16 g',origin:'',oldPrice:'',sku:'CF020',barcode:'2000000000015'},
  promo:{template:'promo',name:'BÁNH QUY BƠ',price:'39000',unit:'gói',customUnit:'',spec:'Gói 312 g',origin:'',oldPrice:'49000',sku:'BQ312',barcode:''},
@@ -26,6 +28,18 @@ function ean13(value){
  return twelve+check;
 }
 function normalize(input){
+ if(input.template==='notice'){
+  const noticeTitle=clean(input.noticeTitle),noticeContact=clean(input.noticeContact);
+  const noticeBody=String(input.noticeBody??'').normalize('NFC').replace(/\r\n?/g,'\n').replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g,' ').split('\n').map(s=>s.replace(/ +/g,' ').trim()).join('\n').trim();
+  if(!noticeTitle)throw Error('Nhập tiêu đề thông báo.');
+  if([...noticeTitle].length>32)throw Error('Tiêu đề thông báo tối đa 32 ký tự.');
+  if(!noticeBody)throw Error('Nhập nội dung thông báo.');
+  if([...noticeBody].length>160)throw Error('Nội dung thông báo tối đa 160 ký tự.');
+  if([...noticeContact].length>40)throw Error('Dòng liên hệ tối đa 40 ký tự.');
+  const noticePreset=Object.hasOwn(NOTICE_PRESETS,input.noticePreset)?input.noticePreset:'custom';
+  return {template:'notice',name:'Thông báo · '+noticeTitle,noticeTitle,noticeBody,noticeContact,noticePreset};
+ }
+
  if(input.template==='parking'){
   const phone=clean(input.phone),message=clean(input.message);
   const digits=phone.replace(/\D/g,'');
@@ -112,10 +126,43 @@ function renderParking(ctx,d,w,h){
  }
 }
 
+function renderNotice(ctx,d,w,h){
+ ctx.strokeStyle=BLACK;ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(3.5,3.5,w-7,h-7,7);ctx.stroke();
+ ctx.fillStyle=RED;ctx.beginPath();ctx.roundRect(7,7,w-14,27,4);ctx.fill();
+ line(ctx,d.noticeTitle,11,26,w-22,w===296?18:17,10,WHITE,true,'center');
+ const top=40,bottom=d.noticeContact?h-29:h-11,available=bottom-top;
+ let layout=null;
+ for(let size=w===296?22:20;size>=12;size-=.5){
+  font(ctx,size);const rows=[];let ok=true;
+  for(const paragraph of d.noticeBody.split('\n')){
+   if(!paragraph){rows.push('');continue;}
+   let row='';
+   for(const word of paragraph.split(' ')){
+    if(ctx.measureText(word).width>w-26){ok=false;break;}
+    const next=row?row+' '+word:word;
+    if(ctx.measureText(next).width<=w-26)row=next;else{rows.push(row);row=word;}
+   }
+   if(!ok)break;rows.push(row);
+  }
+  if(!ok||rows.length>4)continue;
+  let ascent=0,descent=0;
+  for(const row of rows){const m=ctx.measureText(row||'Ág');ascent=Math.max(ascent,m.actualBoundingBoxAscent);descent=Math.max(descent,m.actualBoundingBoxDescent);}
+  const step=Math.ceil(size*1.23),height=ascent+descent+(rows.length-1)*step;
+  if(height<=available){layout={rows,size,step,baseline:top+(available-height)/2+ascent};break;}
+ }
+ if(!layout)throw Error('Thông báo chưa vừa màn hình. Hãy rút ngắn nội dung hoặc giảm số dòng.');
+ for(let i=0;i<layout.rows.length;i++)line(ctx,layout.rows[i],13,layout.baseline+i*layout.step,w-26,layout.size,layout.size,BLACK,true,'center');
+ if(d.noticeContact){
+  ctx.fillStyle=BLACK;ctx.fillRect(13,h-25,w-26,1);
+  line(ctx,d.noticeContact,13,h-10,w-26,14,10,BLACK,true,'center');
+ }
+}
+
 function render(canvas,input,size='213'){
  const d=normalize(input),g=SIZES[size];if(!g)throw Error('Chọn kích thước màn 2.13 hoặc 2.9.');
  canvas.width=g.width;canvas.height=g.height;const ctx=canvas.getContext('2d'),w=g.width,h=g.height,big=size==='290';
  ctx.fillStyle=WHITE;ctx.fillRect(0,0,w,h);
+ if(d.template==='notice'){renderNotice(ctx,d,w,h);quantize(ctx,w,h);return d;}
  if(d.template==='parking'){renderParking(ctx,d,w,h);quantize(ctx,w,h);return d;}
  ctx.strokeStyle=BLACK;ctx.lineWidth=1;ctx.strokeRect(.5,.5,w-1,h-1);
  const hasBarcode=!!d.barcode,promo=d.template==='promo',weighted=d.template==='weight';
@@ -151,27 +198,28 @@ function render(canvas,input,size='213'){
  }
  quantize(ctx,w,h);return d;
 }
-const core={SIZES,SAMPLES,MAX_PRODUCTS,parseMoney,money,ean13,barcodeBits,normalize,render};
+const core={SIZES,SAMPLES,NOTICE_PRESETS,MAX_PRODUCTS,parseMoney,money,ean13,barcodeBits,normalize,render};
 if(typeof module!=='undefined'&&module.exports)module.exports=core;
 if(!root.document)return;root.PriceTagCore=core;
 
 const $=id=>document.getElementById(id),section=$('tab-price-tags');if(!section)return;
-const fields=['name','price','unit','customUnit','spec','origin','oldPrice','sku','barcode','phone','message','numberColor'];
+const fields=['name','price','unit','customUnit','spec','origin','oldPrice','sku','barcode','phone','message','numberColor','noticeTitle','noticeBody','noticeContact','noticePreset'];
 const LIBRARY_KEY='epd-price-products-v1';let selectedId=null,active=null,template='basic',lastState='',lastLang='',framePending=false;
 let statusKey='Chọn mẫu rồi nhập thông tin sản phẩm.',statusTail='',libraryError=null;
 const tr=s=>root.EpdWebsiteI18n?.translate(s)||s;
 const text=(el,s)=>{if(el.textContent!==s)el.textContent=s;};
 function say(key,tail=''){statusKey=key;statusTail=tail;text($('price-status'),tr(key)+(tail?' '+tail:''));}
 function draft(){const o={template};for(const k of fields)o[k]=$('price-'+k).value;return o;}
-function fill(d,id=null){template=d.template||'basic';for(const k of fields)if(Object.hasOwn(d,k)||!['phone','message','numberColor'].includes(k)||template==='parking')$('price-'+k).value=d[k]??(k==='numberColor'?'black':'');selectedId=id;updateForm();scheduleRender();}
+function cardKind(t){return t==='parking'||t==='notice'?t:'product';}
+function fill(d,id=null){template=d.template||'basic';const kind=cardKind(template);for(const k of fields){const fieldKind=k.startsWith('notice')?'notice':['phone','message','numberColor'].includes(k)?'parking':'product';if(Object.hasOwn(d,k)||fieldKind===kind)$('price-'+k).value=d[k]??(k==='numberColor'?'black':k==='noticePreset'?'custom':'');}selectedId=id;updateForm();scheduleRender();}
 function updateForm(){
- const parking=template==='parking';
- for(const el of section.querySelectorAll('[data-price-product]'))el.hidden=parking;
- $('price-parking-fields').hidden=!parking;
- text($('price-form-title'),tr(parking?'Thông tin đỗ xe':'Thông tin sản phẩm'));
- $('price-old-row').hidden=parking||template!=='promo';$('price-custom-row').hidden=parking||$('price-unit').value!=='khác';
+ const parking=template==='parking',notice=template==='notice';
+ for(const el of section.querySelectorAll('[data-price-product]'))el.hidden=parking||notice;
+ $('price-parking-fields').hidden=!parking;$('price-notice-fields').hidden=!notice;
+ text($('price-form-title'),tr(notice?'Nội dung thông báo':parking?'Thông tin đỗ xe':'Thông tin sản phẩm'));
+ $('price-old-row').hidden=parking||notice||template!=='promo';$('price-custom-row').hidden=parking||notice||$('price-unit').value!=='khác';
  for(const r of document.querySelectorAll('[name="price-template"]')){r.checked=r.value===template;r.closest('label').classList.toggle('selected',r.checked);}
- text($('price-save'),tr(template==='parking'?(selectedId?'Cập nhật thẻ đỗ xe':'Lưu thẻ đỗ xe'):(selectedId?'Cập nhật sản phẩm':'Lưu sản phẩm')));
+ text($('price-save'),tr(template==='notice'?(selectedId?'Cập nhật thẻ thông báo':'Lưu thẻ thông báo'):template==='parking'?(selectedId?'Cập nhật thẻ đỗ xe':'Lưu thẻ đỗ xe'):(selectedId?'Cập nhật sản phẩm':'Lưu sản phẩm')));
 }
 function target(){
  if(typeof deviceProtocol==='undefined'||deviceProtocol!==PROTOCOL_NRF52||!gattServer?.connected||!bleDevice?.gatt?.connected||!epdCharacteristic||!nrf52ModelDetected||nrf52ModelId!==2)return null;
@@ -189,7 +237,7 @@ function refresh(){
 function scheduleRender(){if(framePending)return;framePending=true;requestAnimationFrame(()=>{framePending=false;preview();});}
 function preview(){
  updateForm();const g=SIZES[$('price-size').value]||SIZES[213];text($('price-dimensions'),g.width+' × '+g.height+' px');
- try{render($('price-preview'),draft(),$('price-size').value);text($('price-fit'),'');if(template==='parking'&&statusKey==='Chưa hoàn tất:'&&['Nhập số điện thoại hợp lệ, từ 9 đến 15 chữ số.','Lời nhắn tối đa 60 ký tự.','Lời nhắn chưa vừa hai dòng. Hãy viết ngắn hơn.'].some(s=>statusTail===tr(s)))say('Đã cập nhật bản xem trước.');}
+ try{render($('price-preview'),draft(),$('price-size').value);text($('price-fit'),'');if(['parking','notice'].includes(template)&&statusKey==='Chưa hoàn tất:'&&['Nhập số điện thoại hợp lệ, từ 9 đến 15 chữ số.','Lời nhắn tối đa 60 ký tự.','Lời nhắn chưa vừa hai dòng. Hãy viết ngắn hơn.','Nhập tiêu đề thông báo.','Tiêu đề thông báo tối đa 32 ký tự.','Nhập nội dung thông báo.','Nội dung thông báo tối đa 160 ký tự.','Dòng liên hệ tối đa 40 ký tự.','Thông báo chưa vừa màn hình. Hãy rút ngắn nội dung hoặc giảm số dòng.'].some(s=>statusTail===tr(s)))say('Đã cập nhật bản xem trước.');}
  catch(e){text($('price-fit'),tr(e.message));const c=$('price-preview');c.width=g.width;c.height=g.height;const ctx=c.getContext('2d');ctx.fillStyle=WHITE;ctx.fillRect(0,0,c.width,c.height);font(ctx,11);ctx.fillStyle=BLACK;ctx.textAlign='center';ctx.fillText(tr('Nhập thông tin để xem thẻ giá.'),c.width/2,c.height/2);}
  refresh();
 }
@@ -203,7 +251,7 @@ function refreshLibrary(){
  const select=$('price-products'),choice=select.value;let list=[];
  try{list=readLibrary();libraryError=null;}catch(e){libraryError=e;}
  select.replaceChildren();const first=document.createElement('option');first.value='';first.textContent=tr('Chọn thẻ đã lưu…');select.append(first);
- for(const item of list){const opt=document.createElement('option');opt.value=item.id;opt.textContent=item.template==='parking'?tr('Đỗ xe')+' · '+item.phone:item.name+' — '+money(item.price)+'đ';select.append(opt);}select.value=choice;
+ for(const item of list){const opt=document.createElement('option');opt.value=item.id;opt.textContent=item.template==='notice'?tr('Thông báo')+' · '+item.noticeTitle:item.template==='parking'?tr('Đỗ xe')+' · '+item.phone:item.name+' — '+money(item.price)+'đ';select.append(opt);}select.value=choice;
  text($('price-library-count'),libraryError?tr('Trình duyệt chưa đọc được danh sách đã lưu.'):list.length+' / '+MAX_PRODUCTS+' '+tr('thẻ đã lưu trên trình duyệt này.'));
  $('price-open').disabled=!!active||!select.value;$('price-delete').disabled=!!active||!select.value;
 }
@@ -212,10 +260,10 @@ function save(){
  const data=render($('price-preview'),draft(),$('price-size').value),list=readLibrary();
  const id=selectedId||(root.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));
  const at=list.findIndex(x=>x.id===id);if(at<0&&list.length>=MAX_PRODUCTS)throw Error('Danh sách đã đủ 100 sản phẩm. Xóa sản phẩm không dùng trước khi lưu thêm.');
- const row=data.template==='parking'?{...data,id}:{...data,price:String(data.price),oldPrice:data.oldPrice===null?'':String(data.oldPrice),id};
+ const row=['parking','notice'].includes(data.template)?{...data,id}:{...data,price:String(data.price),oldPrice:data.oldPrice===null?'':String(data.oldPrice),id};
  if(at<0)list.push(row);else list[at]=row;
  try{localStorage.setItem(LIBRARY_KEY,JSON.stringify({schema:1,products:list}));}catch(e){throw Error('Trình duyệt chưa lưu được dữ liệu. Hãy kiểm tra quyền lưu trữ hoặc dung lượng còn trống.');}
- selectedId=id;refreshLibrary();$('price-products').value=id;updateForm();refresh();say(data.template==='parking'?'Đã lưu thẻ đỗ xe trên trình duyệt này.':'Đã lưu sản phẩm trên trình duyệt này.');
+ selectedId=id;refreshLibrary();$('price-products').value=id;updateForm();refresh();say(data.template==='notice'?'Đã lưu thẻ thông báo trên trình duyệt này.':data.template==='parking'?'Đã lưu thẻ đỗ xe trên trình duyệt này.':'Đã lưu sản phẩm trên trình duyệt này.');
 }
 function lock(token){
  token.controls=new Map();for(const el of document.querySelectorAll('button,input,select,textarea')){if(el.id==='price-cancel')continue;token.controls.set(el,el.disabled);el.disabled=true;}
@@ -295,20 +343,23 @@ async function send(){
   if(active===token){active=null;unlock(token);}text($('price-send'),tr($('price-send').dataset.retry?'Gửi lại thẻ giá':'Gửi lên thiết bị'));
  }
 }
-for(const input of section.querySelectorAll('input,select'))input.addEventListener('input',()=>{if(!active)scheduleRender();});
-for(const radio of section.querySelectorAll('[name="price-template"]'))radio.addEventListener('change',()=>{const wasParking=template==='parking';template=radio.value;if(wasParking!==(template==='parking'))selectedId=null;if(template==='parking'&&!$('price-numberColor').value)$('price-numberColor').value='black';updateForm();scheduleRender();});
+for(const input of section.querySelectorAll('input,select,textarea'))input.addEventListener('input',()=>{if(!active)scheduleRender();});
+for(const radio of section.querySelectorAll('[name="price-template"]'))radio.addEventListener('change',()=>{const previousKind=cardKind(template);template=radio.value;if(previousKind!==cardKind(template))selectedId=null;if(template==='parking'&&!$('price-numberColor').value)$('price-numberColor').value='black';updateForm();scheduleRender();});
 $('price-products').addEventListener('change',refreshLibrary);
 $('price-size').addEventListener('change',scheduleRender);
 $('price-save').onclick=()=>action(save);
-$('price-open').onclick=()=>action(()=>{const row=readLibrary().find(x=>x.id===$('price-products').value);if(row){fill(row,row.id);say(row.template==='parking'?'Đã mở thẻ đỗ xe. Sửa thông tin rồi lưu hoặc gửi lên thiết bị.':'Đã mở sản phẩm. Sửa thông tin rồi lưu hoặc gửi lên thiết bị.');}});
+$('price-open').onclick=()=>action(()=>{const row=readLibrary().find(x=>x.id===$('price-products').value);if(row){fill(row,row.id);say(row.template==='notice'?'Đã mở thẻ thông báo. Sửa thông tin rồi lưu hoặc gửi lên thiết bị.':row.template==='parking'?'Đã mở thẻ đỗ xe. Sửa thông tin rồi lưu hoặc gửi lên thiết bị.':'Đã mở sản phẩm. Sửa thông tin rồi lưu hoặc gửi lên thiết bị.');}});
 $('price-delete').onclick=()=>action(()=>{const id=$('price-products').value;if(!id)return;if(!confirm(tr('Xóa thẻ đã chọn khỏi danh sách trên máy này?')))return;const list=readLibrary().filter(x=>x.id!==id);localStorage.setItem(LIBRARY_KEY,JSON.stringify({schema:1,products:list}));if(selectedId===id)selectedId=null;refreshLibrary();updateForm();say('Đã xóa sản phẩm khỏi danh sách trên máy này.');});
-$('price-reset').onclick=()=>fill(template==='parking'?{template,phone:'',message:'Xin gọi khi cần di chuyển xe',numberColor:'black'}:{template,name:'',price:'',unit:template==='weight'?'kg':'hộp'});
+$('price-reset').onclick=()=>fill(template==='notice'?{template,noticeTitle:'',noticeBody:'',noticeContact:'',noticePreset:'custom'}:template==='parking'?{template,phone:'',message:'Xin gọi khi cần di chuyển xe',numberColor:'black'}:{template,name:'',price:'',unit:template==='weight'?'kg':'hộp'});
 $('price-example').onclick=()=>fill(SAMPLES[template]);$('price-send').onclick=send;$('price-cancel').onclick=()=>cancel();
-$('price-download').onclick=()=>action(()=>{render($('price-preview'),draft(),$('price-size').value);const a=document.createElement('a');a.download=(template==='parking'?'so-dien-thoai-do-xe-':'the-gia-')+$('price-size').value+'.png';a.href=$('price-preview').toDataURL('image/png');a.click();});
+$('price-download').onclick=()=>action(()=>{render($('price-preview'),draft(),$('price-size').value);const a=document.createElement('a');a.download=(template==='notice'?'the-thong-bao-':template==='parking'?'so-dien-thoai-do-xe-':'the-gia-')+$('price-size').value+'.png';a.href=$('price-preview').toDataURL('image/png');a.click();});
 root.addEventListener('storage',event=>{if(event.key===LIBRARY_KEY)refreshLibrary();});
 root.PriceTagPanel={send,cancel,busy:()=>!!active,refresh,preview,draft};
 for(const mini of section.querySelectorAll('[data-price-mini]'))render(mini,SAMPLES[mini.dataset.priceMini],'213');
  $('price-phone').value=SAMPLES.parking.phone;$('price-message').value=SAMPLES.parking.message;$('price-numberColor').value='black';
-fill(SAMPLES.basic);refreshLibrary();setInterval(refresh,500);
+for(const k of ['noticeTitle','noticeBody','noticeContact','noticePreset'])$('price-'+k).value=SAMPLES.notice[k];
+ $('price-noticePreset').addEventListener('change',()=>{const preset=$('price-noticePreset').value;if(Object.hasOwn(NOTICE_PRESETS,preset))fill({template:'notice',noticePreset:preset,...NOTICE_PRESETS[preset]},selectedId);});
+ for(const k of ['noticeTitle','noticeBody','noticeContact'])$('price-'+k).addEventListener('input',()=>{$('price-noticePreset').value='custom';});
+ fill(SAMPLES.basic);refreshLibrary();setInterval(refresh,500);
 })(globalThis);
 
