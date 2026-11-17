@@ -202,6 +202,7 @@
   function mergeFonts(incomingFonts, installedFonts, options = {}) {
     fontList(incomingFonts); fontList(installedFonts);
     const fonts = incomingFonts.slice(), added = [];
+    if(incomingFonts.annotation14){fonts.annotation14=incomingFonts.annotation14;fonts.annotation14Length=incomingFonts.annotation14Length;}
     let customPreserved = false;
     if (incomingFonts.length >= 4) fonts.customKey = incomingFonts.customKey;
     if (installedFonts.length >= 4 && (fonts.length === 3 || options.preserveCustom)) {

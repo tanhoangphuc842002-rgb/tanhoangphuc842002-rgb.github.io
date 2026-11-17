@@ -110,7 +110,8 @@
     }
     // Existing devices own their config and annotations. Factory records are
     // installed only alongside a new partition table on blank Flash.
-    const packages = bundle.packages.filter(item => ![1, 2, 3, 9].includes(item.pack.id));
+    const font14=bundle.packages.some(item=>item.pack.id===6&&item.pack.revision>=16);
+    const packages = bundle.packages.filter(item => ![1, 2, 3, 9].includes(item.pack.id)&&!(font14&&item.pack.id===10));
     for (const item of packages) validateTarget(item.pack, installedPartitions || []);
     return packages;
   }

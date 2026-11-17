@@ -184,7 +184,7 @@
   function validateFaceAssets(bytes){
     if(!(bytes instanceof Uint8Array)||bytes.length<64)fail('Dữ liệu mặt đồng hồ chưa đầy đủ');const v=view(bytes);
     if(v.getUint32(0,true)!==0x31534146||v.getUint16(4,true)!==1||![4,6,9,10,11].includes(v.getUint16(6,true))||v.getUint32(8,true)!==bytes.length||v.getUint32(12,true))fail('Dữ liệu mặt đồng hồ không hợp lệ');
-    const count=v.getUint16(6,true);let end=16+count*12;for(let i=0;i<count;i++){const p=16+i*12,at=v.getUint32(p+4,true),n=v.getUint32(p+8,true);if(i===10){if(v.getUint32(p,true)!==11||at!==0x80000110||n<23||n>8192)fail('Font ngày lễ không hợp lệ');continue;}if(v.getUint16(p,true)!==i+1||v.getUint16(p+2,true)||at!==end||n<8||at+n>bytes.length)fail('Chỉ mục tài nguyên mặt đồng hồ bị lỗi');const b=bytes.subarray(at,at+n);end=at+n;
+    const count=v.getUint16(6,true);let end=16+count*12;for(let i=0;i<count;i++){const p=16+i*12,at=v.getUint32(p+4,true),n=v.getUint32(p+8,true);if(i===10){if(v.getUint32(p,true)!==11||![0x80000110,0xc0000000].includes(at)||n<23||n>8192)fail('Font ngày lễ không hợp lệ');continue;}if(v.getUint16(p,true)!==i+1||v.getUint16(p+2,true)||at!==end||n<8||at+n>bytes.length)fail('Chỉ mục tài nguyên mặt đồng hồ bị lỗi');const b=bytes.subarray(at,at+n);end=at+n;
       if(i<2)timeFontGeometry(b,i+1);
       else if(i===2||i>=4){if(n<23||!b[0]||b[0]===255||b[9]>64||b[10]>64||b.slice(2,9).some(x=>x<1||x>8))fail('Font thứ không hợp lệ');}
       else if(new DataView(b.buffer,b.byteOffset,b.byteLength).getUint32(0,true)!==0x314b4251||b[4]!==1||b[5]!==100||b[6]||b[7])fail('Kho danh ngôn không hợp lệ');
@@ -260,6 +260,12 @@
     return glyphs;
   }
   function decodeFonts(bytes) {
+    let annotation14,annotation14Length;
+    if(bytes.length>=12&&view(bytes).getUint32(bytes.length-12,true)===0x34314e41){
+      const at=view(bytes).getUint32(bytes.length-8,true),n=view(bytes).getUint32(bytes.length-4,true);
+      if(at<104||n<=1024||n>8192||at+1024+12!==bytes.length)fail('Font đánh dấu ngày 14 chưa hợp lệ');
+      annotation14=bytes.slice(at,at+1024);annotation14Length=n;bytes=bytes.slice(0,at);
+    }
     const v = view(bytes);
     if (bytes.length < 56 || v.getUint32(0, true) !== 0x314b5046 || v.getUint16(4, true) !== 1 || ![3, 4, 6].includes(v.getUint16(6, true)))
       fail('不支持的 FPK1 资源');
@@ -288,9 +294,10 @@
       }
       fonts.rounded=bytes.slice(at,at+n);timeFontGeometry(fonts.rounded,3);
     }else if(bytes.length!==end)fail('Phần bổ sung bộ số bị thiếu hoặc sai định dạng');
+    if(annotation14){fonts.annotation14=annotation14;fonts.annotation14Length=annotation14Length;}
     return fonts;
   }
-  function encodeFonts(fonts) {
+  function encodeBaseFonts(fonts) {
     list(fonts, null, 'fonts');
     if (![3, 4, 6].includes(fonts.length)) fail('Cần 3, 4 hoặc 6 font');
     if (fonts.length >= 4) integer(fonts.customKey, 1, 0xffffffff, '待办字体标识');
@@ -313,6 +320,17 @@
     if(fonts.digital){bytes.set(fonts.digital,baseSize);const f=baseSize+fonts.digital.length;v.setUint32(f,0x31544744,true);v.setUint32(f+4,baseSize,true);v.setUint32(f+8,fonts.digital.length,true);}
     if(fonts.rounded){const at=baseSize+digitalSize;bytes.set(fonts.rounded,at);v.setUint32(bytes.length-12,0x31444e52,true);v.setUint32(bytes.length-8,at,true);v.setUint32(bytes.length-4,fonts.rounded.length,true);}
     return bytes;
+  }
+  function encodeFonts(fonts){
+    if(!fonts.annotation14)return encodeBaseFonts(fonts);
+    const packed=fonts.slice(),compact=typeof module!=='undefined'&&module.exports?require('./font_compact'):root.EPDFontCompact;
+    packed[1]=compact.compact(fonts[1],1);
+    if(fonts.length===6)packed[5]=fonts[5].length===fonts[1].length&&fonts[5].every((n,i)=>n===fonts[1][i])?packed[1]:compact.compact(fonts[5],5);
+    for(const key of ['customKey','digital','rounded'])if(fonts[key])packed[key]=fonts[key];
+    const base=encodeBaseFonts(packed),font=fonts.annotation14,n=fonts.annotation14Length||font.length;
+    if(!(font instanceof Uint8Array)||font.length<1024||n<=1024||n>8192||!font[0]||font[0]===255)fail('Font đánh dấu ngày 14 chưa hợp lệ');
+    const out=new Uint8Array(base.length+1024+12),v=view(out);out.set(base);out.set(font.subarray(0,1024),base.length);
+    v.setUint32(out.length-12,0x34314e41,true);v.setUint32(out.length-8,base.length,true);v.setUint32(out.length-4,n,true);return out;
   }
   function fontKey(family, sourceSlot) {
     integer(sourceSlot, 0, 1, '待办基础字号');
@@ -338,7 +356,9 @@
   }
   function open(bundle) {
     const payload = id => bundle.packages.find(item => item.pack.id === id).pack.payload;
-    return { calendar: decodeCalendar(payload(5)), ui: decodeUI(payload(6)), fonts: decodeFonts(payload(7)) };
+    const m={calendar:decodeCalendar(payload(5)),ui:decodeUI(payload(6)),fonts:decodeFonts(payload(7))};
+    if(m.fonts.annotation14){const n=m.fonts.annotation14Length,font=new Uint8Array(n),tail=Uint8Array.from(m.calendar.holiday_font||[]);if(tail.length!==n-1024)fail('Thiếu phần cuối bộ font 14');font.set(m.fonts.annotation14);font.set(tail,1024);m.fonts.annotation14=font;}
+    return m;
   }
   function build(bundle, model, builtAt) {
     const payloads = new Map([[5, encodeCalendar(model.calendar)], [6, encodeUI(model.ui)], [7, encodeFonts(model.fonts)]]);

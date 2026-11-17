@@ -58,10 +58,8 @@ const CalendarAnnotations = {
     return new TextEncoder().encode(text || '').length;
   },
 
-  selectedPosition() {
-    const select = document.getElementById('calendarAnnotationPosition');
-    return Number(select ? select.value : 0) === this.POS_CORNER ? this.POS_CORNER : this.POS_BELOW;
-  },
+  font14Mode(){return typeof appVersion==='number'&&appVersion>=0x6D;},
+  selectedPosition(){return this.POS_BELOW;},
 
   clampLabelToMaxBytes(text) {
     let next = (text || '').normalize('NFC');
@@ -88,6 +86,7 @@ const CalendarAnnotations = {
   },
 
   fontRequests() {
+    if(this.font14Mode())return []; /* Complete font is installed, never rewrite other font slots. */
     const texts = ['', ''];
     for (const item of this.annotations) {
       const text = this.assertLabel(item.label || '');
@@ -100,11 +99,12 @@ const CalendarAnnotations = {
 
   packFlags(item) {
     let flags = 0x01;
+    item={...item,fontSize:this.FONT_FOLLOW,position:this.POS_BELOW};
     if (item.fontSize === this.FONT_SMALL) flags |= (1 << 1);
     else if (item.fontSize === this.FONT_LARGE) flags |= (2 << 1);
     if (item.color === this.COLOR_WHITE) flags |= (1 << 3);
     else if (item.color === this.COLOR_RED) flags |= (2 << 3);
-    if (item.position === this.POS_CORNER) flags |= (1 << 5);
+    /* Position is fixed below for all newly saved records. */
     return flags;
   },
 
@@ -174,7 +174,7 @@ const CalendarAnnotations = {
     const color = Number((document.getElementById('calendarAnnotationColor') || {}).value) || this.COLOR_BLACK;
     const font = Number((document.getElementById('calendarAnnotationFontSize') || {}).value) || this.FONT_FOLLOW;
     const hasLetters = /[a-z]/i.test(text);
-    const previewFont = hasLetters ? this.FONT_SMALL : font;
+    const previewFont = this.font14Mode()?14:hasLetters?this.FONT_SMALL:font;
     const onRedBackground = isToday && position === this.POS_BELOW;
     const colorConflict = Boolean(text) && onRedBackground && color === this.COLOR_RED;
     const setText = (id, value) => {
@@ -183,7 +183,7 @@ const CalendarAnnotations = {
     };
     preview.setAttribute('data-position', position === this.POS_CORNER ? 'corner' : 'below');
     preview.setAttribute('data-color', color === this.COLOR_WHITE ? 'white' : color === this.COLOR_RED ? 'red' : 'black');
-    preview.setAttribute('data-font', previewFont === this.FONT_SMALL ? 'small' : previewFont === this.FONT_LARGE ? 'large' : 'follow');
+    preview.setAttribute('data-font', previewFont===14?'14':previewFont === this.FONT_SMALL ? 'small' : previewFont === this.FONT_LARGE ? 'large' : 'follow');
     preview.setAttribute('data-today', String(isToday));
     const colorHint = document.getElementById('calendarAnnotationColorHint');
     if (colorHint) {
@@ -203,7 +203,7 @@ const CalendarAnnotations = {
     let note = !text ? '留空只显示红点，节日 / 农历仍保留。'
       : position === this.POS_CORNER ? '标签显示在右上角，节日 / 农历仍保留。'
         : '标签替换日期下方的节日 / 农历，并显示红点。';
-    if (hasLetters) note += ' 含英文字母时，设备使用小字号显示。';
+    if(this.font14Mode())note='Nhãn hiển thị dưới số ngày, dùng cùng font 14 với ngày lễ. Nhãn dài có thể xuống hai dòng.';
     if (colorConflict) note += ' 当日红字会与红色背景重合，请改用白色或黑色。';
     if (text && color === this.COLOR_WHITE && !onRedBackground) note += ' 白字在浅色背景上可能不易辨认。';
     setText('calendarAnnotationPreviewNote', note);
@@ -249,18 +249,14 @@ const CalendarAnnotations = {
   loadLocal() {
     try {
       const raw = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
-      this.annotations = Array.isArray(raw) ? raw : [];
+      this.annotations = Array.isArray(raw) ? raw.map(item=>({...item,position:this.POS_BELOW,fontSize:this.FONT_FOLLOW})) : [];
     } catch (e) {
       this.annotations = [];
     }
     this.render();
   },
 
-  fontLabel(size) {
-    if (size === this.FONT_SMALL) return '小';
-    if (size === this.FONT_LARGE) return '大';
-    return '跟随日历';
-  },
+  fontLabel(){return this.font14Mode()?'14':'Theo lịch';},
 
   colorLabel(color) {
     if (color === this.COLOR_WHITE) return '白';
@@ -268,9 +264,7 @@ const CalendarAnnotations = {
     return '黑';
   },
 
-  positionLabel(position) {
-    return position === this.POS_CORNER ? '右上角' : '日期下方';
-  },
+  positionLabel(){return 'Dưới số ngày';},
 
   render() {
     const body = document.getElementById('calendarAnnotationsList');
