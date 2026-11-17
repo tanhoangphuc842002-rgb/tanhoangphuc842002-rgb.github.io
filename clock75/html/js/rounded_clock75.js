@@ -18,9 +18,18 @@
     const part=parts.find(p=>p.id===7),info=await client.inspect(7);check();
     const update='Vào mục Cài đặt đồng hồ rồi bấm Cài đặt đồng hồ để bổ sung mẫu này.';
     if(!part||info.code||info.length<160||info.length>part.size-32)throw Error(update);
-    const tail=await client.readRange(part.offset+32+info.length-12,12);check();
-    const v=new DataView(tail.buffer,tail.byteOffset,tail.byteLength),at=v.getUint32(4,true),n=v.getUint32(8,true);
-    if(v.getUint32(0,true)!==0x31444e52||at>=info.length-12||n!==info.length-12-at)throw Error(update);
+    let end=info.length,tail=await client.readRange(part.offset+32+end-12,12);check();
+    let v=new DataView(tail.buffer,tail.byteOffset,tail.byteLength);
+    // AN14 follows the existing RND1/DGT1 banks; it does not replace them.
+    if(v.getUint32(0,true)===0x34314e41){
+     const start=v.getUint32(4,true),total=v.getUint32(8,true),calendar=parts.find(p=>p.id===5);
+     if(start<104||start+1024+12!==end||total<=1024||total>8192||!calendar)throw Error(update);
+     const first=await client.readRange(calendar.offset+32+24,4);check();
+     if(new DataView(first.buffer,first.byteOffset,first.byteLength).getUint32(0,true)!==272+total-1024)throw Error(update);
+     end=start;tail=await client.readRange(part.offset+32+end-12,12);check();v=new DataView(tail.buffer,tail.byteOffset,tail.byteLength);
+    }
+    const at=v.getUint32(4,true),n=v.getUint32(8,true);
+    if(v.getUint32(0,true)!==0x31444e52||at>=end-12||n!==end-12-at)throw Error(update);
     const head=await client.readRange(part.offset+32+at,16);check();
     if(![84,70,71,49,1,11,48,0].every((x,i)=>head[i]===x)||n!==148+new DataView(head.buffer,head.byteOffset).getUint32(8,true))throw Error(update);
     if(digital){

@@ -50,10 +50,27 @@
   const start=396+148+new DataView(primary.buffer,primary.byteOffset).getUint32(8,true);
   if(start+64>info.length)throw Error('Hãy cập nhật dữ liệu đồng hồ trước.');
   const head=await client.readRange(p.offset+32+start,16);check();const count=head[6];
-  if(![70,65,83,49,1,0].every((x,i)=>head[i]===x)||![4,6,9,10].includes(count)||head[7]||start+16+count*12>info.length)throw Error('Hãy cập nhật dữ liệu đồng hồ trước.');
+  if(![70,65,83,49,1,0].every((x,i)=>head[i]===x)||![4,6,9,10,11].includes(count)||head[7]||start+16+count*12>info.length)throw Error('Hãy cập nhật dữ liệu đồng hồ trước.');
   const h=await client.readRange(p.offset+32+start,16+count*12),v=new DataView(h.buffer,h.byteOffset);check();
   if(v.getUint32(8,true)!==info.length-start||v.getUint32(12,true))throw Error('Hãy cập nhật dữ liệu đồng hồ trước.');
-  let at=16+count*12;for(let i=0;i<count;i++){const r=16+i*12,n=v.getUint32(r+8,true);if(v.getUint16(r,true)!==i+1||v.getUint16(r+2,true)||v.getUint32(r+4,true)!==at||n>info.length-start-at)throw Error('Bộ dữ liệu đồng hồ chưa đầy đủ.');at+=n;}
+  let at=16+count*12;for(let i=0;i<count;i++){
+   const r=16+i*12,n=v.getUint32(r+8,true),offset=v.getUint32(r+4,true);
+   if(v.getUint16(r,true)!==i+1||v.getUint16(r+2,true))throw Error('Bộ dữ liệu đồng hồ chưa đầy đủ.');
+   if(i===10){
+    if(n<23||n>8192||![0x80000110,0xc0000000].includes(offset))throw Error('Tham chiếu font ngày lễ chưa hợp lệ.');
+    const calendar=parts.find(p=>p.id===5);if(!calendar)throw Error('Chưa có dữ liệu lịch.');
+    const first=await client.readRange(calendar.offset+32+24,4);check();let expected=272+n;
+    if(offset===0xc0000000){
+     const fonts=parts.find(p=>p.id===7),f=await client.inspect(7);check();if(!fonts||f.code||n<=1024||f.length<1152||f.length>fonts.size-32)throw Error('Bộ font 14 chưa đầy đủ.');
+     const tail=await client.readRange(fonts.offset+32+f.length-12,12);check();const t=new DataView(tail.buffer,tail.byteOffset,tail.byteLength);
+     if(t.getUint32(0,true)!==0x34314e41||t.getUint32(8,true)!==n||t.getUint32(4,true)<104||t.getUint32(4,true)+1024+12!==f.length)throw Error('Bộ font 14 chưa đầy đủ.');
+     expected-=1024;
+    }
+    if(new DataView(first.buffer,first.byteOffset,first.byteLength).getUint32(0,true)!==expected)throw Error('Hai phần bộ font ngày lễ chưa khớp.');
+    continue;
+   }
+   if(offset!==at||n>info.length-start-at)throw Error('Bộ dữ liệu đồng hồ chưa đầy đủ.');at+=n;
+  }
   if(at!==info.length-start)throw Error('Bộ dữ liệu đồng hồ chưa đầy đủ.');
   const q=await client.readRange(p.offset+32+start+v.getUint32(56,true),8);check();
   if(![81,66,75,49,1,100,0,0].every((x,i)=>q[i]===x))throw Error('Chưa có bộ 100 câu. Hãy cập nhật dữ liệu đồng hồ.');

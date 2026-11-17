@@ -14,7 +14,7 @@
     if(part&&!info.code&&info.revision>=9){
      const primary=await client.readRange(part.offset+32+396,16);check();
      const next=396+148+new DataView(primary.buffer,primary.byteOffset).getUint32(8,true);
-     if(next+16<=info.length){const head=await client.readRange(part.offset+32+next,16);check();installed=[70,65,83,49,1,0].every((v,i)=>head[i]===v)&&[9,10].includes(head[6])&&!head[7];}
+     if(next+16<=info.length){const head=await client.readRange(part.offset+32+next,16);check();installed=[70,65,83,49,1,0].every((v,i)=>head[i]===v)&&[9,10,11].includes(head[6])&&!head[7];}
     }
     if(!installed)throw Error('Vào Cài đặt đồng hồ và bấm Cài đặt đồng hồ để bổ sung dữ liệu lịch năm.');
    });
