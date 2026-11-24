@@ -94,6 +94,7 @@ details > summary { cursor: pointer; font-weight: 700; }
 .art-presets .season-preset-title { margin-top: 18px; }
 .season-art-actions { margin-top: 12px; }
 canvas { width: 100%; height: auto; display: block; border: 1px solid var(--line); background: #fff; border-radius: 6px; image-rendering: pixelated; }
+#photoCanvas[data-scene] { width: min(240px, calc(100% - 2px)); box-sizing: content-box; }
 #photoCanvas[data-editable] { touch-action: none; cursor: grab; }
 #photoCanvas[data-editable][data-mark]:not([data-mark="move"]) { cursor: crosshair; }
 .photo-edit-buttons { align-items: center; margin-bottom: 10px; }

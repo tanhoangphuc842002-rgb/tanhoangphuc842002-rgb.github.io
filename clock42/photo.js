@@ -12,6 +12,7 @@ const photoProcessor = window.EpdClockImageProcessing;
 const photoSliders = {photoBrightness: 'brightness', photoContrast: 'contrast',
     photoRed: 'redThreshold', photoBlack: 'bwThreshold'};
 const photoView = {rotation: 0, zoom: 1, x: 0, y: 0, mirror: false, flip: false};
+const sceneSampleCanvas = document.createElement('canvas');
 let photoFrame = 0;
 let photoGeneration = 0;
 let photoDecoding = false;
@@ -32,10 +33,60 @@ function updateSceneSample() {
     $('sceneSampleCaption').textContent = 'Mẫu ' + label;
 }
 
+function drawPhotoBitmap(context, width, height, scale, density = 1) {
+    context.save();
+    context.scale(density, density);
+    context.translate(width / 2 + photoView.x, height / 2 + photoView.y);
+    context.rotate(photoView.rotation * Math.PI / 180);
+    context.scale(photoView.mirror ? -1 : 1, photoView.flip ? -1 : 1);
+    context.scale(scale, scale);
+    context.drawImage(photo, -photo.width / 2, -photo.height / 2);
+    context.restore();
+}
+
+function drawSceneBitmap(context, width, height, scale) {
+    context.imageSmoothingQuality = 'high';
+    if (scale >= 0.5) {
+        drawPhotoBitmap(context, width, height, scale);
+        return;
+    }
+
+    // Resample large originals in two steps so sub-pixel lines contribute to the smaller frame.
+    if (sceneSampleCanvas.width !== width * 2) sceneSampleCanvas.width = width * 2;
+    if (sceneSampleCanvas.height !== height * 2) sceneSampleCanvas.height = height * 2;
+    const sample = sceneSampleCanvas.getContext('2d');
+    sample.fillStyle = 'white';
+    sample.fillRect(0, 0, width * 2, height * 2);
+    sample.imageSmoothingQuality = 'high';
+    drawPhotoBitmap(sample, width, height, scale, 2);
+    context.drawImage(sceneSampleCanvas, 0, 0, width, height);
+}
+
+function sharpenScene({data, width, height}, amount) {
+    if (!amount) return;
+    const luma = new Float32Array(width * height);
+    for (let pixel = 0, i = 0; pixel < luma.length; pixel++, i += 4)
+        luma[pixel] = .299 * data[i] + .587 * data[i + 1] + .114 * data[i + 2];
+
+    for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+            const pixel = y * width + x;
+            const i = pixel * 4;
+            // Preserve solid black, white and red pixels in art already prepared for e-paper.
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            if ((r === g && g === b && (r === 0 || r === 255)) || (r === 255 && g === 0 && b === 0)) continue;
+            const around = (luma[pixel - 1] + luma[pixel + 1] + luma[pixel - width] + luma[pixel + width]) / 4;
+            const detail = Math.max(-24, Math.min(24, (luma[pixel] - around) * amount));
+            for (let channel = 0; channel < 3; channel++) data[i + channel] += detail;
+        }
+    }
+}
+
 function renderPhoto() {
     const canvas = $('photoCanvas');
-    const photoWidth = usesScene() ? 240 : 400;
-    const photoHeight = usesScene() ? 152 : usesArtwork() ? 150 : 300;
+    const scene = usesScene();
+    const photoWidth = scene ? 240 : 400;
+    const photoHeight = scene ? 152 : usesArtwork() ? 150 : 300;
     if (canvas.width !== photoWidth) canvas.width = photoWidth;
     if (canvas.height !== photoHeight) canvas.height = photoHeight;
     const context = canvas.getContext('2d', {willReadFrequently:true});
@@ -48,17 +99,13 @@ function renderPhoto() {
     const height = turned ? photo.width : photo.height;
     const fit = $('photoFit').value === 'cover' ? Math.max : Math.min;
     const scale = fit(photoWidth / width, photoHeight / height) * photoView.zoom;
-    context.save();
-    context.translate(photoWidth / 2 + photoView.x, photoHeight / 2 + photoView.y);
-    context.rotate(photoView.rotation * Math.PI / 180);
-    context.scale(photoView.mirror ? -1 : 1, photoView.flip ? -1 : 1);
-    context.scale(scale, scale);
-    context.drawImage(photo, -photo.width / 2, -photo.height / 2);
-    context.restore();
+    if (scene) drawSceneBitmap(context, photoWidth, photoHeight, scale);
+    else drawPhotoBitmap(context, photoWidth, photoHeight, scale);
 
     const settings = Object.fromEntries(Object.entries(photoSliders).map(([id, key]) => [key, +$(id).value]));
     const useRed = $('photoColor').value === 'bwr';
     const image = context.getImageData(0, 0, photoWidth, photoHeight);
+    if (scene) sharpenScene(image, Number($('photoSharpness').value) * 0.015);
     if (!useRed) {
         for (let at = 0; at < image.data.length; at += 4) {
             const light = .299*image.data[at] + .587*image.data[at+1] + .114*image.data[at+2];
@@ -112,6 +159,7 @@ function photoControls() {
     for (const id of ['photoFit', 'photoColor', ...Object.keys(photoSliders)]) $(id).disabled = !editing;
     for (const button of document.querySelectorAll('[data-photo-action]')) button.disabled = !editing;
     $('photoCanvas').toggleAttribute('data-editable', editing);
+    $('photoSharpness').disabled = !editing || !scene;
     window.photoMarks?.controls(editing);
     for (const button of artPresetButtons) button.disabled = busy;
     $('photoRed').disabled = !editing || $('photoColor').value === 'bw';
@@ -317,11 +365,13 @@ async function saveArtwork(restore = false) {
 function choosePhotoTarget() {
     const art = usesArtwork(), scene = usesScene();
     $('sceneOptions').hidden = !scene;
+    $('photoSharpnessLabel').hidden = !scene;
+    $('photoCanvas').toggleAttribute('data-scene', scene);
     $('artPresets').hidden = !art || scene || !artPresetButtons.length;
     $('photoTitle').textContent = scene ? 'Thay tranh Đồng hồ tranh 2' : art ? 'Thay tranh Đồng hồ tranh' : 'Tải ảnh lên màn hình';
     $('photoDimensions').textContent = 'Xem trước · ' + (scene ? '240 × 152' : '400 × ' + (art ? 150 : 300));
     $('photoUsage').textContent = scene
-        ? 'Ảnh riêng thay cảnh của khung giờ đã chọn. Đồng hồ tự đổi cảnh theo giờ Việt Nam.'
+        ? 'Đồng hồ tự đổi cảnh theo giờ Việt Nam. Anh có thể phóng to chủ thể để nhìn rõ hơn trong khung nhỏ.'
         : art
         ? 'Ảnh thay phần tranh ở nửa dưới. Giờ và âm lịch vẫn ở nửa trên.'
         : 'Ảnh thay cho mặt đang hiển thị. Để trở lại đồng hồ, chọn một mặt trong thư viện.';
@@ -380,9 +430,10 @@ function resetPhotoAdjustments() {
     const defaults = photoProcessor.defaults();
     for (const [id, key] of Object.entries(photoSliders))
         $(id).value = $(id + 'Value').textContent = defaults[key];
+    $('photoSharpness').value = $('photoSharpnessValue').textContent = 55;
 }
 
-for (const id of Object.keys(photoSliders)) $(id).oninput = () => {
+for (const id of [...Object.keys(photoSliders), 'photoSharpness']) $(id).oninput = () => {
     $(id + 'Value').textContent = $(id).value;
     schedulePhotoRender();
 };

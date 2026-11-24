@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Chọn mặt đồng hồ, cài đặt và gửi ảnh cho Đồng hồ 4.2.">
   <title>Đồng hồ 4.2 · Điều khiển Bluetooth</title>
-  <link rel="stylesheet" href="clock42.css?v=62.42">
+  <link rel="stylesheet" href="clock42.css?v=62.43">
 </head>
 <body>
 <main>
@@ -236,6 +236,9 @@
               <label>Mức đen / trắng <output id="photoBlackValue">128</output>
                 <input id="photoBlack" type="range" min="50" max="220" value="128">
               </label>
+              <label id="photoSharpnessLabel" hidden>Độ nét <output id="photoSharpnessValue">55</output>
+                <input id="photoSharpness" type="range" min="0" max="100" value="55">
+              </label>
             </div>
           </details>
           <details class="photo-adjustments">
@@ -324,18 +327,18 @@
   </div>
 </main>
 <script src="resources.js"></script>
-<script src="scenes-data.js?v=62.42"></script>
-<script src="art-presets-data.js?v=62.42"></script>
-<script src="season-art-data.js?v=62.42"></script>
-<script src="app.js?v=62.42"></script>
+<script src="scenes-data.js?v=62.43"></script>
+<script src="art-presets-data.js?v=62.43"></script>
+<script src="season-art-data.js?v=62.43"></script>
+<script src="app.js?v=62.43"></script>
 <script src="../clock-image-processing.js?v=v62.20"></script>
-<script src="photo.js?v=62.42"></script>
-<script src="photo-marks.js?v=62.42"></script>
+<script src="photo.js?v=62.43"></script>
+<script src="photo-marks.js?v=62.43"></script>
 <script src="../daily-quotes-data.js"></script>
-<script src="daily.js?v=62.42"></script>
-<script src="personal-quotes.js?v=62.42"></script>
+<script src="daily.js?v=62.43"></script>
+<script src="personal-quotes.js?v=62.43"></script>
 <script src="../jszip.min.js"></script>
-<script src="ota-package.js?v=62.42"></script>
-<script src="ota.js?v=62.42"></script>
+<script src="ota-package.js?v=62.43"></script>
+<script src="ota.js?v=62.43"></script>
 </body>
 </html>
