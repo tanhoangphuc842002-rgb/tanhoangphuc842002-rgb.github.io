@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Chọn mặt đồng hồ, cài đặt và gửi ảnh cho Đồng hồ 4.2.">
+  <title>Đồng hồ 4.2 · Điều khiển Bluetooth</title>
+  <link rel="stylesheet" href="clock42.css?v=62.40">
+</head>
+<body>
+<main>
+  <header>
+    <a class="home" href="../index.html">Trang chính</a>
+    <h1>Đồng hồ 4.2</h1>
+  </header>
+
+  <section class="connection" aria-label="Kết nối đồng hồ">
+    <div id="state" role="status">Chưa kết nối</div>
+    <div class="buttons">
+      <button id="connect">Kết nối</button>
+      <button id="reconnect" class="secondary" disabled>Kết nối lại</button>
+      <button id="stop" class="secondary" disabled>Ngắt kết nối</button>
+    </div>
+    <p id="status" class="status" role="status"></p>
+  </section>
+
+  <nav class="tabs" aria-label="Chức năng 4.2">
+    <button type="button" data-section="faces" aria-pressed="true">Mặt đồng hồ</button>
+    <button type="button" data-section="tasks" aria-pressed="false">Việc cần làm</button>
+    <button type="button" data-section="quotes" aria-pressed="false">Danh ngôn</button>
+    <button type="button" data-section="photos" aria-pressed="false">Tải ảnh</button>
+    <button type="button" data-section="settings" aria-pressed="false">Cài đặt</button>
+  </nav>
+
+  <div id="faces" class="panel">
+    <section>
+      <div class="section-title">
+        <h2>Thư viện mặt đồng hồ</h2>
+        <button id="sync" class="secondary" disabled>Đồng bộ giờ</button>
+      </div>
+      <div class="gallery">
+        <button id="calendar" class="face" disabled><img src="previews/calendar.png" alt=""><span>Lịch tháng</span></button>
+        <button id="bigClock" class="face" disabled><img src="previews/big.png" alt=""><span>Đồng hồ lớn</span></button>
+        <button id="artCalendar" class="face" disabled><img src="previews/clock-calendar.png" alt=""><span>Đồng hồ lịch</span></button>
+        <button id="art1" class="face" disabled><img src="previews/tear.png" alt=""><span>Đồng hồ lịch xé</span></button>
+        <button id="art2" class="face" disabled><img src="previews/art.png" alt=""><span>Đồng hồ tranh</span></button>
+        <button id="common" class="face" disabled><img src="previews/calendar-2.png" alt=""><span>Đồng hồ lịch 2</span></button>
+        <button id="pictureTear" class="face" disabled><img src="previews/art-2.png" alt=""><span>Đồng hồ tranh 2</span></button>
+        <button id="countdown" class="face" disabled><img src="previews/countdown.png" alt=""><span>Đồng hồ đếm ngược</span></button>
+        <button id="quoteClock" class="face" disabled><img src="previews/quote.png" alt=""><span>Đồng hồ danh ngôn</span></button>
+      </div>
+      <div class="buttons art-action">
+        <button id="changeArt" class="secondary" type="button">Thay tranh Đồng hồ tranh</button>
+        <button id="changeScene" class="secondary" type="button">Thay tranh Đồng hồ tranh 2</button>
+      </div>
+    </section>
+    <section aria-labelledby="eventTitle">
+      <h2 id="eventTitle">Sự kiện đếm ngược</h2>
+      <div class="fields">
+        <label>Tên sự kiện
+          <textarea id="countdownName" rows="1" placeholder="Ví dụ: Kỷ niệm ngày cưới"></textarea>
+        </label>
+        <label>Ngày diễn ra
+          <input id="countdownDate" type="date" min="2020-01-01" max="2099-12-31">
+        </label>
+      </div>
+      <p id="countdownCount" class="hint" aria-live="polite">Tối đa 32 ký tự, hiển thị tối đa hai dòng.</p>
+      <div class="buttons">
+        <button id="saveCountdown" disabled>Lưu và mở đếm ngược</button>
+        <button id="readCountdown" class="secondary" disabled>Đọc sự kiện đã lưu</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="tasks" class="panel" hidden>
+    <section aria-labelledby="taskTitle">
+      <h2 id="taskTitle">Việc cần làm</h2>
+      <div class="fields">
+        <div>
+          <label>Việc thứ nhất<textarea id="task1" rows="1"></textarea></label>
+          <span id="taskCount1" class="hint"></span>
+          <label class="check"><input type="checkbox" id="done1"> Đã hoàn thành</label>
+        </div>
+        <div>
+          <label>Việc thứ hai<textarea id="task2" rows="1"></textarea></label>
+          <span id="taskCount2" class="hint"></span>
+          <label class="check"><input type="checkbox" id="done2"> Đã hoàn thành</label>
+        </div>
+        <div data-extra-task>
+          <label>Việc 3<textarea id="task3" rows="1"></textarea></label>
+          <span id="taskCount3" class="hint"></span>
+          <label class="check"><input type="checkbox" id="done3"> Đã hoàn thành</label>
+        </div>
+        <div data-extra-task>
+          <label>Việc 4<textarea id="task4" rows="1"></textarea></label>
+          <span id="taskCount4" class="hint"></span>
+          <label class="check"><input type="checkbox" id="done4"> Đã hoàn thành</label>
+        </div>
+        <div data-extra-task>
+          <label>Việc 5<textarea id="task5" rows="1"></textarea></label>
+          <span id="taskCount5" class="hint"></span>
+          <label class="check"><input type="checkbox" id="done5"> Đã hoàn thành</label>
+        </div>
+        <div data-extra-task>
+          <label>Việc 6<textarea id="task6" rows="1"></textarea></label>
+          <span id="taskCount6" class="hint"></span>
+          <label class="check"><input type="checkbox" id="done6"> Đã hoàn thành</label>
+        </div>
+      </div>
+      <p id="taskCapacity" class="hint">Toàn màn hiện tối đa 6 việc. Đồng hồ lịch 2 hiện 2 việc đầu.</p>
+      <label class="photo-target">Hiển thị
+        <select id="taskView">
+          <option value="8">Đồng hồ lịch 2</option>
+          <option value="12">Việc cần làm toàn màn</option>
+        </select>
+      </label>
+      <p id="taskCompatibility" class="hint" hidden>Cập nhật phần mềm để dùng Việc cần làm toàn màn.</p>
+      <div class="buttons">
+        <button id="saveTasks" disabled>Lưu và xem trên đồng hồ</button>
+        <button id="openTasks" class="secondary" disabled>Mở mặt đã chọn</button>
+        <button id="readTasks" class="secondary" disabled>Đọc từ đồng hồ</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="quotes" class="panel" hidden>
+    <section aria-labelledby="personalQuoteTitle">
+      <h2 id="personalQuoteTitle">Danh ngôn của tôi</h2>
+      <label>Câu châm ngôn
+        <textarea id="personalQuotes" rows="8" placeholder="Mỗi dòng một câu"></textarea>
+      </label>
+      <p id="personalQuoteCount" class="hint" aria-live="polite">0 / 50 câu</p>
+      <p class="hint">Mỗi dòng nhập là một câu. Đồng hồ tự chia câu thành tối đa ba dòng trên màn.</p>
+      <label class="photo-target">Đổi câu mỗi ngày
+        <select id="personalQuoteMode">
+          <option value="0">Xen kẽ câu của tôi với câu mẫu</option>
+          <option value="1">Chỉ dùng câu của tôi</option>
+        </select>
+      </label>
+      <p id="personalQuotePreview" class="quote-preview" hidden></p>
+      <div class="buttons">
+        <button id="personalQuoteSave" disabled>Lưu và mở Đồng hồ danh ngôn</button>
+        <button id="personalQuoteRead" class="secondary" disabled>Đọc câu đã lưu</button>
+        <button id="personalQuoteOpen" class="secondary" disabled>Mở Đồng hồ danh ngôn</button>
+      </div>
+      <p id="personalQuoteStatus" class="status" role="status">Kết nối đồng hồ để lưu danh sách.</p>
+    </section>
+  </div>
+
+  <div id="photos" class="panel" hidden>
+    <section>
+      <h2 id="photoTitle">Tải ảnh lên màn hình</h2>
+      <label class="photo-target">Dùng ảnh cho
+        <select id="photoTarget">
+          <option value="full">Ảnh toàn màn</option>
+          <option value="art">Tranh của mặt Đồng hồ tranh</option>
+          <option value="scene">Tranh của mặt Đồng hồ tranh 2</option>
+        </select>
+      </label>
+      <div id="sceneOptions" class="scene-options" hidden>
+        <label>Khung giờ muốn thay
+          <select id="scenePeriod">
+            <option value="0">Buổi sáng · 06:00–12:00</option>
+            <option value="1">Buổi trưa · 12:00–16:00</option>
+            <option value="2">Buổi chiều · 16:00–19:00</option>
+            <option value="3">Buổi tối · 19:00–06:00</option>
+          </select>
+        </label>
+        <figure>
+          <img id="sceneSample" src="previews/scene-morning.png" alt="Tranh mẫu buổi sáng" width="240" height="152">
+          <figcaption class="hint" id="sceneSampleCaption">Mẫu buổi sáng</figcaption>
+        </figure>
+      </div>
+      <div id="artPresets" class="art-presets" hidden>
+        <h3>Tranh mẫu 4 mùa</h3>
+        <div id="artPresetGrid" class="gallery"></div>
+        <h3 class="season-preset-title">Tranh theo tiết khí</h3>
+        <div id="seasonPresetGrid" class="gallery"></div>
+        <div class="buttons season-art-actions">
+          <button id="enableSeasonArt" class="secondary" type="button" disabled>Dùng bộ tranh tự đổi theo tiết khí</button>
+        </div>
+        <p class="hint">Chọn một ảnh rồi bấm Lưu tranh để dùng ảnh đó. Bật tự đổi để đồng hồ chuyển tranh vào các ngày lập mùa.</p>
+        <p id="seasonArtHint" class="hint" hidden>Cập nhật phần mềm để dùng tự đổi tranh theo tiết khí.</p>
+      </div>
+      <div class="photo-layout">
+        <div class="photo-preview">
+          <canvas id="photoCanvas" width="400" height="300" aria-label="Ảnh xem trước"></canvas>
+          <p class="hint" id="photoDimensions">Xem trước · 400 × 300</p>
+        </div>
+        <div class="photo-tools">
+          <label>Chọn ảnh
+            <input id="photoFile" type="file" accept="image/png,image/jpeg,image/webp,image/bmp">
+          </label>
+          <div class="fields">
+            <label>Vừa khung
+              <select id="photoFit">
+                <option value="contain">Giữ trọn ảnh</option>
+                <option value="cover">Cắt cho vừa khung</option>
+              </select>
+            </label>
+            <label>Màu
+              <select id="photoColor">
+                <option value="bwr">Đen, trắng và đỏ</option>
+                <option value="bw">Đen và trắng</option>
+              </select>
+            </label>
+          </div>
+          <button id="rotatePhoto" class="secondary" type="button">Xoay 90°</button>
+          <label>Chỉnh màu đen <output id="photoBlackValue">145</output>
+            <input id="photoBlack" type="range" min="0" max="255" value="145">
+          </label>
+          <label>Chỉnh màu đỏ <output id="photoRedValue">115</output>
+            <input id="photoRed" type="range" min="0" max="255" value="115">
+          </label>
+        </div>
+      </div>
+      <p id="photoFirmwareHint" class="hint" hidden>Cập nhật phần mềm để gửi ảnh.</p>
+      <p class="hint" id="photoUsage">Ảnh thay cho mặt đang hiển thị. Để trở lại đồng hồ, chọn một mặt trong thư viện.</p>
+      <div class="buttons">
+        <button id="sendPhoto" disabled>Gửi ảnh lên thiết bị</button>
+        <button id="restoreArt" class="secondary" hidden disabled>Khôi phục tranh mẫu</button>
+      </div>
+      <progress id="photoProgress" value="0" max="100" aria-label="Tiến độ gửi ảnh"></progress>
+      <p id="photoStatus" class="status" role="status"></p>
+    </section>
+  </div>
+
+  <div id="settings" class="panel" hidden>
+    <section aria-labelledby="sleepTitle">
+      <h2 id="sleepTitle">Hẹn giờ ngủ</h2>
+      <p class="hint">Trong giờ nghỉ, màn giữ nguyên hình. Đồng hồ vẫn chạy, Bluetooth vẫn kết nối được và màn tự cập nhật khi đến giờ thức.</p>
+      <div class="fields sleep-times">
+        <label>Ngủ từ <input id="sleepStart" type="time" value="23:00" disabled></label>
+        <label>Thức lúc <input id="sleepEnd" type="time" value="07:00" disabled></label>
+      </div>
+      <div class="buttons">
+        <button id="sleepSave" disabled>Lưu và bật hẹn giờ</button>
+        <button id="sleepDisable" class="secondary" disabled>Tắt hẹn giờ</button>
+        <button id="sleepRead" class="secondary" disabled>Đọc hẹn giờ</button>
+      </div>
+      <p id="sleepStatus" class="status" role="status">Kết nối đồng hồ để đọc hẹn giờ đã lưu.</p>
+      <p class="hint">Sau khi tháo pin, bấm Đồng bộ giờ trong mục Mặt đồng hồ để lịch ngủ chạy đúng giờ.</p>
+    </section>
+    <section>
+      <h2>Cài chữ và mặt đồng hồ</h2>
+      <p class="hint">Cài bộ chữ tiếng Việt và dữ liệu mặt đồng hồ nếu thiết bị chưa có.</p>
+      <div class="buttons">
+        <button id="install" disabled>Cài vào đồng hồ</button>
+        <button id="check" class="secondary" disabled>Kiểm tra dữ liệu</button>
+      </div>
+      <progress id="progress" value="0" max="100" aria-label="Tiến độ cài chữ và mặt đồng hồ"></progress>
+    </section>
+    <section aria-labelledby="ota420-title">
+      <h2 id="ota420-title">Cập nhật phần mềm</h2>
+      <label>Tệp cập nhật phần mềm (.zip)
+        <input id="ota420-zip" type="file" accept=".zip,application/zip">
+      </label>
+      <div class="buttons">
+        <button id="ota420-start" disabled>Bắt đầu cập nhật</button>
+        <button id="ota420-pick" class="secondary" disabled>Tiếp tục cập nhật</button>
+        <button id="ota420-retry" class="secondary" hidden disabled>Thử lại</button>
+      </div>
+      <p id="ota420-device-hint" class="hint" hidden>Khi danh sách Bluetooth mở ra, chọn thiết bị có tên <strong>DfuTarg</strong>.</p>
+      <progress id="ota420-progress" value="0" max="100" aria-label="Tiến độ cập nhật phần mềm"></progress>
+      <p id="ota420-status" class="status" role="status">Chọn tệp cập nhật để bắt đầu.</p>
+    </section>
+    <details>
+      <summary>Thử chữ tiếng Việt</summary>
+      <label>Nội dung hiển thị ở ba cỡ chữ
+        <textarea id="text" rows="2">Tiếng Việt đủ dấu</textarea>
+      </label>
+      <p id="count" class="hint"></p>
+      <button id="show" disabled>Hiển thị chữ trên đồng hồ</button>
+    </details>
+    <details>
+      <summary>Nhật ký</summary>
+      <div id="log"></div>
+      <button id="saveLog" class="secondary">Tải nhật ký để gửi hỗ trợ</button>
+    </details>
+  </div>
+</main>
+<script src="resources.js"></script>
+<script src="scenes-data.js?v=62.40"></script>
+<script src="art-presets-data.js?v=62.40"></script>
+<script src="season-art-data.js?v=62.40"></script>
+<script src="app.js?v=62.40"></script>
+<script src="photo.js?v=62.40"></script>
+<script src="../daily-quotes-data.js"></script>
+<script src="daily.js?v=62.40"></script>
+<script src="personal-quotes.js?v=62.40"></script>
+<script src="../jszip.min.js"></script>
+<script src="ota-package.js?v=62.40"></script>
+<script src="ota.js?v=62.40"></script>
+</body>
+</html>
