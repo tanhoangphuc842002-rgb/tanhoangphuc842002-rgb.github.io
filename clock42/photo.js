@@ -8,7 +8,11 @@ const scenePeriods = [
 ];
 const artPresetButtons = [];
 let photo = null;
-let photoRotation = 0;
+const photoProcessor = window.EpdClockImageProcessing;
+const photoSliders = {photoBrightness: 'brightness', photoContrast: 'contrast',
+    photoRed: 'redThreshold', photoBlack: 'bwThreshold'};
+const photoView = {rotation: 0, zoom: 1, x: 0, y: 0, mirror: false, flip: false};
+let photoFrame = 0;
 let photoGeneration = 0;
 let photoDecoding = false;
 let sendingPhoto = false;
@@ -39,33 +43,46 @@ function renderPhoto() {
     context.fillRect(0, 0, photoWidth, photoHeight);
     if (!photo) return;
 
-    const turned = photoRotation % 180 !== 0;
+    const turned = photoView.rotation % 180 !== 0;
     const width = turned ? photo.height : photo.width;
     const height = turned ? photo.width : photo.height;
     const fit = $('photoFit').value === 'cover' ? Math.max : Math.min;
-    const scale = fit(photoWidth / width, photoHeight / height);
+    const scale = fit(photoWidth / width, photoHeight / height) * photoView.zoom;
     context.save();
-    context.translate(photoWidth / 2, photoHeight / 2);
-    context.rotate(photoRotation * Math.PI / 180);
+    context.translate(photoWidth / 2 + photoView.x, photoHeight / 2 + photoView.y);
+    context.rotate(photoView.rotation * Math.PI / 180);
+    context.scale(photoView.mirror ? -1 : 1, photoView.flip ? -1 : 1);
     context.scale(scale, scale);
     context.drawImage(photo, -photo.width / 2, -photo.height / 2);
     context.restore();
 
-    const blackThreshold = +$('photoBlack').value;
-    const redThreshold = +$('photoRed').value;
+    const settings = Object.fromEntries(Object.entries(photoSliders).map(([id, key]) => [key, +$(id).value]));
     const useRed = $('photoColor').value === 'bwr';
     const image = context.getImageData(0, 0, photoWidth, photoHeight);
-    for (let at = 0; at < image.data.length; at += 4) {
-        const r = image.data[at], g = image.data[at+1], b = image.data[at+2];
-        const red = useRed && r >= redThreshold && r > g * 1.35 && r > b * 1.35;
-        const light = 0.299*r + 0.587*g + 0.114*b >= blackThreshold ? 255 : 0;
-        image.data[at] = red ? 255 : light;
-        image.data[at+1] = image.data[at+2] = red ? 0 : light;
+    if (!useRed) {
+        for (let at = 0; at < image.data.length; at += 4) {
+            const light = .299*image.data[at] + .587*image.data[at+1] + .114*image.data[at+2];
+            image.data[at] = image.data[at+1] = image.data[at+2] = light;
+        }
     }
+    image.data.set(photoProcessor.process(image.data, photoWidth, photoHeight, settings));
     context.putImageData(image, 0, 0);
+    window.photoMarks?.draw(context, useRed);
+    $('photoZoom').textContent = Math.round(photoView.zoom * 100) + '%';
+}
+
+function schedulePhotoRender() {
+    if (!photoFrame) photoFrame = requestAnimationFrame(() => { photoFrame = 0; renderPhoto(); });
+}
+
+function flushPhotoRender() {
+    if (photoFrame) cancelAnimationFrame(photoFrame);
+    photoFrame = 0;
+    renderPhoto();
 }
 
 function photoPlanes() {
+    if (photoFrame) flushPhotoRender();
     const canvas = $('photoCanvas');
     const rgba = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
     const black = new Uint8Array(canvas.width * canvas.height / 8).fill(255);
@@ -90,10 +107,14 @@ function photoControls() {
     $('changeArt').disabled = $('changeScene').disabled = busy;
     $('enableSeasonArt').disabled = busy || !connected || firmware < 0xb7 || !cap.ready;
     $('seasonArtHint').hidden = !connected || firmware >= 0xb7;
-    for (const id of ['photoTarget','photoFile','photoFit','photoColor','photoBlack','photoRed','rotatePhoto','scenePeriod'])
-        $(id).disabled = busy;
+    for (const id of ['photoTarget','photoFile','scenePeriod']) $(id).disabled = busy;
+    const editing = !!photo && !photoDecoding && !busy;
+    for (const id of ['photoFit', 'photoColor', ...Object.keys(photoSliders)]) $(id).disabled = !editing;
+    for (const button of document.querySelectorAll('[data-photo-action]')) button.disabled = !editing;
+    $('photoCanvas').toggleAttribute('data-editable', editing);
+    window.photoMarks?.controls(editing);
     for (const button of artPresetButtons) button.disabled = busy;
-    $('photoRed').disabled = busy || $('photoColor').value === 'bw';
+    $('photoRed').disabled = !editing || $('photoColor').value === 'bw';
     const hint = $('photoFirmwareHint');
     hint.hidden = !connected || (supported && (!art || cap.ready));
     hint.textContent = supported ? 'Vào Cài đặt, chọn Cài chữ và mặt đồng hồ trước.' :
@@ -119,7 +140,8 @@ async function loadPhoto(file, selectedPreset) {
         }
         photo?.close();
         photo = image;
-        photoRotation = 0;
+        resetPhotoAdjustments();
+        window.photoMarks?.reset();
         for (const button of artPresetButtons)
             button.setAttribute('aria-pressed', String(button === selectedPreset));
         $('photoProgress').value = 0;
@@ -346,16 +368,82 @@ for (const [id,target] of [['changeArt','art'],['changeScene','scene']]) {
         $(target === 'scene' ? 'scenePeriod' : 'photoFile').focus();
     };
 }
-for (const id of ['photoFit','photoColor','photoBlack','photoRed']) $(id).oninput = () => {
-    $('photoBlackValue').textContent = $('photoBlack').value;
-    $('photoRedValue').textContent = $('photoRed').value;
+function centerPhoto() {
+    Object.assign(photoView, {zoom: 1, x: 0, y: 0});
+}
+
+function resetPhotoAdjustments() {
+    centerPhoto();
+    Object.assign(photoView, {rotation: 0, mirror: false, flip: false});
+    $('photoFit').value = 'contain';
+    $('photoColor').value = 'bwr';
+    const defaults = photoProcessor.defaults();
+    for (const [id, key] of Object.entries(photoSliders))
+        $(id).value = $(id + 'Value').textContent = defaults[key];
+}
+
+for (const id of Object.keys(photoSliders)) $(id).oninput = () => {
+    $(id + 'Value').textContent = $(id).value;
+    schedulePhotoRender();
+};
+$('photoFit').onchange = () => { centerPhoto(); flushPhotoRender(); };
+$('photoColor').onchange = () => {
     photoControls();
-    renderPhoto();
+    flushPhotoRender();
 };
-$('rotatePhoto').onclick = () => {
-    photoRotation = (photoRotation + 90) % 360;
-    renderPhoto();
+
+function movePhoto(x, y) {
+    const canvas = $('photoCanvas');
+    photoView.x = Math.max(-canvas.width, Math.min(canvas.width, x));
+    photoView.y = Math.max(-canvas.height, Math.min(canvas.height, y));
+}
+
+const photoActions = {
+    rotateLeft: () => { photoView.rotation = (photoView.rotation + 270) % 360; },
+    rotateRight: () => { photoView.rotation = (photoView.rotation + 90) % 360; },
+    mirror: () => { photoView.mirror = !photoView.mirror; },
+    flip: () => { photoView.flip = !photoView.flip; },
+    zoomIn: () => { photoView.zoom = Math.min(8, photoView.zoom * 1.1); },
+    zoomOut: () => { photoView.zoom = Math.max(.2, photoView.zoom / 1.1); },
+    left: () => movePhoto(photoView.x - 10, photoView.y),
+    right: () => movePhoto(photoView.x + 10, photoView.y),
+    up: () => movePhoto(photoView.x, photoView.y - 10),
+    down: () => movePhoto(photoView.x, photoView.y + 10),
+    center: centerPhoto,
+    reset: resetPhotoAdjustments,
 };
+for (const button of document.querySelectorAll('[data-photo-action]')) button.onclick = () => {
+    photoActions[button.dataset.photoAction]();
+    photoControls();
+    flushPhotoRender();
+};
+
+const photoCanvas = $('photoCanvas');
+let photoDrag;
+photoCanvas.addEventListener('pointerdown', event => {
+    if (!photoCanvas.hasAttribute('data-editable') || event.button !== 0 || photoDrag) return;
+    const rect = photoCanvas.getBoundingClientRect();
+    const point = {x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height};
+    const marking = window.photoMarks?.start(point);
+    photoDrag = {id: event.pointerId, point, x: photoView.x, y: photoView.y, marking};
+    photoCanvas.setPointerCapture(event.pointerId);
+});
+photoCanvas.addEventListener('pointermove', event => {
+    if (photoDrag?.id !== event.pointerId || !photoCanvas.hasAttribute('data-editable')) return;
+    const rect = photoCanvas.getBoundingClientRect();
+    const point = {x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height};
+    if (photoDrag.marking) window.photoMarks?.move(point);
+    else movePhoto(photoDrag.x + (point.x - photoDrag.point.x) * photoCanvas.width,
+                   photoDrag.y + (point.y - photoDrag.point.y) * photoCanvas.height);
+    schedulePhotoRender();
+});
+function endPhotoDrag(event) {
+    if (photoDrag?.id !== event.pointerId) return;
+    if (photoDrag.marking) window.photoMarks?.end();
+    photoDrag = null;
+    if (photoFrame) flushPhotoRender();
+}
+for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) photoCanvas.addEventListener(name, endPhotoDrag);
 $('sendPhoto').onclick = () => action(usesArtwork() ? saveArtwork : sendPhoto);
 $('restoreArt').onclick = () => action(() => saveArtwork(true));
 $('enableSeasonArt').onclick = () => action(enableSeasonArt);

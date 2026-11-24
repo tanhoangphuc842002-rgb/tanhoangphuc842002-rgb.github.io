@@ -94,6 +94,13 @@ details > summary { cursor: pointer; font-weight: 700; }
 .art-presets .season-preset-title { margin-top: 18px; }
 .season-art-actions { margin-top: 12px; }
 canvas { width: 100%; height: auto; display: block; border: 1px solid var(--line); background: #fff; border-radius: 6px; image-rendering: pixelated; }
+#photoCanvas[data-editable] { touch-action: none; cursor: grab; }
+#photoCanvas[data-editable][data-mark]:not([data-mark="move"]) { cursor: crosshair; }
+.photo-edit-buttons { align-items: center; margin-bottom: 10px; }
+.photo-edit-buttons button[aria-pressed="true"] { background: #e9f2ff; border-color: var(--blue); }
+.photo-adjustments { padding: 10px 12px; margin-bottom: 10px; background: #f7fafc; }
+.photo-adjustments summary + .buttons { margin-top: 10px; }
+#photoText { display: block; width: 100%; min-height: 40px; margin-top: 4px; padding: 6px 8px; font: inherit; }
 output { color: #495d72; font-variant-numeric: tabular-nums; }
 @media (max-width: 740px) {
     .gallery { grid-template-columns: repeat(2,minmax(0,1fr)); }

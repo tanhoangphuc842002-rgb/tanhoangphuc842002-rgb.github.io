@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Chọn mặt đồng hồ, cài đặt và gửi ảnh cho Đồng hồ 4.2.">
   <title>Đồng hồ 4.2 · Điều khiển Bluetooth</title>
-  <link rel="stylesheet" href="clock42.css?v=62.41">
+  <link rel="stylesheet" href="clock42.css?v=62.42">
 </head>
 <body>
 <main>
@@ -186,6 +186,7 @@
         <div class="photo-preview">
           <canvas id="photoCanvas" width="400" height="300" aria-label="Ảnh xem trước"></canvas>
           <p class="hint" id="photoDimensions">Xem trước · 400 × 300</p>
+          <p class="hint" id="photoEditHint">Kéo ảnh để căn vị trí hoặc dùng các nút mũi tên.</p>
         </div>
         <div class="photo-tools">
           <label>Chọn ảnh
@@ -205,13 +206,56 @@
               </select>
             </label>
           </div>
-          <button id="rotatePhoto" class="secondary" type="button">Xoay 90°</button>
-          <label>Chỉnh màu đen <output id="photoBlackValue">145</output>
-            <input id="photoBlack" type="range" min="0" max="255" value="145">
-          </label>
-          <label>Chỉnh màu đỏ <output id="photoRedValue">115</output>
-            <input id="photoRed" type="range" min="0" max="255" value="115">
-          </label>
+          <div class="buttons photo-edit-buttons" role="group" aria-label="Căn chỉnh ảnh">
+            <button data-photo-action="rotateLeft" class="secondary" type="button">Xoay trái</button>
+            <button id="rotatePhoto" data-photo-action="rotateRight" class="secondary" type="button">Xoay phải</button>
+            <button data-photo-action="mirror" class="secondary" type="button">Lật ngang</button>
+            <button data-photo-action="flip" class="secondary" type="button">Lật dọc</button>
+            <button data-photo-action="zoomOut" class="secondary" type="button" aria-label="Thu nhỏ">−</button>
+            <output id="photoZoom" aria-label="Mức phóng to">100%</output>
+            <button data-photo-action="zoomIn" class="secondary" type="button" aria-label="Phóng to">+</button>
+            <button data-photo-action="left" class="secondary" type="button" aria-label="Dịch trái">←</button>
+            <button data-photo-action="up" class="secondary" type="button" aria-label="Dịch lên">↑</button>
+            <button data-photo-action="down" class="secondary" type="button" aria-label="Dịch xuống">↓</button>
+            <button data-photo-action="right" class="secondary" type="button" aria-label="Dịch phải">→</button>
+            <button data-photo-action="center" class="secondary" type="button">Căn giữa</button>
+            <button data-photo-action="reset" class="secondary" type="button">Đặt lại chỉnh ảnh</button>
+          </div>
+          <details class="photo-adjustments" open>
+            <summary>Độ sáng và màu sắc</summary>
+            <div class="fields">
+              <label>Độ sáng <output id="photoBrightnessValue">0</output>
+                <input id="photoBrightness" type="range" min="-100" max="100" value="0">
+              </label>
+              <label>Tương phản <output id="photoContrastValue">0</output>
+                <input id="photoContrast" type="range" min="-100" max="100" value="0">
+              </label>
+              <label>Mức nhận màu đỏ <output id="photoRedValue">120</output>
+                <input id="photoRed" type="range" min="80" max="240" value="120">
+              </label>
+              <label>Mức đen / trắng <output id="photoBlackValue">128</output>
+                <input id="photoBlack" type="range" min="50" max="220" value="128">
+              </label>
+            </div>
+          </details>
+          <details class="photo-adjustments">
+            <summary>Vẽ và thêm chữ</summary>
+            <div class="buttons photo-edit-buttons" role="group" aria-label="Công cụ chỉnh ảnh">
+              <button data-photo-mark="move" class="secondary" type="button" aria-pressed="true">Căn ảnh</button>
+              <button data-photo-mark="brush" class="secondary" type="button" aria-pressed="false">Bút vẽ</button>
+              <button data-photo-mark="erase" class="secondary" type="button" aria-pressed="false">Tẩy</button>
+              <button data-photo-mark="text" class="secondary" type="button" aria-pressed="false">Chữ</button>
+              <button id="photoUndo" class="secondary" type="button" disabled>Hoàn tác</button>
+              <button id="photoRedo" class="secondary" type="button" disabled>Làm lại</button>
+            </div>
+            <div id="photoInkControls" class="fields" hidden>
+              <label>Màu <select id="photoInk"><option value="black">Đen</option><option value="red">Đỏ</option><option value="white">Trắng</option></select></label>
+              <label id="photoStrokeLabel">Cỡ nét <input id="photoStroke" type="range" min="1" max="18" value="3"></label>
+            </div>
+            <label id="photoTextLabel" hidden>Chữ trên ảnh
+              <input id="photoText" type="text" maxlength="80" placeholder="Nhập chữ, rồi bấm vào vị trí trên ảnh">
+            </label>
+          </details>
         </div>
       </div>
       <p id="photoFirmwareHint" class="hint" hidden>Cập nhật phần mềm để gửi ảnh.</p>
@@ -280,16 +324,18 @@
   </div>
 </main>
 <script src="resources.js"></script>
-<script src="scenes-data.js?v=62.41"></script>
-<script src="art-presets-data.js?v=62.41"></script>
-<script src="season-art-data.js?v=62.41"></script>
-<script src="app.js?v=62.41"></script>
-<script src="photo.js?v=62.41"></script>
+<script src="scenes-data.js?v=62.42"></script>
+<script src="art-presets-data.js?v=62.42"></script>
+<script src="season-art-data.js?v=62.42"></script>
+<script src="app.js?v=62.42"></script>
+<script src="../clock-image-processing.js?v=v62.20"></script>
+<script src="photo.js?v=62.42"></script>
+<script src="photo-marks.js?v=62.42"></script>
 <script src="../daily-quotes-data.js"></script>
-<script src="daily.js?v=62.41"></script>
-<script src="personal-quotes.js?v=62.41"></script>
+<script src="daily.js?v=62.42"></script>
+<script src="personal-quotes.js?v=62.42"></script>
 <script src="../jszip.min.js"></script>
-<script src="ota-package.js?v=62.41"></script>
-<script src="ota.js?v=62.41"></script>
+<script src="ota-package.js?v=62.42"></script>
+<script src="ota.js?v=62.42"></script>
 </body>
 </html>
