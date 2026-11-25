@@ -17,6 +17,7 @@ let photoFrame = 0;
 let photoGeneration = 0;
 let photoDecoding = false;
 let sendingPhoto = false;
+let sceneSlotsSaved = null;
 
 function usesArtwork() {
     return $('photoTarget').value !== 'full';
@@ -24,6 +25,18 @@ function usesArtwork() {
 
 function usesScene() {
     return $('photoTarget').value === 'scene';
+}
+
+function usesClockPhoto() {
+    return $('photoTarget').value === 'clockPhoto';
+}
+
+function clockPhotoHeight() {
+    return gatt?.connected && firmware === 0xba ? 166 : 248;
+}
+
+function usesAllDayScene() {
+    return usesScene() && $('sceneSaveMode').value === 'all';
 }
 
 function updateSceneSample() {
@@ -84,9 +97,9 @@ function sharpenScene({data, width, height}, amount) {
 
 function renderPhoto() {
     const canvas = $('photoCanvas');
-    const scene = usesScene();
-    const photoWidth = scene ? 240 : 400;
-    const photoHeight = scene ? 152 : usesArtwork() ? 150 : 300;
+    const scene = usesScene(), clockPhoto = usesClockPhoto();
+    const photoWidth = clockPhoto ? 245 : scene ? 240 : 400;
+    const photoHeight = clockPhoto ? clockPhotoHeight() : scene ? 152 : usesArtwork() ? 150 : 300;
     if (canvas.width !== photoWidth) canvas.width = photoWidth;
     if (canvas.height !== photoHeight) canvas.height = photoHeight;
     const context = canvas.getContext('2d', {willReadFrequently:true});
@@ -99,13 +112,13 @@ function renderPhoto() {
     const height = turned ? photo.width : photo.height;
     const fit = $('photoFit').value === 'cover' ? Math.max : Math.min;
     const scale = fit(photoWidth / width, photoHeight / height) * photoView.zoom;
-    if (scene) drawSceneBitmap(context, photoWidth, photoHeight, scale);
+    if (scene || clockPhoto) drawSceneBitmap(context, photoWidth, photoHeight, scale);
     else drawPhotoBitmap(context, photoWidth, photoHeight, scale);
 
     const settings = Object.fromEntries(Object.entries(photoSliders).map(([id, key]) => [key, +$(id).value]));
     const useRed = $('photoColor').value === 'bwr';
     const image = context.getImageData(0, 0, photoWidth, photoHeight);
-    if (scene) sharpenScene(image, Number($('photoSharpness').value) * 0.015);
+    if (scene || clockPhoto) sharpenScene(image, Number($('photoSharpness').value) * 0.015);
     if (!useRed) {
         for (let at = 0; at < image.data.length; at += 4) {
             const light = .299*image.data[at] + .587*image.data[at+1] + .114*image.data[at+2];
@@ -128,10 +141,31 @@ function flushPhotoRender() {
     renderPhoto();
 }
 
-function photoPlanes() {
+function photoPixels() {
     if (photoFrame) flushPhotoRender();
     const canvas = $('photoCanvas');
-    const rgba = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    return canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+}
+
+function clockPhotoBytes() {
+    const rgba = photoPixels();
+    const result = new Uint8Array(rgba.length / 20);
+    // One byte encodes five pixels: white 0, black 1, red 2.
+    for (let group = 0; group < result.length; group++) {
+        let value = 0;
+        for (let pixel = 4; pixel >= 0; pixel--) {
+            const i = group * 20 + pixel * 4;
+            const ink = rgba[i + 1] ? 0 : rgba[i] ? 2 : 1;
+            value = value * 3 + ink;
+        }
+        result[group] = value;
+    }
+    return result;
+}
+
+function photoPlanes() {
+    const rgba = photoPixels();
+    const canvas = $('photoCanvas');
     const black = new Uint8Array(canvas.width * canvas.height / 8).fill(255);
     const red = black.slice();
     // SSD1619 RAM writes left-to-right within each row. Both inks use zero bits.
@@ -143,36 +177,56 @@ function photoPlanes() {
     return [black, red];
 }
 
+function photoPlaneBytes() {
+    const [black, red] = photoPlanes();
+    const data = new Uint8Array(black.length + red.length);
+    data.set(black);
+    data.set(red, black.length);
+    return data;
+}
+
 function photoControls() {
     const connected = !!gatt?.connected && !!cap;
-    const scene = usesScene();
-    const supported = connected && firmware >= (scene ? 0xb6 : 0xb2);
+    const scene = usesScene(), clockPhoto = usesClockPhoto();
+    const supported = connected && firmware >= (clockPhoto ? 0xba : scene ? 0xb6 : 0xb2);
     const art = usesArtwork();
     $('sendPhoto').disabled = busy || !supported || !photo || photoDecoding || (art && !cap.ready);
     $('restoreArt').disabled = busy || !supported || !cap.ready;
-    $('restoreArt').hidden = !art;
-    $('changeArt').disabled = $('changeScene').disabled = busy;
+    $('restoreArt').hidden = !art || clockPhoto || usesAllDayScene();
+    $('clockPhoto').disabled = busy || !connected || firmware < 0xba || !cap.ready || cap.crc !== Font420Bundle.crc32;
+    $('changeArt').disabled = $('changeScene').disabled = $('changeClockPhoto').disabled = busy;
     $('enableSeasonArt').disabled = busy || !connected || firmware < 0xb7 || !cap.ready;
     $('seasonArtHint').hidden = !connected || firmware >= 0xb7;
-    for (const id of ['photoTarget','photoFile','scenePeriod']) $(id).disabled = busy;
+    for (const id of ['photoTarget','photoFile','sceneSaveMode','scenePeriod']) $(id).disabled = busy;
     const editing = !!photo && !photoDecoding && !busy;
     for (const id of ['photoFit', 'photoColor', ...Object.keys(photoSliders)]) $(id).disabled = !editing;
     for (const button of document.querySelectorAll('[data-photo-action]')) button.disabled = !editing;
     $('photoCanvas').toggleAttribute('data-editable', editing);
-    $('photoSharpness').disabled = !editing || !scene;
+    $('photoSharpness').disabled = !editing || (!scene && !clockPhoto);
+    if (clockPhoto) {
+        const height = clockPhotoHeight();
+        $('photoDimensions').textContent = 'Xem trước · 245 × ' + height;
+        $('photoUsage').textContent = height === 248
+            ? 'Ảnh phủ cột bên phải của giờ dọc.'
+            : 'Cập nhật phần mềm để ảnh phủ hết cột bên phải.';
+        if ($('photoCanvas').height !== height) renderPhoto();
+    }
     window.photoMarks?.controls(editing);
     for (const button of artPresetButtons) button.disabled = busy;
     $('photoRed').disabled = !editing || $('photoColor').value === 'bw';
     const hint = $('photoFirmwareHint');
     hint.hidden = !connected || (supported && (!art || cap.ready));
     hint.textContent = supported ? 'Vào Cài đặt, chọn Cài chữ và mặt đồng hồ trước.' :
-        'Cập nhật phần mềm để ' + (scene ? 'thay cảnh theo giờ.' : 'gửi ảnh.');
+        'Cập nhật phần mềm để ' + (clockPhoto ? 'dùng Đồng hồ + ảnh.' : scene ? 'thay cảnh theo giờ.' : 'gửi ảnh.');
 }
 
 function photoDisconnected() {
     if (!sendingPhoto) return;
     sendingPhoto = false;
-    $('photoStatus').textContent = 'Tải ảnh hoặc tranh chưa hoàn tất. Kết nối lại rồi thử gửi lần nữa.';
+    $('photoStatus').textContent = sceneSlotsSaved === null
+        ? 'Tải ảnh hoặc tranh chưa hoàn tất. Kết nối lại rồi thử gửi lần nữa.'
+        : 'Đã lưu ảnh cho ' + sceneSlotsSaved + '/4 khung giờ. Kết nối lại rồi bấm Lưu ảnh cho cả ngày để hoàn tất.';
+    sceneSlotsSaved = null;
 }
 
 async function loadPhoto(file, selectedPreset) {
@@ -317,13 +371,7 @@ async function saveArtwork(restore = false) {
     const slot = Number($('scenePeriod').value);
     const query = scene ? 72 + 8 * slot : 32;
     const label = scene ? scenePeriods[slot][1] : '';
-    let data = new Uint8Array();
-    if (!restore) {
-        const [black, red] = photoPlanes();
-        data = new Uint8Array(black.length + red.length);
-        data.set(black);
-        data.set(red, black.length);
-    }
+    const data = restore ? new Uint8Array() : photoPlaneBytes();
     sendingPhoto = true;
     let saved = false;
     $('photoProgress').value = 0;
@@ -362,20 +410,96 @@ async function saveArtwork(restore = false) {
     }
 }
 
+async function saveAllDayScene() {
+    if (firmware < 0xb6 || !cap?.ready) throw Error('Cập nhật phần mềm và cài chữ, mặt đồng hồ trước.');
+    if (!photo || photoDecoding) throw Error('Chọn ảnh trước khi gửi.');
+    if (!window.confirm('Dùng ảnh này cả ngày? Ảnh sẽ thay ảnh đang dùng ở cả bốn khung giờ.')) return;
+    const token = session;
+    const data = photoPlaneBytes();
+    sceneSlotsSaved = 0;
+    sendingPhoto = true;
+    $('photoProgress').value = 0;
+    try {
+        for (let slot = 0; slot < scenePeriods.length; slot++) {
+            $('photoStatus').textContent = 'Đang lưu ảnh cho cả ngày · ' + slot + '/4 khung giờ đã xong.';
+            await writeSavedObject(73 + 8 * slot, data, (sent, total) => {
+                $('photoProgress').value = Math.floor(95 * (slot + sent / total) / scenePeriods.length);
+            });
+            if (token !== session) return;
+            sceneSlotsSaved++;
+        }
+        sendingPhoto = false;
+        $('photoStatus').textContent = 'Đã lưu ảnh cho cả ngày. Đang chờ màn hình làm mới…';
+        await sync(9);
+        $('photoProgress').value = 100;
+        $('photoStatus').textContent = 'Đã lưu ảnh cho cả ngày và mở Đồng hồ tranh 2.';
+        status($('photoStatus').textContent);
+    } catch (error) {
+        if (token === session) {
+            $('photoStatus').textContent = sceneSlotsSaved === scenePeriods.length
+                ? 'Đã lưu ảnh cho cả ngày. Mở lại mặt Đồng hồ tranh 2 để xem.'
+                : 'Đã lưu ảnh cho ' + sceneSlotsSaved + '/4 khung giờ. ' + customerError(error);
+            status($('photoStatus').textContent);
+        }
+    } finally {
+        if (token === session) {
+            sceneSlotsSaved = null;
+            sendingPhoto = false;
+        }
+    }
+}
+
+async function saveClockPhoto() {
+    if (!photo || photoDecoding) throw Error('Chọn ảnh trước khi gửi.');
+    if (firmware < 0xba || !cap?.ready) throw Error('Cập nhật phần mềm và cài chữ, mặt đồng hồ trước.');
+    const token = session;
+    const data = clockPhotoBytes();
+    let saved = false;
+    sendingPhoto = true;
+    $('photoProgress').value = 0;
+    $('photoStatus').textContent = 'Đang lưu ảnh vào đồng hồ…';
+    try {
+        await writeSavedObject(113, data, (sent, total) => { $('photoProgress').value = Math.floor(sent * 95 / total); });
+        saved = true;
+        $('photoStatus').textContent = 'Đã lưu ảnh. Đang chờ đồng hồ hiển thị…';
+        await sync(14);
+        $('photoProgress').value = 100;
+        $('photoStatus').textContent = 'Đã lưu và hiển thị Đồng hồ + ảnh.';
+        status($('photoStatus').textContent);
+    } catch (error) {
+        if (token === session) $('photoStatus').textContent = saved
+            ? 'Đã lưu ảnh. Mở lại mặt Đồng hồ + ảnh để xem.'
+            : customerError(error);
+        throw error;
+    } finally {
+        if (token === session) sendingPhoto = false;
+    }
+}
+
 function choosePhotoTarget() {
-    const art = usesArtwork(), scene = usesScene();
+    const art = usesArtwork(), scene = usesScene(), clockPhoto = usesClockPhoto();
+    const allDay = usesAllDayScene();
     $('sceneOptions').hidden = !scene;
-    $('photoSharpnessLabel').hidden = !scene;
+    $('scenePeriodLabel').hidden = $('sceneSampleFigure').hidden = allDay;
+    $('photoSharpnessLabel').hidden = !scene && !clockPhoto;
     $('photoCanvas').toggleAttribute('data-scene', scene);
-    $('artPresets').hidden = !art || scene || !artPresetButtons.length;
-    $('photoTitle').textContent = scene ? 'Thay tranh Đồng hồ tranh 2' : art ? 'Thay tranh Đồng hồ tranh' : 'Tải ảnh lên màn hình';
-    $('photoDimensions').textContent = 'Xem trước · ' + (scene ? '240 × 152' : '400 × ' + (art ? 150 : 300));
-    $('photoUsage').textContent = scene
+    $('photoCanvas').toggleAttribute('data-clock-photo', clockPhoto);
+    $('artPresets').hidden = !art || scene || clockPhoto || !artPresetButtons.length;
+    $('photoTitle').textContent = clockPhoto ? 'Chọn ảnh cho Đồng hồ + ảnh' : scene ? 'Thay tranh Đồng hồ tranh 2' : art ? 'Thay tranh Đồng hồ tranh' : 'Tải ảnh lên màn hình';
+    $('photoDimensions').textContent = 'Xem trước · ' + (clockPhoto ? '245 × ' + clockPhotoHeight() : scene ? '240 × 152' : '400 × ' + (art ? 150 : 300));
+    $('photoUsage').textContent = clockPhoto
+        ? 'Ảnh phủ cột bên phải của giờ dọc.'
+        : allDay
+        ? 'Ảnh này sẽ thay cho cả bốn khung giờ.'
+        : scene
         ? 'Đồng hồ tự đổi cảnh theo giờ Việt Nam. Anh có thể phóng to chủ thể để nhìn rõ hơn trong khung nhỏ.'
         : art
         ? 'Ảnh thay phần tranh ở nửa dưới. Giờ và âm lịch vẫn ở nửa trên.'
         : 'Ảnh thay cho mặt đang hiển thị. Để trở lại đồng hồ, chọn một mặt trong thư viện.';
-    $('sendPhoto').textContent = scene ? 'Lưu ảnh cho khung giờ đã chọn' : art ? 'Lưu tranh và mở Đồng hồ tranh' : 'Gửi ảnh lên thiết bị';
+    $('sendPhoto').textContent = clockPhoto ? 'Lưu ảnh và mở Đồng hồ + ảnh'
+        : allDay ? 'Lưu ảnh cho cả ngày'
+        : scene ? 'Lưu ảnh cho khung giờ đã chọn'
+        : art ? 'Lưu tranh và mở Đồng hồ tranh' : 'Gửi ảnh lên thiết bị';
     $('restoreArt').textContent = scene ? 'Khôi phục cảnh mẫu của khung giờ' : 'Khôi phục tranh mẫu';
     $('photoProgress').value = 0;
     $('photoStatus').textContent = '';
@@ -410,12 +534,13 @@ addArtPresets($('artPresetGrid'),window.Clock42ArtPresets);
 addArtPresets($('seasonPresetGrid'),window.Clock42SeasonPresets);
 $('photoTarget').onchange = choosePhotoTarget;
 $('scenePeriod').onchange = updateSceneSample;
-for (const [id,target] of [['changeArt','art'],['changeScene','scene']]) {
+$('sceneSaveMode').onchange = choosePhotoTarget;
+for (const [id,target] of [['changeArt','art'],['changeScene','scene'],['changeClockPhoto','clockPhoto']]) {
     $(id).onclick = () => {
         $('photoTarget').value = target;
         choosePhotoTarget();
         document.querySelector('[data-section="photos"]').click();
-        $(target === 'scene' ? 'scenePeriod' : 'photoFile').focus();
+        $(target === 'scene' ? 'sceneSaveMode' : 'photoFile').focus();
     };
 }
 function centerPhoto() {
@@ -425,7 +550,7 @@ function centerPhoto() {
 function resetPhotoAdjustments() {
     centerPhoto();
     Object.assign(photoView, {rotation: 0, mirror: false, flip: false});
-    $('photoFit').value = 'contain';
+    $('photoFit').value = usesClockPhoto() && clockPhotoHeight() === 248 ? 'cover' : 'contain';
     $('photoColor').value = 'bwr';
     const defaults = photoProcessor.defaults();
     for (const [id, key] of Object.entries(photoSliders))
@@ -495,7 +620,12 @@ function endPhotoDrag(event) {
     if (photoFrame) flushPhotoRender();
 }
 for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) photoCanvas.addEventListener(name, endPhotoDrag);
-$('sendPhoto').onclick = () => action(usesArtwork() ? saveArtwork : sendPhoto);
+$('sendPhoto').onclick = () => action(usesClockPhoto() ? saveClockPhoto
+    : usesAllDayScene() ? saveAllDayScene : usesArtwork() ? saveArtwork : sendPhoto);
+$('clockPhoto').onclick = () => action(async () => {
+    await sync(14);
+    status('Đã mở Đồng hồ + ảnh.');
+});
 $('restoreArt').onclick = () => action(() => saveArtwork(true));
 $('enableSeasonArt').onclick = () => action(enableSeasonArt);
 choosePhotoTarget();

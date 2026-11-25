@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Chọn mặt đồng hồ, cài đặt và gửi ảnh cho Đồng hồ 4.2.">
   <title>Đồng hồ 4.2 · Điều khiển Bluetooth</title>
-  <link rel="stylesheet" href="clock42.css?v=62.43">
+  <link rel="stylesheet" href="clock42.css?v=62.45">
 </head>
 <body>
 <main>
@@ -41,10 +41,12 @@
       <div class="gallery">
         <button id="calendar" class="face" disabled><img src="previews/calendar.png" alt=""><span>Lịch tháng</span></button>
         <button id="bigClock" class="face" disabled><img src="previews/big.png" alt=""><span>Đồng hồ lớn</span></button>
+        <button id="segmentClock" class="face" disabled><img src="previews/segment-clock.png" alt=""><span>Đồng hồ lớn toàn màn</span></button>
         <button id="artCalendar" class="face" disabled><img src="previews/clock-calendar.png" alt=""><span>Đồng hồ lịch</span></button>
         <button id="art1" class="face" disabled><img src="previews/tear.png" alt=""><span>Đồng hồ lịch xé</span></button>
         <button id="art2" class="face" disabled><img src="previews/art.png" alt=""><span>Đồng hồ tranh</span></button>
         <button id="common" class="face" disabled><img src="previews/calendar-2.png" alt=""><span>Đồng hồ lịch 2</span></button>
+        <button id="clockPhoto" class="face" disabled><img src="previews/clock-photo.png" alt=""><span>Đồng hồ + ảnh</span></button>
         <button id="pictureTear" class="face" disabled><img src="previews/art-2.png" alt=""><span>Đồng hồ tranh 2</span></button>
         <button id="countdown" class="face" disabled><img src="previews/countdown.png" alt=""><span>Đồng hồ đếm ngược</span></button>
         <button id="quoteClock" class="face" disabled><img src="previews/quote.png" alt=""><span>Đồng hồ danh ngôn</span></button>
@@ -52,6 +54,7 @@
       <div class="buttons art-action">
         <button id="changeArt" class="secondary" type="button">Thay tranh Đồng hồ tranh</button>
         <button id="changeScene" class="secondary" type="button">Thay tranh Đồng hồ tranh 2</button>
+        <button id="changeClockPhoto" class="secondary" type="button">Chọn ảnh cho Đồng hồ + ảnh</button>
       </div>
     </section>
     <section aria-labelledby="eventTitle">
@@ -155,10 +158,17 @@
           <option value="full">Ảnh toàn màn</option>
           <option value="art">Tranh của mặt Đồng hồ tranh</option>
           <option value="scene">Tranh của mặt Đồng hồ tranh 2</option>
+          <option value="clockPhoto">Ảnh của mặt Đồng hồ + ảnh</option>
         </select>
       </label>
       <div id="sceneOptions" class="scene-options" hidden>
-        <label>Khung giờ muốn thay
+        <label>Cách lưu ảnh
+          <select id="sceneSaveMode">
+            <option value="all">Dùng ảnh này cả ngày</option>
+            <option value="period">Lưu theo khung giờ</option>
+          </select>
+        </label>
+        <label id="scenePeriodLabel" hidden>Khung giờ muốn thay
           <select id="scenePeriod">
             <option value="0">Buổi sáng · 06:00–12:00</option>
             <option value="1">Buổi trưa · 12:00–16:00</option>
@@ -166,7 +176,7 @@
             <option value="3">Buổi tối · 19:00–06:00</option>
           </select>
         </label>
-        <figure>
+        <figure id="sceneSampleFigure" hidden>
           <img id="sceneSample" src="previews/scene-morning.png" alt="Tranh mẫu buổi sáng" width="240" height="152">
           <figcaption class="hint" id="sceneSampleCaption">Mẫu buổi sáng</figcaption>
         </figure>
@@ -327,18 +337,18 @@
   </div>
 </main>
 <script src="resources.js"></script>
-<script src="scenes-data.js?v=62.43"></script>
-<script src="art-presets-data.js?v=62.43"></script>
-<script src="season-art-data.js?v=62.43"></script>
-<script src="app.js?v=62.43"></script>
+<script src="scenes-data.js?v=62.45"></script>
+<script src="art-presets-data.js?v=62.45"></script>
+<script src="season-art-data.js?v=62.45"></script>
+<script src="app.js?v=62.45"></script>
 <script src="../clock-image-processing.js?v=v62.20"></script>
-<script src="photo.js?v=62.43"></script>
-<script src="photo-marks.js?v=62.43"></script>
+<script src="photo.js?v=62.45"></script>
+<script src="photo-marks.js?v=62.45"></script>
 <script src="../daily-quotes-data.js"></script>
-<script src="daily.js?v=62.43"></script>
-<script src="personal-quotes.js?v=62.43"></script>
+<script src="daily.js?v=62.45"></script>
+<script src="personal-quotes.js?v=62.45"></script>
 <script src="../jszip.min.js"></script>
-<script src="ota-package.js?v=62.43"></script>
-<script src="ota.js?v=62.43"></script>
+<script src="ota-package.js?v=62.45"></script>
+<script src="ota.js?v=62.45"></script>
 </body>
 </html>
