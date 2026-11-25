@@ -318,10 +318,10 @@ async function sendPhoto() {
     }
 }
 
-async function ensureArtPack(pack, query, name) {
+async function ensureArtPack(pack, query, name, check = query) {
     if (!pack) throw Error('Chưa tải được ' + name + '.');
     const installed = async () => {
-        const info = await request(query);
+        const info = await request(check);
         return info.length === 10 && info[9] === 1 && value32(info, 5) === pack.crc32;
     };
     if (await installed()) return;
@@ -336,7 +336,8 @@ async function ensureArtPack(pack, query, name) {
 }
 
 async function ensureSceneSamples() {
-    await ensureArtPack(window.Clock42Scenes, 64, 'bốn cảnh mẫu');
+    if (firmware >= 0xbc) await ensureArtPack(window.Clock42CompactScenes, 64, 'bốn cảnh mẫu', 69);
+    else await ensureArtPack(window.Clock42Scenes, 64, 'bốn cảnh mẫu');
 }
 
 async function enableSeasonArt() {
@@ -457,8 +458,12 @@ async function saveClockPhoto() {
     let saved = false;
     sendingPhoto = true;
     $('photoProgress').value = 0;
-    $('photoStatus').textContent = 'Đang lưu ảnh vào đồng hồ…';
     try {
+        if (firmware >= 0xbc) {
+            $('photoStatus').textContent = 'Đang chuẩn bị vùng lưu ảnh…';
+            await ensureSceneSamples();
+        }
+        $('photoStatus').textContent = 'Đang lưu ảnh vào đồng hồ…';
         await writeSavedObject(113, data, (sent, total) => { $('photoProgress').value = Math.floor(sent * 95 / total); });
         saved = true;
         $('photoStatus').textContent = 'Đã lưu ảnh. Đang chờ đồng hồ hiển thị…';
