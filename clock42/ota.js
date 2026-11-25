@@ -8,6 +8,13 @@
     const progress = $('ota420-progress');
     let update, target, awaitingVersion, retry, reading = false, switching = false;
 
+    class DfuLinkError extends Error {}
+
+    function canReconnect(error) {
+        return error instanceof DfuLinkError || (error instanceof DOMException &&
+            (error.name === 'NetworkError' || error.name === 'InvalidStateError'));
+    }
+
     function report(message) {
         $('ota420-status').textContent = message;
         log('Cập nhật phần mềm: ' + message);
@@ -80,11 +87,11 @@
                     resolve(bytes.slice());
                 };
                 characteristic.addEventListener('characteristicvaluechanged', replyHandler);
-                lostHandler = () => reject(Error('Đã mất kết nối Bluetooth.'));
+                lostHandler = () => reject(new DfuLinkError('Đã mất kết nối Bluetooth.'));
                 peer.addEventListener('gattserverdisconnected', lostHandler);
             });
             const deadline = new Promise((_, reject) => {
-                timer = setTimeout(() => reject(Error('Đồng hồ phản hồi quá lâu.')), timeout);
+                timer = setTimeout(() => reject(new DfuLinkError('Đồng hồ phản hồi quá lâu.')), timeout);
             });
             const write = Promise.resolve().then(() => characteristic.writeValueWithResponse(request))
                 .catch(error => {
@@ -164,6 +171,7 @@
 
     function pick() {
         return attempt(async () => {
+            target = undefined;
             target = await pickTarget();
             await writeFirmware(target);
         }, () => target ? upload() : pick());
@@ -174,18 +182,34 @@
         return attempt(() => writeFirmware(target), upload);
     }
 
+    async function prepareTransfer(peer, initPacket) {
+        const reconnectDelays = [600, 1200];
+        for (let attempt = 0; ; attempt++) {
+            try {
+                const server = await peer.gatt.connect();
+                const service = await server.getPrimaryService(ota420DfuService);
+                const control = await service.getCharacteristic(bootControl);
+                const packet = await service.getCharacteristic(bootPacket);
+                await control.startNotifications();
+                const transfer = new Dfu420(peer, control, packet);
+                await transfer.command(0x02, [0, 0], 0, 5000); // Explicit checksums at object boundaries.
+                await transfer.sendInit(initPacket);
+                return transfer;
+            } catch (error) {
+                serviceLog('DFU session setup ' + (attempt + 1) + ': ' + error.name + ': ' + error.message);
+                if (!canReconnect(error) || attempt === reconnectDelays.length) throw error;
+                if (peer.gatt.connected) peer.gatt.disconnect();
+                report('Đang kết nối lại để bắt đầu cập nhật…');
+                await delay(reconnectDelays[attempt]);
+            }
+        }
+    }
+
     async function writeFirmware(peer) {
         awaitingVersion = undefined;
         report('Đang kết nối với đồng hồ để cập nhật…');
         try {
-            const server = await peer.gatt.connect();
-            const service = await server.getPrimaryService(ota420DfuService);
-            const control = await service.getCharacteristic(bootControl);
-            const packet = await service.getCharacteristic(bootPacket);
-            await control.startNotifications();
-            const transfer = new Dfu420(peer, control, packet);
-            await transfer.command(0x02, [0, 0]); // Explicit checksums at object boundaries.
-            await transfer.sendInit(update.initPacket);
+            const transfer = await prepareTransfer(peer, update.initPacket);
             report('Đang cập nhật phần mềm. Giữ nguyên pin cho tới khi hoàn tất.');
             await transfer.sendData(update.data, offset => {
                 progress.value = Math.min(99, Math.floor(100 * offset / update.data.length));
@@ -207,9 +231,9 @@
             this.packet = packet;
         }
 
-        async command(op, payload = [], length = 0) {
+        async command(op, payload = [], length = 0, timeout = 15000) {
             const reply = await exchange(this.peer, this.control, Uint8Array.of(op, ...payload),
-                bytes => bytes[0] === 0x60 && bytes[1] === op, 15000, op === 0x04);
+                bytes => bytes[0] === 0x60 && bytes[1] === op, timeout, op === 0x04);
             if (reply[2] !== 1) {
                 const code = reply[2] === 0x0b ? reply[2] + '/' + reply[3] : reply[2];
                 serviceLog('DFU command ' + op + ', response ' + code);
@@ -238,7 +262,7 @@
                 await Promise.race([writeBlock, new Promise((_, reject) => {
                     timer = setTimeout(() => {
                         transfer.abort();
-                        reject(Error('Truyền dữ liệu vượt thời gian chờ.'));
+                        reject(new DfuLinkError('Truyền dữ liệu vượt thời gian chờ.'));
                     }, 20000);
                 })]);
             } finally {

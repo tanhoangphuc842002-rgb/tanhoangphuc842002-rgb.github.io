@@ -96,6 +96,17 @@ details > summary { cursor: pointer; font-weight: 700; }
 canvas { width: 100%; height: auto; display: block; border: 1px solid var(--line); background: #fff; border-radius: 6px; image-rendering: pixelated; }
 #photoCanvas[data-scene] { width: min(240px, calc(100% - 2px)); box-sizing: content-box; }
 #photoCanvas[data-clock-photo] { width: min(245px, calc(100% - 2px)); box-sizing: content-box; }
+#photoFrame { position: relative; }
+#photoFrame[data-album-crop]::after {
+    content: "";
+    position: absolute;
+    inset: 8.67% 20% 8.67% 18.75%;
+    border: 1px dashed #145394;
+    pointer-events: none;
+}
+#photoAlbum { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 16px; }
+#photoAlbum h3 { margin-top: 0; }
+#photoAlbum .fields, #photoAlbum > label { max-width: 400px; }
 #photoCanvas[data-editable] { touch-action: none; cursor: grab; }
 #photoCanvas[data-editable][data-mark]:not([data-mark="move"]) { cursor: crosshair; }
 .photo-edit-buttons { align-items: center; margin-bottom: 10px; }

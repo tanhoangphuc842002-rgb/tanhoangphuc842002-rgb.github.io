@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Chọn mặt đồng hồ, cài đặt và gửi ảnh cho Đồng hồ 4.2.">
   <title>Đồng hồ 4.2 · Điều khiển Bluetooth</title>
-  <link rel="stylesheet" href="clock42.css?v=62.46">
+  <link rel="stylesheet" href="clock42.css?v=62.48">
 </head>
 <body>
 <main>
@@ -194,7 +194,7 @@
       </div>
       <div class="photo-layout">
         <div class="photo-preview">
-          <canvas id="photoCanvas" width="400" height="300" aria-label="Ảnh xem trước"></canvas>
+          <div id="photoFrame"><canvas id="photoCanvas" width="400" height="300" aria-label="Ảnh xem trước"></canvas></div>
           <p class="hint" id="photoDimensions">Xem trước · 400 × 300</p>
           <p class="hint" id="photoEditHint">Kéo ảnh để căn vị trí hoặc dùng các nút mũi tên.</p>
         </div>
@@ -279,6 +279,33 @@
       </div>
       <progress id="photoProgress" value="0" max="100" aria-label="Tiến độ gửi ảnh"></progress>
       <p id="photoStatus" class="status" role="status"></p>
+      <section id="photoAlbum" aria-labelledby="photoAlbumTitle" hidden>
+        <h3 id="photoAlbumTitle">Ảnh đã lưu trên đồng hồ</h3>
+        <p id="albumCapacity" class="hint">Ba chỗ lưu dùng chung cho Ảnh toàn màn và Đồng hồ + ảnh. Mỗi mặt có lịch đổi ảnh riêng.</p>
+        <label>Chọn ảnh
+          <select id="albumSlot">
+            <option value="1">Ảnh 1</option>
+            <option value="2">Ảnh 2</option>
+            <option value="4" hidden>Ảnh 3</option>
+            <option value="3" hidden>Ảnh cũ của Đồng hồ + ảnh</option>
+          </select>
+        </label>
+        <div class="buttons">
+          <button id="albumSave" type="button" disabled>Lưu ảnh đang chỉnh</button>
+          <button id="albumHold" type="button" class="secondary" disabled>Giữ ảnh này và hiển thị</button>
+          <button id="albumDelete" type="button" class="secondary" disabled>Xóa ảnh đã lưu</button>
+        </div>
+        <div class="fields">
+          <label>Giờ hiện ảnh 1 <input id="albumTime1" type="time" value="06:00"></label>
+          <label>Giờ hiện ảnh 2 <input id="albumTime2" type="time" value="18:00"></label>
+          <label id="albumTime3Label" hidden>Giờ hiện ảnh 3 <input id="albumTime3" type="time" value="12:00"></label>
+        </div>
+        <div class="buttons">
+          <button id="albumSchedule" type="button" disabled>Lưu và bật tự đổi ảnh</button>
+        </div>
+        <p id="albumMode" class="hint"></p>
+        <p id="albumStatus" class="status" role="status"></p>
+      </section>
     </section>
   </div>
 
@@ -341,15 +368,16 @@
 <script src="scenes-compact.js?v=62.46"></script>
 <script src="art-presets-data.js?v=62.46"></script>
 <script src="season-art-data.js?v=62.46"></script>
-<script src="app.js?v=62.46"></script>
+<script src="app.js?v=62.49"></script>
 <script src="../clock-image-processing.js?v=v62.20"></script>
-<script src="photo.js?v=62.46"></script>
+<script src="photo.js?v=62.48"></script>
 <script src="photo-marks.js?v=62.46"></script>
+<script src="album.js?v=62.49"></script>
 <script src="../daily-quotes-data.js"></script>
 <script src="daily.js?v=62.46"></script>
 <script src="personal-quotes.js?v=62.46"></script>
 <script src="../jszip.min.js"></script>
 <script src="ota-package.js?v=62.46"></script>
-<script src="ota.js?v=62.46"></script>
+<script src="ota.js?v=62.47"></script>
 </body>
 </html>

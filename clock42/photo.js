@@ -98,8 +98,9 @@ function sharpenScene({data, width, height}, amount) {
 function renderPhoto() {
     const canvas = $('photoCanvas');
     const scene = usesScene(), clockPhoto = usesClockPhoto();
-    const photoWidth = clockPhoto ? 245 : scene ? 240 : 400;
-    const photoHeight = clockPhoto ? clockPhotoHeight() : scene ? 152 : usesArtwork() ? 150 : 300;
+    const shared = clockPhoto && window.album42Available?.();
+    const photoWidth = clockPhoto && !shared ? 245 : scene ? 240 : 400;
+    const photoHeight = clockPhoto ? shared ? 300 : clockPhotoHeight() : scene ? 152 : usesArtwork() ? 150 : 300;
     if (canvas.width !== photoWidth) canvas.width = photoWidth;
     if (canvas.height !== photoHeight) canvas.height = photoHeight;
     const context = canvas.getContext('2d', {willReadFrequently:true});
@@ -190,6 +191,15 @@ function photoControls() {
     const scene = usesScene(), clockPhoto = usesClockPhoto();
     const supported = connected && firmware >= (clockPhoto ? 0xba : scene ? 0xb6 : 0xb2);
     const art = usesArtwork();
+    const shared = clockPhoto && window.album42Available?.();
+    $('sendPhoto').hidden = !!shared;
+    if (!art) {
+        const hasAlbum = !!window.album42Available?.();
+        $('sendPhoto').textContent = hasAlbum ? 'Hiện ảnh tạm thời' : 'Gửi ảnh lên thiết bị';
+        $('sendPhoto').classList.toggle('secondary', hasAlbum);
+    } else $('sendPhoto').classList.remove('secondary');
+    $('photoFrame').toggleAttribute('data-album-crop', !!shared);
+    $('photoCanvas').toggleAttribute('data-clock-photo', clockPhoto && !shared);
     $('sendPhoto').disabled = busy || !supported || !photo || photoDecoding || (art && !cap.ready);
     $('restoreArt').disabled = busy || !supported || !cap.ready;
     $('restoreArt').hidden = !art || clockPhoto || usesAllDayScene();
@@ -204,9 +214,11 @@ function photoControls() {
     $('photoCanvas').toggleAttribute('data-editable', editing);
     $('photoSharpness').disabled = !editing || (!scene && !clockPhoto);
     if (clockPhoto) {
-        const height = clockPhotoHeight();
-        $('photoDimensions').textContent = 'Xem trước · 245 × ' + height;
-        $('photoUsage').textContent = height === 248
+        const height = shared ? 300 : clockPhotoHeight();
+        $('photoDimensions').textContent = shared ? 'Xem trước · 400 × 300' : 'Xem trước · 245 × ' + height;
+        $('photoUsage').textContent = shared
+            ? 'Khung nét đứt là phần ảnh hiện bên phải giờ. Kéo ảnh để căn phần muốn giữ trong khung.'
+            : height === 248
             ? 'Ảnh phủ cột bên phải của giờ dọc.'
             : 'Cập nhật phần mềm để ảnh phủ hết cột bên phải.';
         if ($('photoCanvas').height !== height) renderPhoto();
@@ -218,6 +230,7 @@ function photoControls() {
     hint.hidden = !connected || (supported && (!art || cap.ready));
     hint.textContent = supported ? 'Vào Cài đặt, chọn Cài chữ và mặt đồng hồ trước.' :
         'Cập nhật phần mềm để ' + (clockPhoto ? 'dùng Đồng hồ + ảnh.' : scene ? 'thay cảnh theo giờ.' : 'gửi ảnh.');
+    window.album42Controls?.();
 }
 
 function photoDisconnected() {
