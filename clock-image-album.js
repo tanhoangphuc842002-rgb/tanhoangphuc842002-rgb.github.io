@@ -10,7 +10,7 @@
   $('clock-image-retry').disabled=reconnecting||ownRunning||!!A.busy()||!!T.busy()||clockImageUploadBusy||!!root.EpdDfuBusy?.()||!pending;
  }
  const supported=()=>typeof deviceProtocol!=='undefined'&&deviceProtocol===PROTOCOL_NRF52&&nrf52ModelDetected&&nrf52ModelId===2&&
-  ((nrf52PanelProfile===0x21&&[242,243,246,247,250,251,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion))||(nrf52PanelProfile===0x29&&[244,245,248,249,252,253,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292].includes(nrf52FirmwareVersion)))&&!!gattServer?.connected;
+  ((nrf52PanelProfile===0x21&&[242,243,246,247,250,251,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292,293,294,295,296,297,298,299,300].includes(nrf52FirmwareVersion))||(nrf52PanelProfile===0x29&&[244,245,248,249,252,253,254,255,256,257,258,259,260,261,262,263,264,266,268,270,272,274,276,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292,293,294,295,296,297,298,299,300].includes(nrf52FirmwareVersion)))&&!!gattServer?.connected;
  function controls(value=false){locked=!!value||!!A.busy()||!!T.busy();for(const e of root.document.querySelectorAll('#clock-album-controls button,#clock-album-controls input,#clock-album-controls select'))e.disabled=locked||!supported();root.ArtClock?.controls();recoveryControls();}
  function status(s){A.say(s);$('clock-image-status').textContent=root.ArtClock?.text(s)||s;}
  function progress(n){$('clock-album-progress').value=n;if(root.ArtClock?.selected())$('clock-image-progress').value=n;}
@@ -34,7 +34,7 @@
  function capture(show){
   assert();const index=slot(),target=getClockImageTarget(),canvas=$('clock-image-canvas');
   if(!clockImageOriginal)throw Error('Chọn và chỉnh một ảnh ở trên trước khi lưu.');
-  if(!target||![148,176,194,250,296].includes(target.width)||canvas.width!==target.width||canvas.height!==128)throw Error('Kích thước ảnh chưa đúng. Chưa ghi dữ liệu.');
+  if(!target||![148,176,194,250,296,300].includes(target.width)||canvas.width!==target.width||canvas.height!==128)throw Error('Kích thước ảnh chưa đúng. Chưa ghi dữ liệu.');
   renderClockImage();const full=root.document.createElement('canvas');full.width=A.geometry().width;full.height=128;
   const ctx=full.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,full.width,128);ctx.drawImage(root.ArtClock?.rawCanvas()||canvas,0,0);
   return {identity:identity(),device:T.key(),index,art:!!root.ArtClock?.selected(),corner:root.ArtClock?.position(),bytes:A.planes(full),show,approved:false};

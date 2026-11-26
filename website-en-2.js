@@ -133,6 +133,8 @@ window.EpdWebsiteEnglish=Object.assign(window.EpdWebsiteEnglish||{},{
   "Chưa hoàn tất:": "Not completed:",
   "Đồng hồ số": "Digital clock",
   "Đồng hồ số lớn.": "Large digital clock.",
+  "Đồng hồ lịch 3": "Calendar Clock 3",
+  "Lịch tháng bên trái. Giờ, âm lịch, nhiệt độ và pin bên phải. Sự kiện sắp tới ở trên.": "Monthly calendar on the left. Time, lunar date, temperature and battery on the right. The next event appears at the top.",
   "Đồng hồ và lịch tháng": "Clock and monthly calendar",
   "Giờ ở bên phải, lịch tháng ở bên trái. Nếu bạn đang bật Việc cần làm, phần lịch sẽ hiện danh sách đó; có thể tắt trong mục Việc cần làm.": "Time on the right, calendar on the left. If To-do list is enabled, tasks replace the calendar; turn it off in To-do list to restore the calendar.",
   "Đồng hồ, thứ và ngày": "Clock, weekday and date",
