@@ -21,7 +21,7 @@
   function requireDevice(expected) {
     const value = snapshot();
     if (!value.connected) throw Error('Đồng hồ đã ngắt kết nối.');
-    if (!value.supported) throw Error('Chưa nhận diện được bộ tài nguyên phù hợp. Công cụ chỉ cài cho nRF52 2.13 / 2.9 hỗ trợ dữ liệu tiếng Việt.');
+    if (!value.supported) throw Error('Chưa có bộ tài nguyên phù hợp cho firmware ' + value.firmware + '. Công cụ v1.2 chỉ cài cho nRF52 2.13 / 2.9 hỗ trợ dữ liệu tiếng Việt; nếu vừa cập nhật firmware, hãy cập nhật cả công cụ cài nhanh.');
     if (expected && value.id !== expected) throw Error('Thiết bị đã thay đổi. Hãy chạy lại từ đầu.');
     return value;
   }

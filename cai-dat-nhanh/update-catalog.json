@@ -3,42 +3,42 @@
   "products": [
     {
       "id": "ce213",
-      "label": "CE 2.13 v20.41",
+      "label": "CE 2.13 v20.43",
       "model": 529,
-      "version": 289,
-      "release": "v20.41",
-      "url": "updates/DH_CE_213_v20.41_ALBUM_DELETE_OTA289_encrypted.zip",
-      "sha256": "98892279dac75352bbccbe427a69af509f1e9488e5f7de0d69f19b62a00818db",
+      "version": 297,
+      "release": "v20.43",
+      "url": "updates/DH_CE_213_v20.43_CALENDAR3_EVENT_DATE_OTA297_encrypted.zip",
+      "sha256": "7075c177075e049fb92c7cb4e2ea5e6e642f2c0246407d3ab8b341b9af7d6456",
       "resource_profile": 33
     },
     {
       "id": "noce213",
-      "label": "no CE 2.13 v19.25",
+      "label": "no CE 2.13 v19.27",
       "model": 530,
-      "version": 290,
-      "release": "v19.25",
-      "url": "updates/DH_no_CE_213_v19.25_ALBUM_DELETE_OTA290_encrypted.zip",
-      "sha256": "a69650626124197adaa1506b1b5c682f2d912ce78ce548e72f4c734c3b7190c3",
+      "version": 298,
+      "release": "v19.27",
+      "url": "updates/DH_no_CE_213_v19.27_CALENDAR3_EVENT_DATE_OTA298_encrypted.zip",
+      "sha256": "752f963f67b71c218ec52b52d02d0d2f76edcef79b64eb24d40697594da46e5c",
       "resource_profile": 33
     },
     {
       "id": "ce290",
-      "label": "CE 2.9 v19.24",
+      "label": "CE 2.9 v19.26",
       "model": 657,
-      "version": 291,
-      "release": "v19.24",
-      "url": "updates/DH_290_CE_v19.24_ALBUM_DELETE_OTA291_encrypted.zip",
-      "sha256": "1c3f0a15e71a296528b4a12206e42f7afaaabf70b32a2788c6a0e75fb78325d5",
+      "version": 299,
+      "release": "v19.26",
+      "url": "updates/DH_290_CE_v19.26_CALENDAR3_EVENT_DATE_OTA299_encrypted.zip",
+      "sha256": "678871792e23d99e3bca3d12e60f95da254d3b480ae20ecab906f4dc9b92563b",
       "resource_profile": 41
     },
     {
       "id": "noce290",
-      "label": "no CE 2.9 v7.25",
+      "label": "no CE 2.9 v7.27",
       "model": 658,
-      "version": 292,
-      "release": "v7.25",
-      "url": "updates/DH_290_no_CE_v7.25_ALBUM_DELETE_OTA292_encrypted.zip",
-      "sha256": "a6259fd4c15d8089361974f3a52655ef52d4acc523b8e59776e5d32f186bf415",
+      "version": 300,
+      "release": "v7.27",
+      "url": "updates/DH_290_no_CE_v7.27_CALENDAR3_EVENT_DATE_OTA300_encrypted.zip",
+      "sha256": "8694a832154ed2617e6b17dca55cdb026bbacd64d0fb1b28440b07bacd1b1e75",
       "resource_profile": 41
     }
   ]
